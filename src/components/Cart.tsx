@@ -1,11 +1,12 @@
 // src/components/Cart.tsx
 import React from 'react';
 import { LocalTransactionItem } from '../lib/db/schema';
+import { formatCurrency } from '@/lib/utils';
 
 interface CartProps {
   items: (LocalTransactionItem & { productName: string })[];
-  onUpdateQuantity: (productId: string, newQuantity: number) => void;
-  onRemoveItem: (productId: string) => void;
+  onUpdateQuantity: (productCode: string, newQuantity: number) => void;
+  onRemoveItem: (productCode: string) => void;
 }
 
 export const Cart: React.FC<CartProps> = ({ 
@@ -16,19 +17,19 @@ export const Cart: React.FC<CartProps> = ({
   const total = items.reduce((sum, item) => sum + item.totalPrice, 0);
 
   return (
-    <div className="w-full max-w-md border rounded-lg p-4">
-      <h2 className="text-xl font-bold mb-4">Shopping Cart</h2>
+    <div className="w-full max-w-md p-4 border rounded-lg">
+      <h2 className="mb-4 text-xl font-bold">Shopping Cart</h2>
       
       {items.length === 0 ? (
-        <p className="text-gray-500 text-center">Cart is empty</p>
+        <p className="text-center text-gray-500">Cart is empty</p>
       ) : (
         <div className="space-y-4">
           {items.map(item => (
-            <div key={item.productId} className="flex justify-between items-center">
+            <div key={item.productCode} className="flex items-center justify-between">
               <div className="flex-1">
                 <h3 className="font-medium">{item.productName}</h3>
-                <p className="text-sm text-gray-600">
-                  ${item.unitPrice.toFixed(2)} x {item.quantity}
+                <p className="text-xs text-gray-600">
+                  {formatCurrency(item.unitPrice, 'NGN')} x {item.quantity}
                 </p>
               </div>
               
@@ -37,11 +38,11 @@ export const Cart: React.FC<CartProps> = ({
                   type="number"
                   min="1"
                   value={item.quantity}
-                  onChange={(e) => onUpdateQuantity(item.productId, parseInt(e.target.value))}
+                  onChange={(e) => onUpdateQuantity(item.productCode, parseInt(e.target.value))}
                   className="w-16 p-1 border rounded"
                 />
                 <button
-                  onClick={() => onRemoveItem(item.productId)}
+                  onClick={() => onRemoveItem(item.productCode)}
                   className="text-red-500 hover:text-red-700"
                 >
                   Remove
@@ -50,10 +51,10 @@ export const Cart: React.FC<CartProps> = ({
             </div>
           ))}
           
-          <div className="pt-4 border-t mt-4">
+          <div className="pt-4 mt-4 border-t">
             <div className="flex justify-between text-xl font-bold">
               <span>Total:</span>
-              <span>${total.toFixed(2)}</span>
+              <span>{formatCurrency(total, 'NGN')}</span>
             </div>
           </div>
         </div>

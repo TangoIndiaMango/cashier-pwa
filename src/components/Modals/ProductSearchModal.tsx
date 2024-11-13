@@ -8,62 +8,76 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useState } from "react";
-
-// Dummy data
-const dummyProducts = [
-  {
-    id: 1,
-    code: "TS001",
-    name: "T-Shirt",
-    price: 2500,
-    size: "L",
-    color: "Blue",
-    stock: 50
-  },
-  {
-    id: 2,
-    code: "JN001",
-    name: "Jeans",
-    price: 5000,
-    size: "32",
-    color: "Black",
-    stock: 30
-  }
-];
+import { useStore } from "@/hooks/useStore";
+import { LocalProduct } from "@/lib/db/schema";
+import { useState, useEffect } from "react";
+import useDebounce from "@/hooks/useDebounce"; // Import the debounce hook
+import { formatCurrency } from "@/lib/utils";
 
 const ProductSearchModal = ({ isOpen, onClose, onAddProduct }) => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedProduct, setSelectedProduct] = useState<any>(null);
-  const [amount, setAmount] = useState(1);
+  const [searchTerm, setSearchTerm] = useState(""); // State to hold the search term
+  const [selectedProduct, setSelectedProduct] = useState<LocalProduct | null>(
+    null
+  );
+  const [filteredProducts, setFilteredProducts] = useState<LocalProduct[]>([]);
+  const [quantity, setQuantity] = useState(1);
 
-  const handleSearch = (code) => {
-    console.log(code);
-    const product = dummyProducts.find(
-      (p) => p.code.toLowerCase() === code.toLowerCase()
-    );
-    if (product) {
-      setSelectedProduct(product);
-    }
+  const { products, loading } = useStore();
+
+  // Use debounced value for the search term
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+
+  // Normalize string for better matching (trim spaces, convert to lower case)
+  const normalizeString = (str: string) => {
+    return str?.trim()?.toLowerCase()?.replace(/\s+/g, " ");
   };
+
+  // Create a search pattern using regex for more flexible matching
+  const searchPattern = new RegExp(
+    `\\b${debouncedSearchTerm.replace(/[\W_]+/g, "\\$&")}\\b`,
+    "i"
+  );
+
+  useEffect(() => {
+    if (debouncedSearchTerm) {
+      const filtered = products.filter((product) => {
+        const productNameNormalized = normalizeString(product?.product_name);
+        const brandNameNormalized = normalizeString(product?.brand_name);
+        const productCodeNormalized = normalizeString(
+          product?.product_code || ""
+        );
+
+        // Use RegExp to check for matches in product name, brand, or product code
+        return (
+          searchPattern.test(productNameNormalized) ||
+          searchPattern.test(brandNameNormalized) ||
+          searchPattern.test(productCodeNormalized)
+        );
+      });
+      setFilteredProducts(filtered);
+    } else {
+      setFilteredProducts([]);
+    }
+  }, [debouncedSearchTerm, products]);
 
   const handleAdd = () => {
     if (selectedProduct) {
       onAddProduct({
         ...selectedProduct,
-        quantity: amount,
-        total: selectedProduct.price * amount
+        quantity,
+        total: selectedProduct.retail_price * quantity
       });
+      // updateAvailableQuantity(selectedProduct.product_code, quantity);
       onClose();
       setSelectedProduct(null);
-      setAmount(1);
-      setSearchTerm("");
+      setQuantity(1);
+      setSearchTerm(""); // Clear search term after adding the product
     }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+    <Dialog open={isOpen} onOpenChange={onClose} >
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Add Product</DialogTitle>
           <DialogDescription className="text-gray-500">
@@ -75,18 +89,38 @@ const ProductSearchModal = ({ isOpen, onClose, onAddProduct }) => {
             <Input
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  handleSearch(searchTerm);
-                }
-              }}
-              className=""
+              className="placeholder:text-gray-500"
               placeholder="Type product code and press enter to search"
             />
           </div>
+          {loading ? (
+            <div className="flex items-center justify-center">
+              <p className="text-gray-500">Loading...</p>
+            </div>
+          ) : (
+            <div className="grid gap-2 overflow-auto max-h-40">
+              {filteredProducts.splice(0, 9).map((product) => (
+                <div
+                  key={product.id}
+                  className="p-2 border rounded cursor-pointer hover:bg-gray-100"
+                  onClick={() => setSelectedProduct(product)}
+                >
+                  <p className="font-medium">{product.product_name}</p>
+                  <p className="text-sm text-gray-500">{product.brand_name}</p>
+                  <p className="text-sm text-gray-500">
+                    SKU: {product.product_code}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
 
           {selectedProduct && (
             <>
+              <div>
+                <Label>Product Name</Label>
+                <Input value={selectedProduct.product_name} disabled />
+              </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label>Size</Label>
@@ -99,19 +133,29 @@ const ProductSearchModal = ({ isOpen, onClose, onAddProduct }) => {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label>Amount</Label>
+                  <Label>Quantity</Label>
                   <Input
                     type="number"
-                    value={amount}
-                    onChange={(e) => setAmount(parseInt(e.target.value) || 1)}
+                    value={quantity}
+                    onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
                     min={1}
-                    max={selectedProduct.stock}
+                    max={selectedProduct.available_quantity}
                   />
                 </div>
                 <div>
-                  <Label>Items left</Label>
-                  <Input value={selectedProduct.stock} disabled />
+                  <Label>Items Left</Label>
+                  <Input
+                    disabled
+                    value={selectedProduct.available_quantity}
+                  />
                 </div>
+              </div>
+              <div>
+                <Label>Price</Label>
+                <Input
+                  value={formatCurrency(selectedProduct.retail_price, 'NGN')}
+                  disabled
+                />
               </div>
             </>
           )}

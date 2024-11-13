@@ -1,6 +1,6 @@
 // src/lib/api/localApi.ts
 import { db } from '../db/schema';
-import type { LocalProduct, LocalTransaction } from '../db/schema';
+import type { LocalCustomer, LocalProduct, LocalTransaction } from '../db/schema';
 
 export class LocalApi {
   // Product Operations
@@ -12,23 +12,33 @@ export class LocalApi {
     return db.products.get(id);
   }
 
-  static async getProductByBarcode(barcode: string): Promise<LocalProduct | undefined> {
-    return db.products.where({ barcode }).first();
+  static async getProductByBrandName(brand_name: string): Promise<LocalProduct | undefined> {
+    return db.products.where({ brand_name }).first();
   }
 
-  static async updateProductQuantity(id: string, quantityChange: number): Promise<void> {
+  static async getProductByCode(product_code: string): Promise<LocalProduct | undefined> {
+    return db.products.where({ product_code }).first();
+  }
+
+  static async getProductByBrandID(brandId: string): Promise<LocalProduct | undefined> {
+    return db.products.where({ brandId }).first();
+  }
+
+  static async updateProductQuantity(product_code: string, quantityChange: number): Promise<void> {
     await db.transaction('rw', db.products, async () => {
-      const product = await db.products.get(id);
+
+      const product = await db.products.where("product_code").equals(String(product_code)).first();
+
       if (!product) throw new Error('Product not found');
-      
-      if (product.currentQuantity + quantityChange < 0) {
+
+      if (product.available_quantity + quantityChange < 0) {
         throw new Error('Insufficient quantity');
       }
 
-      await db.products.update(id, {
-        currentQuantity: product.currentQuantity + quantityChange,
-        isModified: true,
-        version: product.version + 1
+      await db.products.update(product.id, {
+        available_quantity: product.available_quantity + quantityChange,
+        // isModified: true,
+        // version: product.version + 1
       });
     });
   }
@@ -39,7 +49,8 @@ export class LocalApi {
     await db.transaction('rw', [db.transactions, db.products], async () => {
       // Update product quantities
       for (const item of transaction.items) {
-        await this.updateProductQuantity(item.productId, -item.quantity);
+        console.log("create transaction", item)
+        await this.updateProductQuantity(item.productCode, -item.quantity);
       }
 
       // Create transaction
@@ -56,10 +67,17 @@ export class LocalApi {
 
   static async getUnsynedTransactions(): Promise<LocalTransaction[]> {
     return await db.transactions.where('synced').equals('false').toArray();
-
   }
 
   static async markTransactionSynced(id: string): Promise<void> {
     await db.transactions.update(id, { synced: 'true' });
+  }
+
+  static async getCustomers(): Promise<LocalCustomer[]> {
+    return await db.customers.toArray();
+  }
+
+  static async getAllTransactions(): Promise<LocalTransaction[]> {
+    return await db.transactions.toArray();
   }
 }

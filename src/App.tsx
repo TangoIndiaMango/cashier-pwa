@@ -2,7 +2,7 @@ import React from "react";
 import { Routes, Route } from "react-router-dom";
 
 import Layout from "./components/Layout";
-import POSPage from "./pages/Post";
+import POSPage from "./help/Post";
 import POSSystem from "./pages/LandingPage";
 
 function App() {

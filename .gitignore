@@ -26,3 +26,4 @@ package-lock.json
 tsconfig.node.tsbuildinfo
 tsconfig.tsbuildinfo
 vite.config.js
+src/help

@@ -14,6 +14,8 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
+import { formatCurrency } from "@/lib/utils";
+import { DialogDescription } from "@radix-ui/react-dialog";
 import { useState } from "react";
 
 const paymentMethods = [
@@ -29,7 +31,7 @@ const paymentMethods = [
   "Paystack"
 ];
 
-const PaymentMethodModal = ({ isOpen, onClose, total }) => {
+const PaymentMethodModal = ({ isOpen, onClose, total, onPaymentSubmit }) => {
   const [paymentEntries, setPaymentEntries] = useState([
     { method: "", amount: "" }
   ]);
@@ -62,19 +64,24 @@ const PaymentMethodModal = ({ isOpen, onClose, total }) => {
 
     // Process payments
     console.log("Processing payments:", paymentEntries);
+    onPaymentSubmit(paymentEntries);
     onClose();
     setPaymentEntries([{ method: "", amount: "" }]);
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Payment Method</DialogTitle>
+          <DialogDescription className="text-sm text-gray-500">
+            Payment method
+          </DialogDescription>
         </DialogHeader>
-        <div className="py-4">
+
+        <div className="">
           <div className="mb-4">
-            <Label>Total: ₦{total.toLocaleString()}</Label>
+            <Label>Total: {formatCurrency(total, "NGN")}</Label>
           </div>
 
           {paymentEntries.map((entry, index) => (
@@ -89,7 +96,10 @@ const PaymentMethodModal = ({ isOpen, onClose, total }) => {
                     }
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select method" />
+                      <SelectValue
+                        placeholder="Select method"
+                        className="placeholder:text-gray-500"
+                      />
                     </SelectTrigger>
                     <SelectContent>
                       {paymentMethods.map((method) => (
@@ -105,10 +115,11 @@ const PaymentMethodModal = ({ isOpen, onClose, total }) => {
                   <Input
                     type="number"
                     value={entry.amount}
+                    className="placeholder:text-gray-500"
                     onChange={(e) =>
                       updatePaymentEntry(index, "amount", e.target.value)
                     }
-                    placeholder="0000"
+                    placeholder="NGN"
                   />
                 </div>
               </div>

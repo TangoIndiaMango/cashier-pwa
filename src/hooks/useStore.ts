@@ -1,16 +1,17 @@
 // src/hooks/useStore.ts
 import { useEffect, useState } from 'react';
 import { LocalApi } from '../lib/api/localApi';
-import type { LocalProduct, LocalTransaction } from '../lib/db/schema';
+import { LocalCustomer, type LocalProduct, type LocalTransaction } from '../lib/db/schema';
 import { SyncManager } from '../lib/sync/syncManager';
 import { useOnlineStatus } from './useOnlineStatus';
 
-export function useStore(storeId: string) {
+export function useStore() {
   const [products, setProducts] = useState<LocalProduct[]>([]);
+  const [customers, setCustomers] = useState<LocalCustomer[]>([])
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const { isOnline } = useOnlineStatus();
-  const syncManager = SyncManager.getInstance(storeId);
+  const syncManager = SyncManager.getInstance();
   // const recentTimeStamp = new Date().toISOString();
 
   const loadProducts = async () => {
@@ -21,6 +22,11 @@ export function useStore(storeId: string) {
       const localProducts = await LocalApi.getAllProducts();
       setProducts(localProducts);
       console.log('Loaded local products');
+
+      // Load customers
+      const localCustomers = await LocalApi.getCustomers();
+      setCustomers(localCustomers);
+      console.log('Loaded local customers');
 
     } catch (err) {
       setError(err as Error);
@@ -38,6 +44,16 @@ export function useStore(storeId: string) {
     }
   }
 
+  // const updateAvailableQuantity = (productCode: string, quantity: number) => {
+  //   setProducts((prevProducts) =>
+  //     prevProducts.map((product) =>
+  //       product.product_code === productCode
+  //         ? { ...product, available_quantity: quantity }
+  //         : product
+  //     )
+  //   );
+  // };
+
   useEffect(() => {
     triggerSync();
   }, [isOnline])
@@ -54,10 +70,12 @@ export function useStore(storeId: string) {
 
   return {
     products,
+    customers,
     loading,
     error,
     createTransaction,
     refreshProducts: loadProducts,
     triggerSync,
+    // updateAvailableQuantity,
   }
 }

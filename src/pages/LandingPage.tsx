@@ -1,57 +1,63 @@
+// components/POSSystem.tsx
+import { Cart } from "@/components/Cart";
+import CustomerComponent from "@/components/CustomerInfo";
 import PaymentMethodModal from "@/components/Modals/PaymentModal";
 import ProductSearchModal from "@/components/Modals/ProductSearchModal";
+import { CurrentTransactionTable } from "@/components/TransactionTable";
+import { Button } from "@/components/ui/button";
+import { useCart } from "@/hooks/useCart";
+import { useTransaction } from "@/hooks/useTransaction";
+import { usePayment } from "@/hooks/usePayment";
+import { useCustomer } from "@/hooks/useCustomer";
+import { formatCurrency } from "@/lib/utils";
 import { Search, ShoppingBag } from "lucide-react";
+import { LocalCustomer } from "@/lib/db/schema";
 import { useState } from "react";
 
-// Dummy data for products and customers
-const dummyProducts = [
-  {
-    id: 1,
-    name: "T-Shirt",
-    code: "TS001",
-    price: 2500,
-    size: "L",
-    color: "Blue",
-    stock: 50
-  },
-  {
-    id: 2,
-    name: "Jeans",
-    code: "JN001",
-    price: 5000,
-    size: "32",
-    color: "Black",
-    stock: 30
-  }
-];
-
-const dummyCustomers = [
-  {
-    id: 1,
-    firstName: "John",
-    lastName: "Doe",
-    gender: "Male",
-    age: 30,
-    phone: "1234567890",
-    email: "john@example.com"
-  }
-];
-
-// Main POS Component
 const POSSystem = () => {
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
-  const [currentTransaction, setCurrentTransaction] = useState<any>([]);
+  const {
+    cartItems,
+    total,
+    addProductToCart,
+    updateQuantity,
+    removeItemFromCart,
+    setTotal,
+    setCartItems
+  } = useCart();
+  const { transactions, submitTransaction } = useTransaction();
+  const {
+    paymentStatus,
+    setPaymentStatus,
+    paymentMethod,
+    handlePaymentSubmit,
+    setPaymentMethod
+  } = usePayment();
+  const { customer, handleAddCustomer, setCustomer } = useCustomer();
 
-  const [total, setTotal] = useState(0);
+  const handleSubmit = async () => {
+    const data = {
+      paymentMethods: paymentMethod,
+      totalAmount: total,
+      customer: customer as LocalCustomer,
+      status: paymentStatus ? paymentStatus.toUpperCase() : "DRAFT",
+      items: cartItems
+    };
 
-  const handleAddProduct = (product) => {
-    setCurrentTransaction([...currentTransaction, product]);
-    setTotal(total + product.total);
+    await submitTransaction(data);
+    setTotal(0);
+    setCartItems([]);
+    setPaymentMethod([]);
+    setCustomer(null);
+    setPaymentStatus(null);
+
+    alert("Transaction completed successfully!");
   };
 
   return (
     <div className="flex h-screen bg-gray-100">
+      {/* Main Content */}
       <div className="flex flex-col flex-1 p-6 space-y-6">
         {/* Header Section */}
         <header className="flex items-center justify-between">
@@ -61,6 +67,7 @@ const POSSystem = () => {
               You're viewing the current transaction below
             </p>
           </div>
+
           <div className="flex space-x-4">
             <div className="relative">
               <Search className="absolute text-gray-400 transform -translate-y-1/2 left-3 top-1/2" />
@@ -82,73 +89,38 @@ const POSSystem = () => {
 
         {/* Transaction Table */}
         <div className="flex-1 p-6 bg-white rounded-lg shadow">
-          {currentTransaction.length === 0 ? (
+          {!transactions ? (
             <div className="flex flex-col items-center justify-center h-full text-gray-500">
               <ShoppingBag size={48} />
               <p className="mt-2">No data available</p>
             </div>
           ) : (
-            <table className="w-full">{/* Add table content here */}</table>
+            <div className="w-full">
+              <CurrentTransactionTable data={transactions} />
+            </div>
           )}
         </div>
 
         {/* Customer Information */}
         <div className="p-6 bg-white rounded-lg shadow">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold">Customer Information</h2>
-            <div className="relative">
-              <Search className="absolute text-gray-400 transform -translate-y-1/2 left-3 top-1/2" />
-              <input
-                type="text"
-                placeholder="Search for customer..."
-                className="w-64 py-2 pl-10 pr-4 border rounded-lg"
-              />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Recipient's First Name
-              </label>
-              <input
-                type="text"
-                className="block w-full p-2 mt-1 border rounded-lg"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Recipient's Last Name
-              </label>
-              <input
-                type="text"
-                className="block w-full p-2 mt-1 border rounded-lg"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Gender
-              </label>
-              <select className="block w-full p-2 mt-1 border rounded-lg">
-                <option>--Select gender--</option>
-                <option>Male</option>
-                <option>Female</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Age
-              </label>
-              <input
-                type="number"
-                className="block w-full p-2 mt-1 border rounded-lg"
-              />
-            </div>
+          <CustomerComponent onAddCustomer={handleAddCustomer} />
+          <div className="mt-4">
+            <h3 className="text-xl font-semibold">Added Customer</h3>
+            <p className="capitalize">
+            {customer?.firstname} {customer?.lastname} - {customer?.email}
+            </p>
           </div>
         </div>
       </div>
 
-      {/* Right Sidebar */}
-      <div className="p-6 bg-white border-l w-96">
+      {/* Sidebar */}
+      <div className="p-6 space-y-12 bg-white border-l w-96">
+        <Cart
+          items={cartItems}
+          onUpdateQuantity={updateQuantity}
+          onRemoveItem={removeItemFromCart}
+        />
+
         <div className="space-y-6">
           <div>
             <h3 className="mb-2 text-lg font-semibold">
@@ -165,15 +137,15 @@ const POSSystem = () => {
           <div className="space-y-2">
             <div className="flex justify-between">
               <span>Total Items</span>
-              <span>0</span>
+              <span>{cartItems.length}</span>
             </div>
             <div className="flex justify-between">
               <span>Subtotal</span>
-              <span>₦0.00</span>
+              <span>₦{total}</span>
             </div>
             <div className="flex justify-between font-bold">
               <span>TOTAL</span>
-              <span>₦0.00</span>
+              <span>{formatCurrency(total, "NGN")}</span>
             </div>
           </div>
 
@@ -184,17 +156,21 @@ const POSSystem = () => {
             >
               Select payment method
             </button>
-            <select className="w-full p-2 border rounded-lg">
+            <select
+              className="w-full p-2 border rounded-lg"
+              value={paymentStatus || "Draft"}
+              onChange={(e) => setPaymentStatus(e.target.value)}
+            >
               <option>Order Status</option>
               <option>Draft</option>
               <option>Completed</option>
             </select>
-            <button className="w-full py-2 text-white bg-blue-600 rounded-lg">
+            <Button onClick={handleSubmit} className="w-full py-2">
               Submit & Print Receipt
-            </button>
-            <button className="w-full py-2 text-blue-600 border border-blue-600 rounded-lg">
+            </Button>
+            <Button className="w-full py-2 text-blue-600 border border-blue-600 rounded-lg">
               Submit & Print Gift Receipt
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -202,13 +178,14 @@ const POSSystem = () => {
       <ProductSearchModal
         isOpen={showAddProduct}
         onClose={() => setShowAddProduct(false)}
-        onAddProduct={handleAddProduct}
+        onAddProduct={addProductToCart}
       />
 
       <PaymentMethodModal
         isOpen={showPayment}
         onClose={() => setShowPayment(false)}
         total={total}
+        onPaymentSubmit={handlePaymentSubmit}
       />
     </div>
   );

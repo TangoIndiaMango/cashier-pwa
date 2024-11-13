@@ -37,7 +37,7 @@ export class LocalApi {
 
       await db.products.update(product.id, {
         available_quantity: product.available_quantity + quantityChange,
-        // isModified: true,
+        isModified: true,
         // version: product.version + 1
       });
     });
@@ -49,7 +49,7 @@ export class LocalApi {
     await db.transaction('rw', [db.transactions, db.products], async () => {
       // Update product quantities
       for (const item of transaction.items) {
-        console.log("create transaction", item)
+        
         await this.updateProductQuantity(item.productCode, -item.quantity);
       }
 

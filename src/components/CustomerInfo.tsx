@@ -127,19 +127,19 @@ const CustomerComponent: React.FC<CustomerComponentProps> = ({
     setCustomerDetails({
       firstname: customer.firstname,
       lastname: customer.lastname,
-      gender: null, // You might want to update this based on your data
+      gender: null,
       age: customer.age,
       phoneno: customer.phoneno,
       email: customer.email,
-      country: null, // You might want to update this based on your data
-      state: null, // You might want to update this based on your data
-      city: null, // You might want to update this based on your data
-      address: "", // You might want to update this based on your data
-      apply_loyalty_point: false, // This could be inferred from customer data if needed
-      apply_credit_note_point: false // Same as above
+      country: null,
+      state: null,
+      city: null,
+      address: "",
+      apply_loyalty_point: false,
+      apply_credit_note_point: false
     });
-    setSearchQuery(""); // Optionally clear the search query after selecting a customer
-    setFilteredCustomers([]); // Clear search results
+    setSearchQuery("");
+    setFilteredCustomers([]);
   };
 
   return (

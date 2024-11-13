@@ -35,7 +35,7 @@ export class SyncManager {
     //   this.scheduleMidnightSync();
     // }, timeUntilMidnight);
 
-    const delay = 5 * 60 * 1000;
+    const delay = 30 * 60 * 1000;
     setInterval(() => {
       console.log("Syncing...");
       this.sync();
@@ -55,11 +55,11 @@ export class SyncManager {
       this.syncInProgress = true;
 
       // 1. Get last sync timestamp
-      // const lastSyncProduct = await db.products
-      //   .orderBy('lastSyncAt')
-      //   .last();
-      // const lastSyncTimestamp = lastSyncProduct?.lastSyncAt.toISOString() || new Date(0).toISOString();
-      // console.log("Last Sync Timestamp", lastSyncTimestamp)
+      const lastSyncProduct = await db.products
+        .orderBy('lastSyncAt')
+        .last();
+      const lastSyncTimestamp = lastSyncProduct?.lastSyncAt.toISOString() || new Date(0).toISOString();
+      console.log("Last Sync Timestamp", lastSyncTimestamp)
 
       // 2. Sync products
       const remoteProducts = await RemoteApi.fetchStoreProducts();
@@ -98,7 +98,52 @@ export class SyncManager {
       console.log("Unsynced Transactions", unsynedTransactions)
       if (unsynedTransactions.length > 0) {
         // TODO: SYNC LOCAL TRANSACTION
-        // await RemoteApi.syncTransactions(this.storeId, unsynedTransactions);
+        const transactiontoSync = unsynedTransactions.map((transaction) => {
+          return {
+            country: null,
+            state: null,
+            city: null,
+            address: null,
+            apply_loyalty_point: false,
+            apply_credit_note_point: false,
+            payable_amount: '',
+            exact_total_amount: transaction.totalAmount,
+            payment_type: '',
+            payment_methods: transaction.paymentMethods.map((method) => {
+              return {
+                mode_of_payment_id: method.method,
+                amount: method.amount,
+                mode_of_payment_pos_id: 1
+              }
+            }),
+            status: transaction.status,
+            payment_status: transaction.status,
+            total_price: transaction.totalAmount,
+            receipt_no: transaction.id,
+            products: transaction.items.map((item: any) => {
+              return {
+                id: item.productId,
+                new_price: item.unitPrice,
+                ean: item.productCode,
+                quantity_ordered: item.quantity,
+                color: item.color || "red",
+                size: item.size || "XL",
+                total: item.totalPrice,
+                discount_id: item.discountId || 1
+              }
+            }),
+            firstname: transaction?.customer?.firstname || null,
+            lastname: transaction?.customer?.lastname || null,
+            gender: transaction?.customer?.lastname || null,
+            age: transaction?.customer?.age || null,
+            phoneno: transaction?.customer?.phoneno || null,
+            email: transaction?.customer?.email || null
+          }
+        })
+
+        console.log("Transaction to Sync", transactiontoSync)
+        return;
+        await RemoteApi.syncTransactions(unsynedTransactions as any);
 
         // Mark transactions as synced
         await db.transaction('rw', db.transactions, async () => {

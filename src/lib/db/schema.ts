@@ -13,6 +13,8 @@ export interface LocalProduct {
   ean: string;
   size: string;
   color: string;
+  lastSyncAt: Date;
+  isModified: boolean;
 }
 
 export interface LocalTransaction {
@@ -27,6 +29,7 @@ export interface LocalTransaction {
 }
 
 export interface LocalTransactionItem {
+  productId: string;
   productName: string;
   productCode: string;
   quantity: number;
@@ -55,7 +58,7 @@ export class StoreDatabase extends Dexie {
     super('StoreDB');
 
     this.version(1).stores({
-      products: 'id, product_name, product_code, brand_name, brand_id, size',
+      products: 'id, product_name, product_code, brand_name, brand_id, size, lastSyncAt',
       transactions: 'id, createdAt, synced',
       customers: 'id, firstname, lastname, email, phoneno',
     });

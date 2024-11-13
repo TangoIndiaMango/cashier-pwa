@@ -8,11 +8,11 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import useDebounce from "@/hooks/useDebounce"; // Import the debounce hook
 import { useStore } from "@/hooks/useStore";
 import { LocalProduct } from "@/lib/db/schema";
-import { useState, useEffect } from "react";
-import useDebounce from "@/hooks/useDebounce"; // Import the debounce hook
 import { formatCurrency } from "@/lib/utils";
+import { useEffect, useState } from "react";
 
 const ProductSearchModal = ({ isOpen, onClose, onAddProduct }) => {
   const [searchTerm, setSearchTerm] = useState(""); // State to hold the search term
@@ -22,7 +22,7 @@ const ProductSearchModal = ({ isOpen, onClose, onAddProduct }) => {
   const [filteredProducts, setFilteredProducts] = useState<LocalProduct[]>([]);
   const [quantity, setQuantity] = useState(1);
 
-  const { products, loading } = useStore();
+  const { products, loading, updateAvailableQuantity } = useStore();
 
   // Use debounced value for the search term
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
@@ -67,7 +67,7 @@ const ProductSearchModal = ({ isOpen, onClose, onAddProduct }) => {
         quantity,
         total: selectedProduct.retail_price * quantity
       });
-      // updateAvailableQuantity(selectedProduct.product_code, quantity);
+      updateAvailableQuantity(selectedProduct.product_code, quantity);
       onClose();
       setSelectedProduct(null);
       setQuantity(1);
@@ -76,7 +76,7 @@ const ProductSearchModal = ({ isOpen, onClose, onAddProduct }) => {
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose} >
+    <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Add Product</DialogTitle>
@@ -144,16 +144,13 @@ const ProductSearchModal = ({ isOpen, onClose, onAddProduct }) => {
                 </div>
                 <div>
                   <Label>Items Left</Label>
-                  <Input
-                    disabled
-                    value={selectedProduct.available_quantity}
-                  />
+                  <Input disabled value={selectedProduct.available_quantity} />
                 </div>
               </div>
               <div>
                 <Label>Price</Label>
                 <Input
-                  value={formatCurrency(selectedProduct.retail_price, 'NGN')}
+                  value={formatCurrency(selectedProduct.retail_price, "NGN")}
                   disabled
                 />
               </div>

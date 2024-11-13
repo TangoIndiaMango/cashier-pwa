@@ -48,30 +48,30 @@ export class RemoteApi {
   }
 
   static async syncTransactions(transactions: Transaction[]): Promise<void> {
-    const mappedTransactions = transactions.map((transaction) => {
-      return {
-        firstname: transaction.firstname,
-        lastname: transaction.lastname,
-        email: transaction.email,
-        phoneno: transaction.phoneno,
-        gender: transaction.gender,
-        age: transaction.age,
-        products: transaction.products,
-        status: transaction.status,
-        receipt_no: transaction.receipt_no,
-        apply_loyalty_point: transaction.apply_loyalty_point,
-        apply_credit_note_point: transaction.apply_credit_note_point,
-        payable_amount: transaction.payable_amount,
-        exact_total_amount: transaction.exact_total_amount,
-        payment_type: transaction.payment_type,
-        payment_status: transaction.payment_status,
-        total_price: transaction.total_price,
-        payment_methods: transaction.payment_methods,
-      };
-    });
+    // const mappedTransactions = transactions.map((transaction) => {
+    //   return {
+    //     firstname: transaction.firstname,
+    //     lastname: transaction.lastname,
+    //     email: transaction.email,
+    //     phoneno: transaction.phoneno,
+    //     gender: transaction.gender,
+    //     age: transaction.age,
+    //     products: transaction.products,
+    //     status: transaction.status,
+    //     receipt_no: transaction.receipt_no,
+    //     apply_loyalty_point: transaction.apply_loyalty_point,
+    //     apply_credit_note_point: transaction.apply_credit_note_point,
+    //     payable_amount: transaction.payable_amount,
+    //     exact_total_amount: transaction.exact_total_amount,
+    //     payment_type: transaction.payment_type,
+    //     payment_status: transaction.payment_status,
+    //     total_price: transaction.total_price,
+    //     payment_methods: transaction.payment_methods,
+    //   };
+    // });
 
     try {
-      await api.post('/sync/transactions', { transactions: mappedTransactions });
+      await api.post('/sync/transactions', { transactions });
     } catch (error) {
       console.error('Sync failed:', error);
       throw error;

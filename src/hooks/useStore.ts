@@ -44,19 +44,26 @@ export function useStore() {
     }
   }
 
-  // const updateAvailableQuantity = (productCode: string, quantity: number) => {
-  //   setProducts((prevProducts) =>
-  //     prevProducts.map((product) =>
-  //       product.product_code === productCode
-  //         ? { ...product, available_quantity: quantity }
-  //         : product
-  //     )
-  //   );
-  // };
+  const updateAvailableQuantity = (productCode: string, quantity: number) => {
+    setProducts((prevProducts) =>
+      prevProducts.map((product) =>
+        product.product_code === productCode
+          ? {
+            ...product,
+            available_quantity:
+              product.available_quantity >= quantity
+                ? product.available_quantity - quantity
+                : product.available_quantity
+          }
+          : product
+      )
+    );
+  };
+
 
   useEffect(() => {
     triggerSync();
-  }, [isOnline])
+  }, [])
 
   const createTransaction = async (data: Omit<LocalTransaction, 'id' | 'createdAt' | 'synced'>) => {
     try {
@@ -76,6 +83,6 @@ export function useStore() {
     createTransaction,
     refreshProducts: loadProducts,
     triggerSync,
-    // updateAvailableQuantity,
+    updateAvailableQuantity,
   }
 }

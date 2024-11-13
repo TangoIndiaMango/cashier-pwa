@@ -23,6 +23,7 @@ export const useCart = () => {
       setCartItems((prevItems) => [
         ...prevItems,
         {
+          productId: product.id,
           productCode: product.product_code,
           productName: product.product_name,
           quantity: 1,

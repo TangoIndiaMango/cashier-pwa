@@ -12,7 +12,7 @@ import useDebounce from "@/hooks/useDebounce"; // Import the debounce hook
 import { useStore } from "@/hooks/useStore";
 import { LocalProduct } from "@/lib/db/schema";
 import { formatCurrency } from "@/lib/utils";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 const ProductSearchModal = ({ isOpen, onClose, onAddProduct }) => {
   const [searchTerm, setSearchTerm] = useState(""); // State to hold the search term
@@ -33,9 +33,13 @@ const ProductSearchModal = ({ isOpen, onClose, onAddProduct }) => {
   };
 
   // Create a search pattern using regex for more flexible matching
-  const searchPattern = new RegExp(
-    `\\b${debouncedSearchTerm.replace(/[\W_]+/g, "\\$&")}\\b`,
-    "i"
+  const searchPattern = useMemo(
+    () =>
+      new RegExp(
+        `\\b${debouncedSearchTerm.replace(/[\W_]+/g, "\\$&")}\\b`,
+        "i"
+      ),
+    [debouncedSearchTerm]
   );
 
   useEffect(() => {
@@ -58,7 +62,7 @@ const ProductSearchModal = ({ isOpen, onClose, onAddProduct }) => {
     } else {
       setFilteredProducts([]);
     }
-  }, [debouncedSearchTerm, products]);
+  }, [debouncedSearchTerm, products, searchPattern]);
 
   const handleAdd = () => {
     if (selectedProduct) {

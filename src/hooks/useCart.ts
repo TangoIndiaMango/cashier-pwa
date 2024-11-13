@@ -29,6 +29,8 @@ export const useCart = () => {
           quantity: 1,
           unitPrice: product.retail_price,
           totalPrice: product.retail_price,
+          color: product.color,
+          size: product.size,
         },
       ]);
     }

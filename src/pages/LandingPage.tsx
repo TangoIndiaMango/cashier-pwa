@@ -13,6 +13,7 @@ import { formatCurrency } from "@/lib/utils";
 import { Search, ShoppingBag } from "lucide-react";
 import { LocalCustomer } from "@/lib/db/schema";
 import { useState } from "react";
+import CustomerDisplay from "@/components/CustomerInfoCard";
 
 const POSSystem = () => {
   const [showAddProduct, setShowAddProduct] = useState(false);
@@ -104,12 +105,6 @@ const POSSystem = () => {
         {/* Customer Information */}
         <div className="p-6 bg-white rounded-lg shadow">
           <CustomerComponent onAddCustomer={handleAddCustomer} />
-          <div className="mt-4">
-            <h3 className="text-xl font-semibold">Added Customer</h3>
-            <p className="capitalize">
-            {customer?.firstname} {customer?.lastname} - {customer?.email}
-            </p>
-          </div>
         </div>
       </div>
 
@@ -173,6 +168,8 @@ const POSSystem = () => {
             </Button>
           </div>
         </div>
+
+        <CustomerDisplay customer={customer} />
       </div>
 
       <ProductSearchModal

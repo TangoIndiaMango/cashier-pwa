@@ -134,7 +134,7 @@ export class SyncManager {
             }),
             firstname: transaction?.customer?.firstname || null,
             lastname: transaction?.customer?.lastname || null,
-            gender: transaction?.customer?.lastname || null,
+            gender: transaction?.customer?.gender || null,
             age: transaction?.customer?.age || null,
             phoneno: transaction?.customer?.phoneno || null,
             email: transaction?.customer?.email || null

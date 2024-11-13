@@ -35,6 +35,8 @@ export interface LocalTransactionItem {
   quantity: number;
   unitPrice: number;
   totalPrice: number;
+  color: string;
+  size:string;
 }
 
 export interface LocalCustomer {
@@ -46,6 +48,7 @@ export interface LocalCustomer {
   lastname: string;
   loyalty_points: string;
   phoneno: string;
+  gender:string;
 }
 
 

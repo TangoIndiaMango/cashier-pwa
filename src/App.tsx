@@ -10,7 +10,7 @@ function App() {
     <Routes>
       <Route path="/" element={<Layout />}>
         {/* <Route path="/:id" element={<POSPage />} /> */}
-        <Route path="/cashier" element={<POSSystem />} />
+        <Route index element={<POSSystem />} />
       </Route>
     </Routes>
   );

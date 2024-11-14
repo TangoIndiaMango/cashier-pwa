@@ -18,26 +18,37 @@ import { formatCurrency } from "@/lib/utils";
 import { DialogDescription } from "@radix-ui/react-dialog";
 import { useState } from "react";
 
+// Dummy branch data for POS Machine
+const branches = [
+  { id: 1, name: "Branch 1" },
+  { id: 2, name: "Branch 2" },
+  { id: 3, name: "Branch 3" }
+];
+
+// Payment methods with id and method_name
 const paymentMethods = [
-  "Transfer (CLEAN)",
-  "Cash",
-  "Marketing",
-  "Gift Voucher",
-  "Uniform",
-  "POS Machine",
-  "Transfer",
-  "Pending Impact",
-  "Credit Note",
-  "Paystack"
+  { id: 1, method_name: "Transfer (CLEAN)" },
+  { id: 2, method_name: "Cash" },
+  { id: 3, method_name: "Marketing" },
+  { id: 4, method_name: "Gift Voucher" },
+  { id: 5, method_name: "Uniform" },
+  { id: 6, method_name: "POS Machine" },
+  { id: 7, method_name: "Transfer" },
+  { id: 8, method_name: "Pending Impact" },
+  { id: 9, method_name: "Credit Note" },
+  { id: 10, method_name: "Paystack" }
 ];
 
 const PaymentMethodModal = ({ isOpen, onClose, total, onPaymentSubmit }) => {
   const [paymentEntries, setPaymentEntries] = useState([
-    { method: "", amount: "" }
+    { method_id: "", amount: "", pos_branch_id: "" }
   ]);
 
   const addPaymentEntry = () => {
-    setPaymentEntries([...paymentEntries, { method: "", amount: "" }]);
+    setPaymentEntries([
+      ...paymentEntries,
+      { method_id: "", amount: "", pos_branch_id: "" }
+    ]);
   };
 
   const removePaymentEntry = (index) => {
@@ -66,7 +77,7 @@ const PaymentMethodModal = ({ isOpen, onClose, total, onPaymentSubmit }) => {
     console.log("Processing payments:", paymentEntries);
     onPaymentSubmit(paymentEntries);
     onClose();
-    setPaymentEntries([{ method: "", amount: "" }]);
+    setPaymentEntries([{ method_id: "", amount: "", pos_branch_id: "" }]);
   };
 
   return (
@@ -75,11 +86,11 @@ const PaymentMethodModal = ({ isOpen, onClose, total, onPaymentSubmit }) => {
         <DialogHeader>
           <DialogTitle>Payment Method</DialogTitle>
           <DialogDescription className="text-sm text-gray-500">
-            Payment method
+            Select payment method and provide payment details
           </DialogDescription>
         </DialogHeader>
 
-        <div className="">
+        <div>
           <div className="mb-4">
             <Label>Total: {formatCurrency(total, "NGN")}</Label>
           </div>
@@ -90,10 +101,8 @@ const PaymentMethodModal = ({ isOpen, onClose, total, onPaymentSubmit }) => {
                 <div>
                   <Label>Select Payment Method</Label>
                   <Select
-                    value={entry.method}
-                    onValueChange={(value) =>
-                      updatePaymentEntry(index, "method", value)
-                    }
+                    value={entry.method_id}
+                    onValueChange={(value) => updatePaymentEntry(index, "method_id", value)}
                   >
                     <SelectTrigger>
                       <SelectValue
@@ -103,8 +112,8 @@ const PaymentMethodModal = ({ isOpen, onClose, total, onPaymentSubmit }) => {
                     </SelectTrigger>
                     <SelectContent>
                       {paymentMethods.map((method) => (
-                        <SelectItem key={method} value={method}>
-                          {method}
+                        <SelectItem key={method.id} value={method.id.toString()}>
+                          {method.method_name}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -116,13 +125,37 @@ const PaymentMethodModal = ({ isOpen, onClose, total, onPaymentSubmit }) => {
                     type="number"
                     value={entry.amount}
                     className="placeholder:text-gray-500"
-                    onChange={(e) =>
-                      updatePaymentEntry(index, "amount", e.target.value)
-                    }
-                    placeholder="NGN"
+                    onChange={(e) => updatePaymentEntry(index, "amount", e.target.value)}
+                    placeholder="Amount"
                   />
                 </div>
               </div>
+
+              {/* Conditionally render branch selection if POS Machine is selected */}
+              {Number(entry.method_id ) === 6 && (
+                <div>
+                  <Label>Select Branch</Label>
+                  <Select
+                    value={entry.pos_branch_id}
+                    onValueChange={(value) => updatePaymentEntry(index, "pos_branch_id", value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue
+                        placeholder="Select branch"
+                        className="placeholder:text-gray-500"
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {branches.map((branch) => (
+                        <SelectItem key={branch.id} value={branch.id.toString()}>
+                          {branch.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
               {paymentEntries.length > 1 && (
                 <Button
                   variant="destructive"

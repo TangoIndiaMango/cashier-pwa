@@ -7,7 +7,7 @@ export class SyncManager {
   private static instance: SyncManager;
   private syncInProgress: boolean = false;
   // private storeId: string;
-
+  private paymentMethodsFetched: boolean = false;
   private constructor() {
     // this.storeId = storeId;
   }
@@ -92,7 +92,6 @@ export class SyncManager {
         }
       });
 
-
       // 4. Sync unsynced transactions
       const unsynedTransactions = await LocalApi.getUnsynedTransactions();
       console.log("Unsynced Transactions", unsynedTransactions)
@@ -159,5 +158,15 @@ export class SyncManager {
     } finally {
       this.syncInProgress = false;
     }
+  }
+
+  async getPaymentMethods(): Promise<void> {
+    if (!this.paymentMethodsFetched) {
+      const remotePaymentMethods = await RemoteApi.fetchPaymentMethod();
+      await db.paymentMethods.bulkAdd(remotePaymentMethods);
+      this.paymentMethodsFetched = true; // Mark payment methods as fetched
+      console.log("Synced Payment Methods with Local DB");
+    }
+
   }
 }

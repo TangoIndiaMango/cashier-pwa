@@ -14,9 +14,11 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
+import { LocalApiMethods } from "@/lib/api/localMethods";
+import { LocalPaymentMethod } from "@/lib/db/schema";
 import { formatCurrency } from "@/lib/utils";
 import { DialogDescription } from "@radix-ui/react-dialog";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 // Dummy branch data for POS Machine
 const branches = [
@@ -26,28 +28,43 @@ const branches = [
 ];
 
 // Payment methods with id and method_name
-const paymentMethods = [
-  { id: 1, method_name: "Transfer (CLEAN)" },
-  { id: 2, method_name: "Cash" },
-  { id: 3, method_name: "Marketing" },
-  { id: 4, method_name: "Gift Voucher" },
-  { id: 5, method_name: "Uniform" },
-  { id: 6, method_name: "POS Machine" },
-  { id: 7, method_name: "Transfer" },
-  { id: 8, method_name: "Pending Impact" },
-  { id: 9, method_name: "Credit Note" },
-  { id: 10, method_name: "Paystack" }
-];
+// const paymentMethods = [
+//   { id: 1, method_name: "Transfer (CLEAN)" },
+//   { id: 2, method_name: "Cash" },
+//   { id: 3, method_name: "Marketing" },
+//   { id: 4, method_name: "Gift Voucher" },
+//   { id: 5, method_name: "Uniform" },
+//   { id: 6, method_name: "POS Machine" },
+//   { id: 7, method_name: "Transfer" },
+//   { id: 8, method_name: "Pending Impact" },
+//   { id: 9, method_name: "Credit Note" },
+//   { id: 10, method_name: "Paystack" }
+// ];
 
 const PaymentMethodModal = ({ isOpen, onClose, total, onPaymentSubmit }) => {
   const [paymentEntries, setPaymentEntries] = useState([
-    { method_id: "", amount: "", pos_branch_id: "" }
+    { mode_of_payment_id: "", amount: "", mode_of_payment_pos_id: "" }
   ]);
+  const [paymentMethods, setPaymentMethods] = useState<LocalPaymentMethod[]>(
+    []
+  );
+  const getpaymentMethods = async () => {
+    try {
+      const methods = await LocalApiMethods.getAllPaymentMethods();
+      setPaymentMethods(methods);
+    } catch (err) {
+      console.error("Error fetching transactions:", err);
+    }
+  };
+
+  useEffect(() => {
+    getpaymentMethods();
+  }, []);
 
   const addPaymentEntry = () => {
     setPaymentEntries([
       ...paymentEntries,
-      { method_id: "", amount: "", pos_branch_id: "" }
+      { mode_of_payment_id: "", amount: "", mode_of_payment_pos_id: "" }
     ]);
   };
 
@@ -77,7 +94,7 @@ const PaymentMethodModal = ({ isOpen, onClose, total, onPaymentSubmit }) => {
     console.log("Processing payments:", paymentEntries);
     onPaymentSubmit(paymentEntries);
     onClose();
-    setPaymentEntries([{ method_id: "", amount: "", pos_branch_id: "" }]);
+    setPaymentEntries([{ mode_of_payment_id: "", amount: "", mode_of_payment_pos_id: "" }]);
   };
 
   return (
@@ -101,8 +118,10 @@ const PaymentMethodModal = ({ isOpen, onClose, total, onPaymentSubmit }) => {
                 <div>
                   <Label>Select Payment Method</Label>
                   <Select
-                    value={entry.method_id}
-                    onValueChange={(value) => updatePaymentEntry(index, "method_id", value)}
+                    value={entry.mode_of_payment_id}
+                    onValueChange={(value) =>
+                      updatePaymentEntry(index, "mode_of_payment_id", value)
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue
@@ -112,8 +131,11 @@ const PaymentMethodModal = ({ isOpen, onClose, total, onPaymentSubmit }) => {
                     </SelectTrigger>
                     <SelectContent>
                       {paymentMethods.map((method) => (
-                        <SelectItem key={method.id} value={method.id.toString()}>
-                          {method.method_name}
+                        <SelectItem
+                          key={method.mopID}
+                          value={method.mopID.toString()}
+                        >
+                          {method.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -125,19 +147,23 @@ const PaymentMethodModal = ({ isOpen, onClose, total, onPaymentSubmit }) => {
                     type="number"
                     value={entry.amount}
                     className="placeholder:text-gray-500"
-                    onChange={(e) => updatePaymentEntry(index, "amount", e.target.value)}
+                    onChange={(e) =>
+                      updatePaymentEntry(index, "amount", e.target.value)
+                    }
                     placeholder="Amount"
                   />
                 </div>
               </div>
 
               {/* Conditionally render branch selection if POS Machine is selected */}
-              {Number(entry.method_id ) === 6 && (
+              {Number(entry.mode_of_payment_id) === 6 && (
                 <div>
                   <Label>Select Branch</Label>
                   <Select
-                    value={entry.pos_branch_id}
-                    onValueChange={(value) => updatePaymentEntry(index, "pos_branch_id", value)}
+                    value={entry.mode_of_payment_pos_id}
+                    onValueChange={(value) =>
+                      updatePaymentEntry(index, "mode_of_payment_pos_id", value)
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue
@@ -147,7 +173,10 @@ const PaymentMethodModal = ({ isOpen, onClose, total, onPaymentSubmit }) => {
                     </SelectTrigger>
                     <SelectContent>
                       {branches.map((branch) => (
-                        <SelectItem key={branch.id} value={branch.id.toString()}>
+                        <SelectItem
+                          key={branch.id}
+                          value={branch.id.toString()}
+                        >
                           {branch.name}
                         </SelectItem>
                       ))}

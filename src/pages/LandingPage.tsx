@@ -1,19 +1,19 @@
 // components/POSSystem.tsx
 import { Cart } from "@/components/Cart";
 import CustomerComponent from "@/components/CustomerInfo";
+import CustomerDisplay from "@/components/CustomerInfoCard";
 import PaymentMethodModal from "@/components/Modals/PaymentModal";
 import ProductSearchModal from "@/components/Modals/ProductSearchModal";
-import { CurrentTransactionTable } from "@/components/TransactionTable";
+import { CurrentProductTable } from "@/components/ProductTransactionTable.tsx";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/hooks/useCart";
-import { useTransaction } from "@/hooks/useTransaction";
-import { usePayment } from "@/hooks/usePayment";
 import { useCustomer } from "@/hooks/useCustomer";
+import { usePayment } from "@/hooks/usePayment";
+import { useTransaction } from "@/hooks/useTransaction";
+import { LocalCustomer } from "@/lib/db/schema";
 import { formatCurrency } from "@/lib/utils";
 import { Search, ShoppingBag } from "lucide-react";
-import { LocalCustomer } from "@/lib/db/schema";
 import { useState } from "react";
-import CustomerDisplay from "@/components/CustomerInfoCard";
 
 const POSSystem = () => {
   const [showAddProduct, setShowAddProduct] = useState(false);
@@ -36,7 +36,7 @@ const POSSystem = () => {
     setPaymentMethod
   } = usePayment();
   const { customer, handleAddCustomer, setCustomer } = useCustomer();
-
+console.log("customer", cartItems)
   const handleSubmit = async () => {
     const data = {
       paymentMethods: paymentMethod,
@@ -97,7 +97,7 @@ const POSSystem = () => {
             </div>
           ) : (
             <div className="w-full">
-              <CurrentTransactionTable data={transactions} />
+              <CurrentProductTable data={cartItems} />
             </div>
           )}
         </div>

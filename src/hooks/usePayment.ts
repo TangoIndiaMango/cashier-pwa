@@ -3,7 +3,7 @@
 import { useState } from 'react';
 
 export interface PaymentEntry {
-    method: string;
+  mode_of_payment_id: string;
     amount: number;
   }
 export const usePayment = () => {

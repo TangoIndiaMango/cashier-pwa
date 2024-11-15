@@ -31,6 +31,7 @@ export const useCart = () => {
           totalPrice: product.retail_price,
           color: product.color,
           size: product.size,
+          ean: product.ean,
         },
       ]);
     }

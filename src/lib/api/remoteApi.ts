@@ -1,7 +1,7 @@
 // src/lib/api/remoteApi.ts
 import { Transaction } from '@/types/type';
 import axios from 'axios';
-import { LocalCustomer, LocalProduct } from '../db/schema';
+import { LocalCustomer, LocalDiscount, LocalPaymentMethod, LocalProduct } from '../db/schema';
 
 // type AnyData = any
 
@@ -12,7 +12,6 @@ const api = axios.create({
     'Content-Type': 'application/json'
   }
 });
-
 
 export class RemoteApi {
   static async fetchStoreProducts(): Promise<LocalProduct[]> {
@@ -44,6 +43,43 @@ export class RemoteApi {
       lastname: item.lastname,
       loyalty_points: item.loyalty_points,
       phoneno: item.phoneno
+    }));
+  }
+  static async fetchPaymentMethod(): Promise<LocalPaymentMethod[]> {
+    const response = await api.get('/mop_customers/all');
+    // console.log(response?.data?.data);
+    return response.data?.data.map((item) => ({
+      id: item.id,
+      account_id: item.account_id,
+      createdAt: item.createdAt,
+      mopID: item.mopID,
+      name: item.name,
+      slug: item.slug,
+      is_active: item.is_active
+    }));
+  }
+
+  static async fetchDiscounts(): Promise<LocalDiscount> {
+    const response = await api.get('/discounts/all');
+    // console.log(response?.data?.data);
+    return response.data?.data.map((item) => ({
+      id: item.id,
+      createdAt: item.createdAt,
+      updatedAt: item.updatedAt,
+      name: item.name,
+      discount_type: item.discount_type,
+      value: item.value,
+      code: item.code,
+      value_type: item.value_type,
+      status: item.status,
+      start_date: item.start_date,
+      end_date: item.end_date,
+      is_active: item.is_active,
+      percentage: item.percentage,
+      price: item.price,
+      product_id: item.product_id,
+      redemption: item.redemption,
+      redemption_value: item.redemption_value
     }));
   }
 

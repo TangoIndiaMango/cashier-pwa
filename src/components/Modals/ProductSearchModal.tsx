@@ -8,61 +8,36 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import useDebounce from "@/hooks/useDebounce"; // Import the debounce hook
 import { useStore } from "@/hooks/useStore";
 import { LocalProduct } from "@/lib/db/schema";
 import { formatCurrency } from "@/lib/utils";
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 
 const ProductSearchModal = ({ isOpen, onClose, onAddProduct }) => {
   const [searchTerm, setSearchTerm] = useState(""); // State to hold the search term
   const [selectedProduct, setSelectedProduct] = useState<LocalProduct | null>(
     null
   );
-  const [filteredProducts, setFilteredProducts] = useState<LocalProduct[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<LocalProduct | null>(
+    null
+  );
   const [quantity, setQuantity] = useState(1);
 
   const { products, loading, updateAvailableQuantity } = useStore();
 
   // Use debounced value for the search term
-  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+  // const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
-  // Normalize string for better matching (trim spaces, convert to lower case)
-  const normalizeString = (str: string) => {
-    return str?.trim()?.toLowerCase()?.replace(/\s+/g, " ");
-  };
-
-  // Create a search pattern using regex for more flexible matching
-  const searchPattern = useMemo(
-    () =>
-      new RegExp(
-        `\\b${debouncedSearchTerm.replace(/[\W_]+/g, "\\$&")}\\b`,
-        "i"
-      ),
-    [debouncedSearchTerm]
-  );
-
-  useEffect(() => {
-    if (debouncedSearchTerm) {
-      const filtered = products.filter((product) => {
-        const productNameNormalized = normalizeString(product?.product_name);
-        const brandNameNormalized = normalizeString(product?.brand_name);
-        const productCodeNormalized = normalizeString(
-          product?.product_code || ""
-        );
-
-        // Use RegExp to check for matches in product name, brand, or product code
-        return (
-          searchPattern.test(productNameNormalized) ||
-          searchPattern.test(brandNameNormalized) ||
-          searchPattern.test(productCodeNormalized)
-        );
-      });
-      setFilteredProducts(filtered);
+  const handleEnter = () => {
+    const filteredProduct = products.find(
+      (prod) => prod.ean.toString() === searchTerm.toString()
+    );
+    if (filteredProduct) {
+      setFilteredProducts(filteredProduct);
     } else {
-      setFilteredProducts([]);
+      alert("Product not found");
     }
-  }, [debouncedSearchTerm, products, searchPattern]);
+  };
 
   const handleAdd = () => {
     if (selectedProduct) {
@@ -95,6 +70,11 @@ const ProductSearchModal = ({ isOpen, onClose, onAddProduct }) => {
               onChange={(e) => setSearchTerm(e.target.value)}
               className="placeholder:text-gray-500"
               placeholder="Type product code and press enter to search"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  handleEnter();
+                }
+              }}
             />
           </div>
           {loading ? (
@@ -103,19 +83,21 @@ const ProductSearchModal = ({ isOpen, onClose, onAddProduct }) => {
             </div>
           ) : (
             <div className="grid gap-2 overflow-auto max-h-40">
-              {filteredProducts.splice(0, 9).map((product) => (
+              {filteredProducts && (
                 <div
-                  key={product.id}
+                  key={filteredProducts.id}
                   className="p-2 border rounded cursor-pointer hover:bg-gray-100"
-                  onClick={() => setSelectedProduct(product)}
+                  onClick={() => setSelectedProduct(filteredProducts)}
                 >
-                  <p className="font-medium">{product.product_name}</p>
-                  <p className="text-sm text-gray-500">{product.brand_name}</p>
+                  <p className="font-medium">{filteredProducts.product_name}</p>
                   <p className="text-sm text-gray-500">
-                    SKU: {product.product_code}
+                    {filteredProducts.brand_name}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    SKU: {filteredProducts.product_code}
                   </p>
                 </div>
-              ))}
+              )}
             </div>
           )}
 

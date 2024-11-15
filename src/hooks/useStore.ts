@@ -28,6 +28,9 @@ export function useStore() {
       setCustomers(localCustomers);
       console.log('Loaded local customers');
 
+      // Load payment methods
+      await syncManager.getPaymentMethods();
+
     } catch (err) {
       setError(err as Error);
     } finally {

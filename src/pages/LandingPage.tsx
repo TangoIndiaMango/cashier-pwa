@@ -4,35 +4,36 @@ import PaymentMethodModal from "@/components/Modals/PaymentModal";
 import ProductSearchModal from "@/components/Modals/ProductSearchModal";
 import { CurrentProductTable } from "@/components/ProductTransactionTable.tsx";
 import { Button } from "@/components/ui/button";
-import { useCart } from "@/hooks/useCart";
+import { ICartItem, ISetCartItems, useCart } from "@/hooks/useCart";
 import { useCustomer } from "@/hooks/useCustomer";
 import { usePayment } from "@/hooks/usePayment";
 import { useTransaction } from "@/hooks/useTransaction";
-import { LocalCustomer, LocalTransactionItem } from "@/lib/db/schema";
+import { LocalCustomer } from "@/lib/db/schema";
 import { formatCurrency } from "@/lib/utils";
 import { Search, ShoppingBag } from "lucide-react";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 const POSSystem = () => {
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
-  const { cartItems, addProductToCart, setCartItems } =
-    useCart();
+  const { cartItems, addProductToCart, setCartItems } = useCart();
   const { transactions, submitTransaction } = useTransaction();
   const {
     paymentStatus,
     setPaymentStatus,
     paymentMethod,
     handlePaymentSubmit,
-    setPaymentMethod
+    setPaymentMethod,
   } = usePayment();
   const { customer, handleAddCustomer, setCustomer } = useCustomer();
   const [total, setTotal] = useState(0);
-  
-  const handleCartUpdate = (updatedItems: LocalTransactionItem[], totalAmount: number) => {
-    setCartItems(updatedItems);
-    setTotal(totalAmount);
-  };
+
+  useEffect(() => {
+    setTotal(
+      cartItems.reduce((sum, item: ICartItem) => sum + (item.itemTotal || 0), 0)
+    );
+  }, [cartItems]);
+
   const handleAdd = (product: any) => {
     const exisitingItem = cartItems.find(
       (item) => item.product_code === product.product_code
@@ -50,7 +51,7 @@ const POSSystem = () => {
       totalAmount: total,
       customer: customer as LocalCustomer,
       status: paymentStatus ? paymentStatus.toUpperCase() : "DRAFT",
-      items: cartItems
+      items: cartItems,
     };
     console.log(data);
 
@@ -105,7 +106,10 @@ const POSSystem = () => {
             </div>
           ) : (
             <div className="w-full">
-              <CurrentProductTable data={cartItems} onUpdateCart={handleCartUpdate} />
+              <CurrentProductTable
+                data={cartItems}
+                setCartItems={setCartItems}
+              />
             </div>
           )}
         </div>

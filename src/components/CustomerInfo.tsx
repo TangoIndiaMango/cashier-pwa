@@ -7,7 +7,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
+  SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "./ui/checkbox";
@@ -37,7 +37,7 @@ interface CustomerComponentProps {
 }
 
 const CustomerComponent: React.FC<CustomerComponentProps> = ({
-  onAddCustomer
+  onAddCustomer,
 }) => {
   const [customerDetails, setCustomerDetails] = useState<CustomerDetails>({
     firstname: "",
@@ -51,7 +51,7 @@ const CustomerComponent: React.FC<CustomerComponentProps> = ({
     city: null,
     address: null,
     apply_loyalty_point: false,
-    apply_credit_note_point: false
+    apply_credit_note_point: false,
   });
   const [filteredCustomers, setFilteredCustomers] = useState<LocalCustomer[]>(
     []
@@ -94,7 +94,7 @@ const CustomerComponent: React.FC<CustomerComponentProps> = ({
     const { name, value } = e.target;
     setCustomerDetails((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -118,7 +118,7 @@ const CustomerComponent: React.FC<CustomerComponentProps> = ({
       city: null,
       address: null,
       apply_loyalty_point: false,
-      apply_credit_note_point: false
+      apply_credit_note_point: false,
     });
   };
 
@@ -136,7 +136,7 @@ const CustomerComponent: React.FC<CustomerComponentProps> = ({
       city: null,
       address: "",
       apply_loyalty_point: false,
-      apply_credit_note_point: false
+      apply_credit_note_point: false,
     });
     setSearchQuery("");
     setFilteredCustomers([]);
@@ -291,7 +291,7 @@ const CustomerComponent: React.FC<CustomerComponentProps> = ({
               onCheckedChange={(checked) =>
                 setCustomerDetails({
                   ...customerDetails,
-                  apply_loyalty_point: checked as boolean
+                  apply_loyalty_point: checked as boolean,
                 })
               }
             />
@@ -303,7 +303,7 @@ const CustomerComponent: React.FC<CustomerComponentProps> = ({
               onCheckedChange={(checked) =>
                 setCustomerDetails({
                   ...customerDetails,
-                  apply_credit_note_point: checked as boolean
+                  apply_credit_note_point: checked as boolean,
                 })
               }
             />

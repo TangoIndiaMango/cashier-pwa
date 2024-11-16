@@ -7,25 +7,25 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow
+  TableRow,
 } from "@/components/ui/table";
-import { useCart } from "@/hooks/useCart";
+import { ICartItem, ISetCartItems, useCart } from "@/hooks/useCart";
 import { useStore } from "@/hooks/useStore";
 import { LocalTransactionItem } from "@/lib/db/schema";
 import { formatBalance } from "@/lib/utils";
 import { Edit, Eye, Trash2 } from "lucide-react";
-import { useEffect, useMemo, useCallback, useState } from "react";
+import { useEffect, useCallback, useState } from "react";
 import { ProductDetailsDialog } from "./Modals/ProductDetailsDialog";
 import ProductSearchModal from "./Modals/ProductSearchModal";
 
 type CurrentProductType = {
-  data: LocalTransactionItem[];
-  onUpdateCart: (cartItems: LocalTransactionItem[], cartTotal: number) => void;
+  data: ICartItem[];
+  setCartItems: (cartItems: ISetCartItems) => void;
 };
 
 export function CurrentProductTable({
   data,
-  onUpdateCart
+  setCartItems,
 }: CurrentProductType) {
   const { addProductToCart, removeItemFromCart } = useCart();
   const { updateAvailableQuantity } = useStore();
@@ -53,7 +53,7 @@ export function CurrentProductTable({
       setQuantities((prevQuantities) => {
         return {
           ...prevQuantities,
-          [product.product_code!]: quantity
+          [product.product_code!]: quantity,
         };
       });
 
@@ -62,28 +62,16 @@ export function CurrentProductTable({
     [updateAvailableQuantity] // Ensures the callback stays memoized with respect to the update function
   );
 
-  // Memoize the calculation of updated cart items and total
-  const memoizedCartData = useMemo(() => {
-    const updatedCartItems = data.map((item) => ({
-      ...item,
-      quantity: quantities[item.product_code!] || 1,
-      itemTotal: Number(item.totalPrice) * (quantities[item.product_code!] || 1)
-    }));
-
-    const cartTotal = updatedCartItems.reduce(
-      (sum, item) => sum + (item.itemTotal || 0),
-      0
-    );
-
-    return { updatedCartItems, cartTotal };
-  }, [data, quantities]); // This only recalculates when `data` or `quantities` changes
-
   useEffect(() => {
-    const { updatedCartItems, cartTotal } = memoizedCartData;
-
-    // Only call onUpdateCart when there are changes to the cart
-    onUpdateCart(updatedCartItems, cartTotal);
-  }, [memoizedCartData, onUpdateCart]); // We are using memoized data here, so no infinite loop
+    setCartItems((data) =>
+      data.map((item) => ({
+        ...item,
+        quantity: quantities[item.product_code!] || 1,
+        itemTotal:
+          Number(item.totalPrice) * (quantities[item.product_code!] || 1),
+      }))
+    );
+  }, [setCartItems, quantities]); // We are using memoized data here, so no infinite loop
 
   const handleEdit = (product: LocalTransactionItem, action: string) => {
     setSelectedProduct(product);

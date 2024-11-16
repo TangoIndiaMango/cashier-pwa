@@ -68,7 +68,8 @@ export function CurrentProductTable({
         ...item,
         quantity: quantities[item.product_code!] || 1,
         itemTotal:
-          Number(item.totalPrice) * (quantities[item.product_code!] || 1),
+          Number(item.totalPrice || item.retail_price) *
+          (quantities[item.product_code!] || 1),
       }))
     );
   }, [setCartItems, quantities]); // We are using memoized data here, so no infinite loop

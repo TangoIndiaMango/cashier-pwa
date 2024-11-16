@@ -4,7 +4,7 @@ import {
   DialogContent,
   DialogDescription,
   DialogHeader,
-  DialogTitle
+  DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,7 +17,7 @@ const ProductSearchModal = ({
   isOpen,
   onClose,
   onAddProduct,
-  fileredProduct
+  fileredProduct,
 }) => {
   const [searchTerm, setSearchTerm] = useState(""); // State to hold the search term
   const [selectedProduct, setSelectedProduct] =
@@ -29,27 +29,6 @@ const ProductSearchModal = ({
   const [error, setError] = useState<string | null>(null);
   const { products, loading, discounts } = useStore();
   // console.log(discounts)
-
-  const calcDiscountPriveValue = (product: LocalTransactionItem) => {
-    const discount = discounts.find(
-      (discount) => discount.product_id === product.id
-    );
-    if (!discount) {
-      return product.retail_price;
-    }
-    const discountType = discount.discount_type;
-    if (discountType === "percentage") {
-      console.log(product.retail_price! - (product.retail_price! * discount.value) / 100)
-      return (
-        product.retail_price! - (product.retail_price! * discount.value) / 100
-      );
-    } else if (discountType === "naira") {
-      console.log(product.retail_price! - discount.value)
-      return product.retail_price! - discount.value;
-    } else {
-      return product.retail_price!;
-    }
-  };
 
   const handleEnter = () => {
     const foundProduct = products.find(
@@ -66,9 +45,8 @@ const ProductSearchModal = ({
     if (selectedProduct) {
       onAddProduct({
         ...selectedProduct,
-        discount
+        discount,
       });
-      calcDiscountPriveValue(selectedProduct as LocalTransactionItem);
       onClose();
       setSelectedProduct(null);
       setDiscount("");

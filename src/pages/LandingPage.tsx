@@ -4,19 +4,20 @@ import PaymentMethodModal from "@/components/Modals/PaymentModal";
 import ProductSearchModal from "@/components/Modals/ProductSearchModal";
 import { CurrentProductTable } from "@/components/ProductTransactionTable.tsx";
 import { Button } from "@/components/ui/button";
-import { ICartItem, ISetCartItems, useCart } from "@/hooks/useCart";
+import { useCart } from "@/hooks/useCart";
 import { useCustomer } from "@/hooks/useCustomer";
 import { usePayment } from "@/hooks/usePayment";
 import { useTransaction } from "@/hooks/useTransaction";
 import { LocalCustomer } from "@/lib/db/schema";
 import { formatCurrency } from "@/lib/utils";
 import { Search, ShoppingBag } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 
 const POSSystem = () => {
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
-  const { cartItems, addProductToCart, setCartItems } = useCart();
+  const { cartItems, addProductToCart, setCartItems, total, setTotal } =
+    useCart();
   const { transactions, submitTransaction } = useTransaction();
   const {
     paymentStatus,
@@ -26,13 +27,6 @@ const POSSystem = () => {
     setPaymentMethod,
   } = usePayment();
   const { customer, handleAddCustomer, setCustomer } = useCustomer();
-  const [total, setTotal] = useState(0);
-
-  useEffect(() => {
-    setTotal(
-      cartItems.reduce((sum, item: ICartItem) => sum + (item.itemTotal || 0), 0)
-    );
-  }, [cartItems]);
 
   const handleAdd = (product: any) => {
     const exisitingItem = cartItems.find(
@@ -45,6 +39,7 @@ const POSSystem = () => {
       addProductToCart(product);
     }
   };
+
   const handleSubmit = async () => {
     const data = {
       paymentMethods: paymentMethod,

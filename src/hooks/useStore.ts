@@ -1,7 +1,7 @@
 // src/hooks/useStore.ts
 import { useEffect, useState } from 'react';
 import { LocalApi } from '../lib/api/localApi';
-import { LocalProduct, LocalCustomer, LocalDiscount, LocalPaymentMethod } from '../lib/db/schema';
+import { LocalProduct, LocalCustomer, LocalDiscount, LocalPaymentMethod, LocalTransaction } from '../lib/db/schema';
 import { SyncManager } from '../lib/sync/syncManager';
 import { useOnlineStatus } from './useOnlineStatus';
 import { LocalApiMethods } from '@/lib/api/localMethods';
@@ -104,19 +104,29 @@ export function useStore() {
   };
 
   // Check if the app is online and trigger sync
-  useEffect(() => {
-    // if (isOnline) {
-    //     // Trigger sync when the app goes online
-    // }
-    triggerSync();
-  }, []); // Sync only when online status changes
+  // useEffect(() => {
+  //   if (isOnline) {
+  //     triggerSync();
+  //   }
+
+  // }, [isOnline]); 
 
 
   useEffect(() => {
-    loadProducts();
-    loadCustomers();
+    triggerSync()
   }, []);
 
+
+
+  const createTransaction = async (data: Omit<LocalTransaction, 'id' | 'createdAt' | 'synced'>) => {
+    try {
+      await LocalApi.createTransaction(data);
+      await loadProducts();
+    } catch (err) {
+      setError(err as Error);
+      throw err;
+    }
+  };
   return {
     products,
     discounts,
@@ -126,5 +136,6 @@ export function useStore() {
     error,
     triggerSync,
     updateAvailableQuantity,
+    createTransaction,
   };
 }

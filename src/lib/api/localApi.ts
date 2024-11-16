@@ -50,7 +50,7 @@ export class LocalApi {
       // Update product quantities
       for (const item of transaction.items) {
         
-        await this.updateProductQuantity(item.productCode, -item.quantity);
+        await this.updateProductQuantity(item.product_code!, -item.quantity);
       }
 
       // Create transaction

@@ -95,7 +95,7 @@ const POSSystem = () => {
         {/* Product Table */}
         <div className="flex-1 p-6 bg-white rounded-lg shadow">
           {!transactions ? (
-            <div className="flex flex-col items-center justify-center h-full text-gray-500">
+            <div className="flex flex-col items-center justify-center text-gray-500">
               <ShoppingBag size={48} />
               <p className="mt-2">No data available</p>
             </div>

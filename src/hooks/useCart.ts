@@ -82,7 +82,7 @@ export const useCart = () => {
     setCartItems,
     total,
     addProductToCart,
-    // updateQuantity,
+    updateQuantity,
     setTotal,
     removeItemFromCart,
   };

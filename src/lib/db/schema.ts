@@ -37,16 +37,10 @@ export interface LocalTransaction {
   items: LocalTransactionItem[];
 }
 
-export interface LocalTransactionItem {
-  ean: string;
-  productId: string;
-  productName: string;
-  productCode: string;
+export interface LocalTransactionItem extends Partial<LocalProduct> {
   quantity: number;
-  unitPrice: number;
   totalPrice: number;
-  color: string;
-  size: string;
+  discount?: string;
 }
 
 export interface LocalDiscount {
@@ -88,6 +82,7 @@ export class StoreDatabase extends Dexie {
   customers!: Table<LocalCustomer>;
   paymentMethods!: Table<LocalPaymentMethod>;
   discounts!: Table<LocalDiscount>;
+  orderedProduct!: Table<LocalTransactionItem>
 
 
   constructor() {
@@ -98,7 +93,8 @@ export class StoreDatabase extends Dexie {
       transactions: 'id, createdAt, synced',
       customers: 'id, firstname, lastname, email, phoneno',
       paymentMethods: 'id, account_id, createdAt, mopID, name, slug, is_active',
-      discounts: 'id, createdAt, name, discount_type, value, code, value_type, status, start_date, end_date, is_active, percentage, price'
+      discounts: 'id, createdAt, name, discount_type, value, code, value_type, status, start_date, end_date, is_active, percentage, price',
+      orderedProduct: 'id, product_code, product_name, retail_price, quantity, discount, ean, lastSyncAt, isModified'
     });
   }
 }

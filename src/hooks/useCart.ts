@@ -1,61 +1,35 @@
 
+import { LocalTransactionItem } from '@/lib/db/schema';
 import { useState } from 'react';
-import { LocalTransactionItem, LocalProduct } from '@/lib/db/schema';
 
 export const useCart = () => {
   const [cartItems, setCartItems] = useState<LocalTransactionItem[]>([]);
   const [total, setTotal] = useState(0);
 
-  const addProductToCart = (product: LocalProduct) => {
-    const existingItem = cartItems.find((item) => item.productCode === product.product_code);
-    
-    if (existingItem) {
-      if (existingItem.quantity >= product.available_quantity) {
-        alert('Not enough stock available');
-        return;
-      }
-      updateQuantity(existingItem.productCode, existingItem.quantity + 1);
-    } else {
-      if (product.available_quantity === 0) {
-        alert('Product out of stock');
-        return;
-      }
-      setCartItems((prevItems) => [
-        ...prevItems,
-        {
-          productId: product.id,
-          productCode: product.product_code,
-          productName: product.product_name,
-          quantity: 1,
-          unitPrice: product.retail_price,
-          totalPrice: product.retail_price,
-          color: product.color,
-          size: product.size,
-          ean: product.ean,
-        },
-      ]);
+  const addProductToCart = (product: Partial<LocalTransactionItem>) => {
+    if (product.available_quantity === 0) {
+      alert('Product out of stock');
+      return;
     }
-
-    setTotal((prevTotal) => prevTotal + product.retail_price);
-  };
-
-  const updateQuantity = (productCode: string, newQuantity: number) => {
-    setCartItems((items) =>
-      items.map((item) => {
-        if (item.productCode === productCode) {
-          return {
-            ...item,
-            quantity: newQuantity,
-            totalPrice: item.unitPrice * newQuantity,
-          };
-        }
-        return item;
-      })
-    );
-  };
-
-  const removeItemFromCart = (productCode: string) => {
-    setCartItems((items) => items.filter((item) => item.productCode !== productCode));
+    setCartItems((prevItems) => [
+      ...prevItems,
+      {
+        id: product.id,
+        product_code: product.product_code,
+        product_name: product.product_name,
+        retail_price: product.retail_price,
+        totalPrice: product.retail_price,
+        color: product.color,
+        size: product.size,
+        ean: product.ean,
+        available_quantity: product.available_quantity,
+        discount: product.discount,
+      },
+    ] as any);
+    setTotal((prevTotal) => prevTotal + Number(product.retail_price));
+  }
+  const removeItemFromCart = (product_code: string) => {
+    setCartItems((items) => items.filter((item) => item.product_code !== product_code));
   };
 
   return {
@@ -63,7 +37,7 @@ export const useCart = () => {
     setCartItems,
     total,
     addProductToCart,
-    updateQuantity,
+    // updateQuantity,
     setTotal,
     removeItemFromCart,
   };

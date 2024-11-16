@@ -1,5 +1,3 @@
-// components/POSSystem.tsx
-import { Cart } from "@/components/Cart";
 import CustomerComponent from "@/components/CustomerInfo";
 import CustomerDisplay from "@/components/CustomerInfoCard";
 import PaymentMethodModal from "@/components/Modals/PaymentModal";
@@ -10,7 +8,7 @@ import { useCart } from "@/hooks/useCart";
 import { useCustomer } from "@/hooks/useCustomer";
 import { usePayment } from "@/hooks/usePayment";
 import { useTransaction } from "@/hooks/useTransaction";
-import { LocalCustomer } from "@/lib/db/schema";
+import { LocalCustomer, LocalTransactionItem } from "@/lib/db/schema";
 import { formatCurrency } from "@/lib/utils";
 import { Search, ShoppingBag } from "lucide-react";
 import { useState } from "react";
@@ -18,15 +16,8 @@ import { useState } from "react";
 const POSSystem = () => {
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
-  const {
-    cartItems,
-    total,
-    addProductToCart,
-    updateQuantity,
-    removeItemFromCart,
-    setTotal,
-    setCartItems
-  } = useCart();
+  const { cartItems, addProductToCart, setCartItems } =
+    useCart();
   const { transactions, submitTransaction } = useTransaction();
   const {
     paymentStatus,
@@ -36,7 +27,23 @@ const POSSystem = () => {
     setPaymentMethod
   } = usePayment();
   const { customer, handleAddCustomer, setCustomer } = useCustomer();
-console.log("customer", cartItems)
+  const [total, setTotal] = useState(0);
+  
+  const handleCartUpdate = (updatedItems: LocalTransactionItem[], totalAmount: number) => {
+    setCartItems(updatedItems);
+    setTotal(totalAmount);
+  };
+  const handleAdd = (product: any) => {
+    const exisitingItem = cartItems.find(
+      (item) => item.product_code === product.product_code
+    );
+    if (exisitingItem) {
+      alert("Product already exist increase quantity");
+      return;
+    } else {
+      addProductToCart(product);
+    }
+  };
   const handleSubmit = async () => {
     const data = {
       paymentMethods: paymentMethod,
@@ -45,6 +52,7 @@ console.log("customer", cartItems)
       status: paymentStatus ? paymentStatus.toUpperCase() : "DRAFT",
       items: cartItems
     };
+    console.log(data);
 
     await submitTransaction(data);
     setTotal(0);
@@ -88,7 +96,7 @@ console.log("customer", cartItems)
           </div>
         </header>
 
-        {/* Transaction Table */}
+        {/* Product Table */}
         <div className="flex-1 p-6 bg-white rounded-lg shadow">
           {!transactions ? (
             <div className="flex flex-col items-center justify-center h-full text-gray-500">
@@ -97,7 +105,7 @@ console.log("customer", cartItems)
             </div>
           ) : (
             <div className="w-full">
-              <CurrentProductTable data={cartItems} />
+              <CurrentProductTable data={cartItems} onUpdateCart={handleCartUpdate} />
             </div>
           )}
         </div>
@@ -110,11 +118,11 @@ console.log("customer", cartItems)
 
       {/* Sidebar */}
       <div className="p-6 space-y-12 bg-white border-l w-96">
-        <Cart
+        {/* <Cart
           items={cartItems}
           onUpdateQuantity={updateQuantity}
           onRemoveItem={removeItemFromCart}
-        />
+        /> */}
 
         <div className="space-y-6">
           <div>
@@ -136,7 +144,7 @@ console.log("customer", cartItems)
             </div>
             <div className="flex justify-between">
               <span>Subtotal</span>
-              <span>₦{total}</span>
+              <span>{formatCurrency(total, "NGN")}</span>
             </div>
             <div className="flex justify-between font-bold">
               <span>TOTAL</span>
@@ -175,7 +183,8 @@ console.log("customer", cartItems)
       <ProductSearchModal
         isOpen={showAddProduct}
         onClose={() => setShowAddProduct(false)}
-        onAddProduct={addProductToCart}
+        onAddProduct={handleAdd}
+        fileredProduct={null}
       />
 
       <PaymentMethodModal

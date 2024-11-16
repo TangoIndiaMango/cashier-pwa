@@ -59,7 +59,7 @@ export class RemoteApi {
     }));
   }
 
-  static async fetchDiscounts(): Promise<LocalDiscount> {
+  static async fetchDiscounts(): Promise<LocalDiscount[]> {
     const response = await api.get('/discounts/all');
     // console.log(response?.data?.data);
     return response.data?.data.map((item) => ({

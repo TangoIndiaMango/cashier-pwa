@@ -1,6 +1,5 @@
-"use client";
-
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -10,14 +9,90 @@ import {
   TableHeader,
   TableRow
 } from "@/components/ui/table";
+import { useCart } from "@/hooks/useCart";
+import { useStore } from "@/hooks/useStore";
 import { LocalTransactionItem } from "@/lib/db/schema";
-import { Eye } from "lucide-react";
-import { useState } from "react";
+import { formatBalance } from "@/lib/utils";
+import { Edit, Eye, Trash2 } from "lucide-react";
+import { useEffect, useMemo, useCallback, useState } from "react";
 import { ProductDetailsDialog } from "./Modals/ProductDetailsDialog";
-export function CurrentProductTable({ data }: { data: LocalTransactionItem[] }) {
-  const [selectedProduct, setSelectedProduct] = useState<LocalTransactionItem | null>(
-    null
+import ProductSearchModal from "./Modals/ProductSearchModal";
+
+type CurrentProductType = {
+  data: LocalTransactionItem[];
+  onUpdateCart: (cartItems: LocalTransactionItem[], cartTotal: number) => void;
+};
+
+export function CurrentProductTable({
+  data,
+  onUpdateCart
+}: CurrentProductType) {
+  const { addProductToCart, removeItemFromCart } = useCart();
+  const { updateAvailableQuantity } = useStore();
+
+  const [selectedProduct, setSelectedProduct] =
+    useState<LocalTransactionItem | null>(null);
+  const [showEditProd, setShowEditProd] = useState(false);
+  const [showViewProd, setShowViewProd] = useState(false);
+
+  // Maintain quantities in local state, not in refs
+  const [quantities, setQuantities] = useState<Record<string, number>>(
+    data.reduce((acc, product) => {
+      acc[product.product_code!] = product.quantity || 1;
+      return acc;
+    }, {})
   );
+
+  const handleQuantitesChange = useCallback(
+    (product: LocalTransactionItem, quantity: number) => {
+      if (quantity > product.available_quantity!) {
+        alert("Quantity exceeds available stock");
+        return;
+      }
+
+      setQuantities((prevQuantities) => {
+        return {
+          ...prevQuantities,
+          [product.product_code!]: quantity
+        };
+      });
+
+      updateAvailableQuantity(product.product_code!, quantity);
+    },
+    [updateAvailableQuantity] // Ensures the callback stays memoized with respect to the update function
+  );
+
+  // Memoize the calculation of updated cart items and total
+  const memoizedCartData = useMemo(() => {
+    const updatedCartItems = data.map((item) => ({
+      ...item,
+      quantity: quantities[item.product_code!] || 1,
+      itemTotal: Number(item.totalPrice) * (quantities[item.product_code!] || 1)
+    }));
+
+    const cartTotal = updatedCartItems.reduce(
+      (sum, item) => sum + (item.itemTotal || 0),
+      0
+    );
+
+    return { updatedCartItems, cartTotal };
+  }, [data, quantities]); // This only recalculates when `data` or `quantities` changes
+
+  useEffect(() => {
+    const { updatedCartItems, cartTotal } = memoizedCartData;
+
+    // Only call onUpdateCart when there are changes to the cart
+    onUpdateCart(updatedCartItems, cartTotal);
+  }, [memoizedCartData, onUpdateCart]); // We are using memoized data here, so no infinite loop
+
+  const handleEdit = (product: LocalTransactionItem, action: string) => {
+    setSelectedProduct(product);
+    if (action === "edit") {
+      setShowEditProd(true);
+    } else {
+      setShowViewProd(true);
+    }
+  };
 
   return (
     <div className="w-full overflow-auto">
@@ -28,56 +103,97 @@ export function CurrentProductTable({ data }: { data: LocalTransactionItem[] }) 
             <TableHead className="w-[100px]">Product Code</TableHead>
             <TableHead className="hidden md:table-cell">Product</TableHead>
             <TableHead className="hidden lg:table-cell">Size</TableHead>
-            <TableHead>Color</TableHead>
+            <TableHead className="hidden lg:table-cell">Color</TableHead>
             <TableHead className="text-right">Amount (NGN)</TableHead>
             <TableHead className="text-right">Quantity</TableHead>
-            <TableHead className="text-right">Total Amount</TableHead>
-
+            <TableHead className="text-right">Total Amount (NGN)</TableHead>
             <TableHead className="w-[100px]">Action</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {data.map((product) => (
-            <TableRow key={product.productCode}>
-              <TableCell className="font-medium">
-                {product.productCode}
-              </TableCell>
-              <TableCell className="capitalize">
-                {product.productName}
-              </TableCell>
-              <TableCell className="hidden md:table-cell">
-                {product.size || "N/A"}
-              </TableCell>
-              <TableCell className="hidden lg:table-cell">
-                {product.color || "N/A"}
-              </TableCell>
-              <TableCell>
-                {product.unitPrice?.toLocaleString() || "N/A"}
-              </TableCell>
-              <TableCell>
-                {product.quantity?.toLocaleString() || "N/A"}
-              </TableCell>
-              <TableCell className="text-right">
-                {product?.totalPrice}
-              </TableCell>
-              <TableCell>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setSelectedProduct(product)}
-                >
-                  <Eye className="w-4 h-4" />
-                  <span className="sr-only">View</span>
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))}
+          {data.map((product) => {
+            const quantity = quantities[product.product_code!] || 1;
+            return (
+              <TableRow key={product.product_code}>
+                <TableCell className="font-medium">
+                  {product.product_code}
+                </TableCell>
+                <TableCell className="capitaliz line-clamp-2 md:line-clamp-none">
+                  {product.product_name}
+                </TableCell>
+                <TableCell className="hidden md:table-cell">
+                  {product.size || "N/A"}
+                </TableCell>
+                <TableCell className="hidden lg:table-cell">
+                  {product.color || "N/A"}
+                </TableCell>
+                <TableCell>
+                  {product.retail_price?.toLocaleString() || "N/A"}
+                </TableCell>
+                <TableCell>
+                  <div>
+                    <Input
+                      type="number"
+                      value={Number(quantity)}
+                      onChange={(e) =>
+                        handleQuantitesChange(product, parseInt(e.target.value))
+                      }
+                      min={1}
+                      max={product.available_quantity}
+                      className="w-16 p-1 border rounded"
+                    />
+                  </div>
+                </TableCell>
+                <TableCell className="text-right">
+                  {formatBalance(
+                    Number(product?.totalPrice) * Number(quantity)
+                  )}
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center justify-center gap-3">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleEdit(product, "edit")}
+                    >
+                      <Edit className="w-4 h-4" />
+                      <span className="sr-only">Edit</span>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleEdit(product, "view")}
+                    >
+                      <Eye className="w-4 h-4" />
+                      <span className="sr-only">View</span>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() =>
+                        removeItemFromCart(product.product_code as string)
+                      }
+                    >
+                      <Trash2 className="w-4 h-4 text-red-600" />
+                      <span className="sr-only">Delete</span>
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            );
+          })}
         </TableBody>
       </Table>
       <ProductDetailsDialog
         product={selectedProduct}
-        open={!!selectedProduct}
-        onOpenChange={(open) => !open && setSelectedProduct(null)}
+        open={showViewProd}
+        onOpenChange={() => setShowViewProd(!showViewProd)}
+      />
+      <ProductSearchModal
+        isOpen={showEditProd}
+        onClose={() => setShowEditProd(false)}
+        onAddProduct={addProductToCart}
+        fileredProduct={selectedProduct}
       />
     </div>
   );

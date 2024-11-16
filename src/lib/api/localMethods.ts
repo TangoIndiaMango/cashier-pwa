@@ -1,4 +1,4 @@
-import { db, LocalPaymentMethod } from "../db/schema";
+import { db, LocalDiscount, LocalPaymentMethod } from "../db/schema";
 
 export class LocalApiMethods {
 
@@ -6,4 +6,7 @@ export class LocalApiMethods {
         return db.paymentMethods.toArray();
     }
 
+    static async getDiscounts(): Promise<LocalDiscount[]> {
+        return db.discounts.toArray();
+    }
 }

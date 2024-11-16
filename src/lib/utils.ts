@@ -12,3 +12,11 @@ export function formatCurrency(value: number, currency: string) {
     currency: currency,
   }).format(value)
 }
+
+export const formatBalance = (balance: number) => {
+  const bal= new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: 'NGN',
+  }).format(balance)
+  return bal.split('NGN')[1]
+}

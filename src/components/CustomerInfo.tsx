@@ -83,7 +83,7 @@ const CustomerComponent: React.FC<CustomerComponentProps> = ({
     } else {
       setFilteredCustomers([]);
     }
-  }, [debouncedSearchTerm, customers]);
+  }, [debouncedSearchTerm]);
 
   // Handle input changes
   const handleInputChange = (
@@ -102,7 +102,7 @@ const CustomerComponent: React.FC<CustomerComponentProps> = ({
     return <div>Loading....</div>;
   }
 
-  console.log(filteredCustomers);
+  // console.log(filteredCustomers);
   // Handle adding customer details to parent
   const handleAddCustomer = () => {
     onAddCustomer(customerDetails);

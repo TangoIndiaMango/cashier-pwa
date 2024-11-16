@@ -9,31 +9,54 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useStore } from "@/hooks/useStore";
-import { LocalProduct } from "@/lib/db/schema";
+import { LocalTransactionItem } from "@/lib/db/schema";
 import { formatCurrency } from "@/lib/utils";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-const ProductSearchModal = ({ isOpen, onClose, onAddProduct }) => {
+const ProductSearchModal = ({
+  isOpen,
+  onClose,
+  onAddProduct,
+  fileredProduct
+}) => {
   const [searchTerm, setSearchTerm] = useState(""); // State to hold the search term
-  const [selectedProduct, setSelectedProduct] = useState<LocalProduct | null>(
-    null
-  );
-  const [filteredProducts, setFilteredProducts] = useState<LocalProduct | null>(
-    null
-  );
-  const [quantity, setQuantity] = useState(1);
+  const [selectedProduct, setSelectedProduct] =
+    useState<Partial<LocalTransactionItem> | null>(null);
+  const [filteredProducts, setFilteredProducts] =
+    useState<Partial<LocalTransactionItem> | null>(fileredProduct);
+  // console.log(fileredProduct);
+  const [discount, setDiscount] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const { products, loading, discounts } = useStore();
+  // console.log(discounts)
 
-  const { products, loading, updateAvailableQuantity } = useStore();
-
-  // Use debounced value for the search term
-  // const debouncedSearchTerm = useDebounce(searchTerm, 500);
+  const calcDiscountPriveValue = (product: LocalTransactionItem) => {
+    const discount = discounts.find(
+      (discount) => discount.product_id === product.id
+    );
+    if (!discount) {
+      return product.retail_price;
+    }
+    const discountType = discount.discount_type;
+    if (discountType === "percentage") {
+      console.log(product.retail_price! - (product.retail_price! * discount.value) / 100)
+      return (
+        product.retail_price! - (product.retail_price! * discount.value) / 100
+      );
+    } else if (discountType === "naira") {
+      console.log(product.retail_price! - discount.value)
+      return product.retail_price! - discount.value;
+    } else {
+      return product.retail_price!;
+    }
+  };
 
   const handleEnter = () => {
-    const filteredProduct = products.find(
+    const foundProduct = products.find(
       (prod) => prod.ean.toString() === searchTerm.toString()
     );
-    if (filteredProduct) {
-      setFilteredProducts(filteredProduct);
+    if (foundProduct) {
+      setFilteredProducts(foundProduct);
     } else {
       alert("Product not found");
     }
@@ -43,14 +66,36 @@ const ProductSearchModal = ({ isOpen, onClose, onAddProduct }) => {
     if (selectedProduct) {
       onAddProduct({
         ...selectedProduct,
-        quantity,
-        total: selectedProduct.retail_price * quantity
+        discount
       });
-      updateAvailableQuantity(selectedProduct.product_code, quantity);
+      calcDiscountPriveValue(selectedProduct as LocalTransactionItem);
       onClose();
       setSelectedProduct(null);
-      setQuantity(1);
-      setSearchTerm(""); // Clear search term after adding the product
+      setDiscount("");
+      setSearchTerm("");
+    }
+  };
+  // console.log(quantity)
+
+  useEffect(() => {
+    setSelectedProduct(fileredProduct);
+    setFilteredProducts(fileredProduct);
+    setDiscount(fileredProduct?.discount || "");
+  }, [isOpen, fileredProduct]);
+
+  const handleAddDiscount = (discount: string) => {
+    if (!discount) {
+      setError(null);
+      return;
+    }
+    const discountValid = discounts.some(
+      (discountObj) => discountObj.code === discount
+    );
+    if (!discountValid) {
+      setError("Invalid discount code");
+      return;
+    } else {
+      setError(null);
     }
   };
 
@@ -119,13 +164,13 @@ const ProductSearchModal = ({ isOpen, onClose, onAddProduct }) => {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label>Quantity</Label>
+                  <Label>Price</Label>
                   <Input
-                    type="number"
-                    value={quantity}
-                    onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
-                    min={1}
-                    max={selectedProduct.available_quantity}
+                    value={formatCurrency(
+                      selectedProduct.retail_price as number,
+                      "NGN"
+                    )}
+                    disabled
                   />
                 </div>
                 <div>
@@ -133,12 +178,23 @@ const ProductSearchModal = ({ isOpen, onClose, onAddProduct }) => {
                   <Input disabled value={selectedProduct.available_quantity} />
                 </div>
               </div>
-              <div>
-                <Label>Price</Label>
+              <div className="w-full">
+                <Label>Discount</Label>
                 <Input
-                  value={formatCurrency(selectedProduct.retail_price, "NGN")}
-                  disabled
+                  value={discount}
+                  onChange={(e) => setDiscount(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      handleAddDiscount(discount);
+                    }
+                  }}
                 />
+                {error ? (
+                  <div className="text-red-600">{error}</div>
+                ) : (
+                  <div className="text-green-600">Valid discount</div>
+                )}
+                {loading && <div>Loading discounts...</div>}
               </div>
             </>
           )}

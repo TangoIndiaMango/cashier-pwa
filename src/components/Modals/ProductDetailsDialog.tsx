@@ -28,7 +28,7 @@ import { LocalTransactionItem } from "@/lib/db/schema"
             <div className="space-y-4">
               <div>
                 <h3 className="font-semibold">Product ID</h3>
-                <p>{product.productCode}</p>
+                <p>{product.product_code}</p>
               </div>
               {/* <div>
                 <h3 className="font-semibold">Customer</h3>

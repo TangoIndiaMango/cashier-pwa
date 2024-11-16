@@ -4,9 +4,9 @@ import { LocalTransactionItem } from '../lib/db/schema';
 import { formatCurrency } from '@/lib/utils';
 
 interface CartProps {
-  items: (LocalTransactionItem & { productName: string })[];
-  onUpdateQuantity: (productCode: string, newQuantity: number) => void;
-  onRemoveItem: (productCode: string) => void;
+  items: (LocalTransactionItem)[];
+  onUpdateQuantity: (product_code: string, newQuantity: number) => void;
+  onRemoveItem: (product_code: string) => void;
 }
 
 export const Cart: React.FC<CartProps> = ({ 
@@ -25,11 +25,11 @@ export const Cart: React.FC<CartProps> = ({
       ) : (
         <div className="space-y-4">
           {items.map(item => (
-            <div key={item.productCode} className="flex items-center justify-between">
+            <div key={item.product_code} className="flex items-center justify-between">
               <div className="flex-1">
-                <h3 className="font-medium">{item.productName}</h3>
+                <h3 className="font-medium">{item.product_name}</h3>
                 <p className="text-xs text-gray-600">
-                  {formatCurrency(item.unitPrice, 'NGN')} x {item.quantity}
+                  {formatCurrency(Number(item.retail_price), 'NGN')} x {item.quantity}
                 </p>
               </div>
               
@@ -38,11 +38,11 @@ export const Cart: React.FC<CartProps> = ({
                   type="number"
                   min="1"
                   value={item.quantity}
-                  onChange={(e) => onUpdateQuantity(item.productCode, parseInt(e.target.value))}
+                  onChange={(e) => onUpdateQuantity(item.product_code as string, parseInt(e.target.value))}
                   className="w-16 p-1 border rounded"
                 />
                 <button
-                  onClick={() => onRemoveItem(item.productCode)}
+                  onClick={() => onRemoveItem(item.product_code as string)}
                   className="text-red-500 hover:text-red-700"
                 >
                   Remove

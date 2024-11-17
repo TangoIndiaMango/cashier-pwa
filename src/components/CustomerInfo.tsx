@@ -151,7 +151,7 @@ useEffect(() => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search for customer..."
-            className="w-64 py-2 pl-10 pr-4 border rounded-lg"
+            className="w-64 py-2 !pl-10 !pr-4"
           />
         </div>
       </div>

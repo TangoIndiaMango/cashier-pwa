@@ -21,7 +21,7 @@ export class SyncManager {
     maxDelay: 10000, // 10 seconds
   };
 
-  private constructor() {}
+  private constructor() { }
 
   static getInstance(): SyncManager {
     if (!SyncManager.instance) {
@@ -35,7 +35,7 @@ export class SyncManager {
     operationName: string
   ): Promise<T> {
     let lastError: Error;
-    
+
     for (let attempt = 1; attempt <= this.retryConfig.maxRetries; attempt++) {
       try {
         return await operation();
@@ -167,50 +167,50 @@ export class SyncManager {
       for (let i = 0; i < unsynedTransactions.length; i += batchSize) {
         const batch = unsynedTransactions.slice(i, i + batchSize);
         // TODO: SYNC LOCAL TRANSACTION
-      const transactiontoSync = batch.map((transaction) => {
-        return {
-          country: null,
-          state: null,
-          city: null,
-          address: null,
-          apply_loyalty_point: false,
-          apply_credit_note_point: false,
-          payable_amount: '',
-          exact_total_amount: transaction.totalAmount,
-          payment_type: '',
-          payment_methods: transaction.paymentMethods.map((method) => {
-            return {
-              mode_of_payment_id: method.mode_of_payment_id,
-              amount: method.amount,
-              mode_of_payment_pos_id: 1
-            }
-          }),
-          status: transaction.status,
-          payment_status: transaction.status,
-          total_price: transaction.totalAmount,
-          receipt_no: transaction.id,
-          products: transaction.items.map((item: any) => {
-            return {
-              id: item.productId,
-              new_price: item.unitPrice,
-              ean: item.productCode,
-              quantity_ordered: item.quantity,
-              color: item.color || "red",
-              size: item.size || "XL",
-              total: item.totalPrice,
-              discount_id: item.discountId || 1
-            }
-          }),
-          firstname: transaction?.customer?.firstname || null,
-          lastname: transaction?.customer?.lastname || null,
-          gender: transaction?.customer?.gender || null,
-          age: transaction?.customer?.age || null,
-          phoneno: transaction?.customer?.phoneno || null,
-          email: transaction?.customer?.email || null
-        }
-      })
-      console.log("Transaction to Sync", transactiontoSync)
-      return
+        const transactiontoSync = batch.map((transaction) => {
+          return {
+            country: null,
+            state: null,
+            city: null,
+            address: null,
+            apply_loyalty_point: false,
+            apply_credit_note_point: false,
+            payable_amount: '',
+            exact_total_amount: transaction.totalAmount,
+            payment_type: '',
+            payment_methods: transaction.paymentMethods.map((method) => {
+              return {
+                mode_of_payment_id: method.mode_of_payment_id,
+                amount: method.amount,
+                mode_of_payment_pos_id: 1
+              }
+            }),
+            status: transaction.status,
+            payment_status: transaction.status,
+            total_price: transaction.totalAmount,
+            receipt_no: transaction.id,
+            products: transaction.items.map((item: any) => {
+              return {
+                id: item.productId,
+                new_price: item.unitPrice,
+                ean: item.productCode,
+                quantity_ordered: item.quantity,
+                color: item.color || "red",
+                size: item.size || "XL",
+                total: item.totalPrice,
+                discount_id: item.discountId || 1
+              }
+            }),
+            firstname: transaction?.customer?.firstname || null,
+            lastname: transaction?.customer?.lastname || null,
+            gender: transaction?.customer?.gender || null,
+            age: transaction?.customer?.age || null,
+            phoneno: transaction?.customer?.phoneno || null,
+            email: transaction?.customer?.email || null
+          }
+        })
+        console.log("Transaction to Sync", transactiontoSync);
+        return;
         await RemoteApi.syncTransactions(batch as any);
         await db.transaction('rw', db.transactions, async () => {
           for (const tx of batch) {

@@ -7,7 +7,7 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
+  TableRow
 } from "@/components/ui/table";
 import { ICartItem, ISetCartItems, useCart } from "@/hooks/useCart";
 import { useStore } from "@/hooks/useStore";
@@ -25,7 +25,7 @@ type CurrentProductType = {
 
 export function CurrentProductTable({
   data,
-  setCartItems,
+  setCartItems
 }: CurrentProductType) {
   const { addProductToCart, removeItemFromCart } = useCart();
   const { updateAvailableQuantity } = useStore();
@@ -52,7 +52,7 @@ export function CurrentProductTable({
       setQuantities((prevQuantities) => {
         return {
           ...prevQuantities,
-          [product.product_code!]: quantity,
+          [product.product_code!]: quantity
         };
       });
 
@@ -68,7 +68,7 @@ export function CurrentProductTable({
         quantity: quantities[item.product_code!] || 1,
         itemTotal:
           Number(item.totalPrice || item.retail_price) *
-          (quantities[item.product_code!] || 1),
+          (quantities[item.product_code!] || 1)
       }))
     );
   }, [setCartItems, quantities]); // We are using memoized data here, so no infinite loop
@@ -88,21 +88,37 @@ export function CurrentProductTable({
         <TableCaption>A list of your recent products.</TableCaption>
         <TableHeader className="bg-[#F9FAFB]">
           <TableRow className="">
-            <TableHead className="w-[100px] text-xs font-normal">Product Code</TableHead>
-            <TableHead className="hidden text-xs font-normal md:table-cell">Product</TableHead>
-            <TableHead className="hidden text-xs font-normal lg:table-cell">Size</TableHead>
-            <TableHead className="hidden text-xs font-normal lg:table-cell">Color</TableHead>
-            <TableHead className="text-xs font-normal text-right">Amount (NGN)</TableHead>
-            <TableHead className="text-xs font-normal text-right">Quantity</TableHead>
-            <TableHead className="text-xs font-normal text-right">Total Amount (NGN)</TableHead>
-            <TableHead className="w-[100px] text-xs font-normal text-center">Action</TableHead>
+            <TableHead className="w-[100px] text-xs font-normal">
+              Product Code
+            </TableHead>
+            <TableHead className="hidden text-xs font-normal md:table-cell">
+              Product
+            </TableHead>
+            <TableHead className="hidden text-xs font-normal lg:table-cell">
+              Size
+            </TableHead>
+            <TableHead className="hidden text-xs font-normal lg:table-cell">
+              Color
+            </TableHead>
+            <TableHead className="text-xs font-normal text-right">
+              Amount (NGN)
+            </TableHead>
+            <TableHead className="text-xs font-normal text-right">
+              Quantity
+            </TableHead>
+            <TableHead className="text-xs font-normal text-right">
+              Total Amount (NGN)
+            </TableHead>
+            <TableHead className="w-[100px] text-xs font-normal text-center">
+              Action
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {data.map((product) => {
+          {[...data].reverse().map((product, index) => {
             const quantity = quantities[product.product_code!] || 1;
             return (
-              <TableRow key={product.product_code}>
+              <TableRow key={index}>
                 <TableCell className="font-medium text-[#303f9e]">
                   {product.product_code}
                 </TableCell>

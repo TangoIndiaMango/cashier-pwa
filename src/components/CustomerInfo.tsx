@@ -51,13 +51,8 @@ const CustomerComponent: React.FC<CustomerComponentProps> = ({
   const [filteredCustomers, setFilteredCustomers] = useState<LocalCustomer[]>(
     []
   );
-  // const [searchQuery, setSearchQuery] = useState<string>("");
   const { customers, loading } = useStore();
-  // const {setCustomer, handleAddCustomer} = useCustomer()
-  // console.log(customers)
 
-  // Use debounced value for the search term
-// The search term is already converted to lowercase here
 const debouncedSearchTerm = useDebounce(searchQuery.toLowerCase(), 500);
 
 useEffect(() => {
@@ -65,7 +60,6 @@ useEffect(() => {
     const filtered = customers.filter((customer) => {
       if (!customer) return false;
       
-      // Since debouncedSearchTerm is already lowercase, we don't need toLowerCase() on it again
       return (
         customer.firstname?.toLowerCase().includes(debouncedSearchTerm) ||
         customer.lastname?.toLowerCase().includes(debouncedSearchTerm) ||
@@ -83,26 +77,6 @@ useEffect(() => {
   if (loading) {
     return <div>Loading....</div>;
   }
-
-  // console.log(filteredCustomers);
-  // Handle adding customer details to parent
-  // const handleAddCustomer = () => {
-  //   onAddCustomer(customerDetails);
-  //   setCustomerDetails({
-  //     firstname: "",
-  //     lastname: "",
-  //     gender: null,
-  //     age: null,
-  //     phoneno: null,
-  //     email: "",
-  //     country: null,
-  //     state: null,
-  //     city: null,
-  //     address: null,
-  //     apply_loyalty_point: false,
-  //     apply_credit_note_point: false,
-  //   });
-  // };
 
   // Handle selecting a customer
   const handleSelectCustomer = (customer: LocalCustomer) => {

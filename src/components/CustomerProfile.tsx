@@ -25,7 +25,7 @@ const CustomerProfileCard = ({ customer, handleRemove }) => {
 
         {/* Action Buttons */}
         <div className="flex items-center gap-4">
-          <Button size="icon" className="text-sm bg-[#303F9E] hover:bg-[#263284] text-white px-6">
+          <Button size="sm" className="text-sm bg-[#303F9E] hover:bg-[#263284] text-white px-6">
             View Customer Profile
           </Button>
           <Button

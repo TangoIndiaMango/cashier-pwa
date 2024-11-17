@@ -156,7 +156,7 @@ const PaymentMethodModal = ({ isOpen, onClose, total, onPaymentSubmit }) => {
               </div>
 
               {/* Conditionally render branch selection if POS Machine is selected */}
-              {Number(entry.mode_of_payment_id) === 6 && (
+              {entry.mode_of_payment_id === "MOP-0000013" && (
                 <div>
                   <Label>Select Branch</Label>
                   <Select

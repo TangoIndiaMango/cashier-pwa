@@ -18,18 +18,17 @@ import { useCart } from "@/hooks/useCart";
 import { useCustomer } from "@/hooks/useCustomer";
 import { usePayment } from "@/hooks/usePayment";
 import { useTransaction } from "@/hooks/useTransaction";
-import { LocalCustomer } from "@/lib/db/schema";
 import { formatCurrency } from "@/lib/utils";
 
 import { Search, ShoppingBag } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 const POSSystem = () => {
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
   const { cartItems, addProductToCart, setCartItems, total, setTotal } =
     useCart();
-  const { transactions, submitTransaction, deleteTransaction } = useTransaction();
+  const { submitTransaction, deleteTransaction } = useTransaction();
   // console.log(transactions);
   const {
     paymentStatus,
@@ -58,15 +57,16 @@ const POSSystem = () => {
   });
 
   const handleAdd = (product: any) => {
-    const exisitingItem = cartItems.find(
-      (item) => item.product_code === product.product_code
-    );
-    if (exisitingItem) {
-      alert("Product already exist increase quantity");
-      return;
-    } else {
-      addProductToCart(product);
-    }
+    // const exisitingItem = cartItems.find(
+    //   (item) => item.product_code === product.product_code
+    // );
+    // if (exisitingItem) {
+    //   alert("Product already exist increase quantity");
+    //   return;
+    // } else {
+      
+    // }
+    addProductToCart(product);
   };
 
   // Handle input changes
@@ -97,12 +97,25 @@ const POSSystem = () => {
     setCartItems([]);
     setPaymentMethod([]);
     setCustomer(null);
+    setCustomerDetails({
+      firstname: "",
+      lastname: "",
+      gender: null,
+      age: null,
+      phoneno: null,
+      email: "",
+      country: null,
+      state: null,
+      city: null,
+      address: null,
+      apply_loyalty_point: false,
+      apply_credit_note_point: false
+    })
     setPaymentStatus(null);
 
     alert("Transaction completed successfully!");
   };
 
-  console.log(customer);
 
   return (
     <div className="flex bg-gray-100">
@@ -218,11 +231,6 @@ const POSSystem = () => {
 
       {/* Sidebar */}
       <div className="p-6 space-y-12 bg-white border-l w-96">
-        {/* <Cart
-          items={cartItems}
-          onUpdateQuantity={updateQuantity}
-          onRemoveItem={removeItemFromCart}
-        /> */}
 
         <div className="space-y-6">
           <div>

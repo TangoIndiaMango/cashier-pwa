@@ -28,6 +28,7 @@ const ProductSearchModal = ({
   const [discount, setDiscount] = useState("");
   const [error, setError] = useState<string | null>(null);
   const { products, loading, discounts } = useStore();
+
   // console.log(discounts)
 
   const handleEnter = () => {
@@ -42,10 +43,23 @@ const ProductSearchModal = ({
   };
 
   const handleAdd = () => {
+    let discountObj = null;
+
+    if (discount) {
+      discountObj = discounts.find(
+        (discountObj) => discountObj.code === discount
+      );
+
+      if (!discountObj) {
+        setError("Invalid discount code");
+        return;
+      } else setError(null);
+    }
+
     if (selectedProduct) {
       onAddProduct({
         ...selectedProduct,
-        discount,
+        discount: discountObj,
       });
       onClose();
       setSelectedProduct(null);
@@ -58,24 +72,18 @@ const ProductSearchModal = ({
   useEffect(() => {
     setSelectedProduct(fileredProduct);
     setFilteredProducts(fileredProduct);
-    setDiscount(fileredProduct?.discount || "");
+    setDiscount(fileredProduct?.discount.code || "");
   }, [isOpen, fileredProduct]);
 
-  const handleAddDiscount = (discount: string) => {
-    if (!discount) {
-      setError(null);
-      return;
-    }
-    const discountValid = discounts.some(
-      (discountObj) => discountObj.code === discount
-    );
-    if (!discountValid) {
-      setError("Invalid discount code");
-      return;
-    } else {
-      setError(null);
-    }
-  };
+  useEffect(() => {
+    if (selectedProduct)
+      console.log(
+        selectedProduct,
+        discounts.filter((d) => d.type === "discountPerProduct"),
+
+        discounts.filter((d) => d.type === "discountOnTotal")
+      );
+  }, [selectedProduct, discounts]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -161,17 +169,13 @@ const ProductSearchModal = ({
                 <Input
                   value={discount}
                   onChange={(e) => setDiscount(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      handleAddDiscount(discount);
-                    }
-                  }}
+                  // onKeyDown={(e) => {
+                  //   if (e.key === "Enter") {
+                  //     handleAddDiscount(discount);
+                  //   }
+                  // }}
                 />
-                {error ? (
-                  <div className="text-red-600">{error}</div>
-                ) : (
-                  <div className="text-green-600">Valid discount</div>
-                )}
+                {error ? <div className="text-red-600">{error}</div> : null}
                 {loading && <div>Loading discounts...</div>}
               </div>
             </>

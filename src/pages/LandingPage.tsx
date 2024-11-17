@@ -60,6 +60,8 @@ const POSSystem = () => {
     alert("Transaction completed successfully!");
   };
 
+  const handleCartDiscount = () => {};
+
   return (
     <div className="flex h-screen bg-gray-100">
       {/* Main Content */}
@@ -133,7 +135,9 @@ const POSSystem = () => {
               placeholder="Enter code"
               className="w-full p-2 border rounded-lg"
             />
-            <button className="mt-2 text-blue-600">Apply Code</button>
+            <button className="mt-2 text-blue-600" onClick={handleCartDiscount}>
+              Apply Code
+            </button>
           </div>
 
           <div className="space-y-2">

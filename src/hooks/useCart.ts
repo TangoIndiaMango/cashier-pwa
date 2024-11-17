@@ -22,23 +22,20 @@ export const useCart = () => {
   }, [cartItems]);
 
   const calcDiscountPriveValue = (product: LocalTransactionItem) => {
-    const discount = discounts.find(
-      (discount) => discount.product_id === product.id
-    );
-    if (!discount) {
-      return product.retail_price;
-    }
-    const discountType = discount.discount_type;
-    if (discountType === "percentage") {
+    if (!product.discount) return product.retail_price;
+
+    const valueType = product.discount.value_type;
+
+    const value = product.discount.value;
+
+    if (valueType === "percentage") {
       console.log(
-        product.retail_price! - (product.retail_price! * discount.value) / 100
+        product.retail_price! - (product.retail_price! * value) / 100
       );
-      return (
-        product.retail_price! - (product.retail_price! * discount.value) / 100
-      );
-    } else if (discountType === "naira") {
-      console.log(product.retail_price! - discount.value);
-      return product.retail_price! - discount.value;
+      return product.retail_price! - (product.retail_price! * value) / 100;
+    } else if (valueType === "naira") {
+      console.log(product.retail_price! - value);
+      return product.retail_price! - value;
     } else {
       return product.retail_price!;
     }
@@ -50,7 +47,7 @@ export const useCart = () => {
       return;
     }
 
-    const retailPrice = calcDiscountPriveValue(product as LocalTransactionItem);
+    const retailPrice = calcDiscountPriveValue(product);
 
     setCartItems((prevItems) => {
       return [

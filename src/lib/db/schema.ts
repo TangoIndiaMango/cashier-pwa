@@ -73,6 +73,10 @@ export interface LocalCustomer {
   loyalty_points: string;
   phoneno: string;
   gender: string;
+  country: string;
+  state: string;
+  city: string;
+  address: string;
 }
 
 

@@ -3,14 +3,25 @@ import { LocalApi } from "../api/localApi";
 import { RemoteApi } from "../api/remoteApi";
 import { db } from "../db/schema";
 
+interface RetryConfig {
+  maxRetries: number;
+  baseDelay: number;
+  maxDelay: number;
+}
+
 export class SyncManager {
   private static instance: SyncManager;
   private syncInProgress: boolean = false;
   private paymentMethodsFetched: boolean = false;
   private discountsFetched: boolean = false;
   private syncWindow: number = 5 * 60 * 1000; // 5 minutes
+  private retryConfig: RetryConfig = {
+    maxRetries: 3,
+    baseDelay: 1000, // 1 second
+    maxDelay: 10000, // 10 seconds
+  };
 
-  private constructor() { }
+  private constructor() {}
 
   static getInstance(): SyncManager {
     if (!SyncManager.instance) {
@@ -19,29 +30,68 @@ export class SyncManager {
     return SyncManager.instance;
   }
 
-  // Sync interval method (30 minutes)
+  private async retryOperation<T>(
+    operation: () => Promise<T>,
+    operationName: string
+  ): Promise<T> {
+    let lastError: Error;
+    
+    for (let attempt = 1; attempt <= this.retryConfig.maxRetries; attempt++) {
+      try {
+        return await operation();
+      } catch (error) {
+        lastError = error as Error;
+        console.warn(
+          `${operationName} attempt ${attempt} failed:`,
+          error
+        );
+
+        if (attempt < this.retryConfig.maxRetries) {
+          const delay = Math.min(
+            this.retryConfig.baseDelay * Math.pow(2, attempt - 1),
+            this.retryConfig.maxDelay
+          );
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+      }
+      throw new Error(
+        `Last error: ${lastError}`
+      );
+    }
+    throw new Error(
+      `${operationName} failed after ${this.retryConfig.maxRetries} attempts.`
+    );
+  }
+
   async scheduleSync() {
     const delay = 30 * 60 * 1000; // 30 minutes
-    setInterval(() => {
-      console.log("Syncing...");
-      this.sync();
-      console.log("Synced, Check Database");
+    setInterval(async () => {
+      try {
+        console.log("Starting scheduled sync...");
+        await this.sync();
+        console.log("Scheduled sync completed successfully");
+      } catch (error) {
+        console.error("Scheduled sync failed:", error);
+      }
     }, delay);
   }
 
   async shouldSync(): Promise<boolean> {
-    const lastSyncProduct = await db.products.orderBy('lastSyncAt').last();
-    const lastSyncTimestamp = lastSyncProduct?.lastSyncAt || new Date(0);
-
-    const now = new Date();
-    const timeElapsed = now.getTime() - lastSyncTimestamp.getTime();
-    return timeElapsed >= this.syncWindow;
+    try {
+      const lastSyncProduct = await db.products.orderBy('lastSyncAt').last();
+      const lastSyncTimestamp = lastSyncProduct?.lastSyncAt || new Date(0);
+      const now = new Date();
+      const timeElapsed = now.getTime() - lastSyncTimestamp.getTime();
+      return timeElapsed >= this.syncWindow;
+    } catch (error) {
+      console.error("Error checking sync status:", error);
+      return true; // Default to requiring sync on error
+    }
   }
 
-  // Sync logic that syncs all data including products, customers, and transactions
   async sync(): Promise<void> {
     if (this.syncInProgress) {
-      console.log("Sync is already in progress, skipping this interval...");
+      console.log("Sync already in progress, skipping...");
       return;
     }
 
@@ -53,57 +103,71 @@ export class SyncManager {
       }
 
       this.syncInProgress = true;
-      console.log("Starting Syncing...");
+      console.log("Starting sync process...");
 
-      // Sync products, customers, and transactions
-      await this.syncProducts();
-      await this.syncCustomers();
-      await this.syncTransactions();
+      // Use Promise.allSettled to handle partial failures
+      const results = await Promise.allSettled([
+        this.syncProducts(),
+        this.syncCustomers(),
+        this.syncTransactions(),
+        this.syncPaymentMethods(),
+        this.syncDiscounts()
+      ]);
 
-      // Sync payment methods and discounts only when needed
-      if (!this.paymentMethodsFetched) await this.syncPaymentMethods();
-      if (!this.discountsFetched) await this.syncDiscounts();
+      // Log results of each operation
+      results.forEach((result, index) => {
+        const operations = ['Products', 'Customers', 'Transactions', 'PaymentMethods', 'Discounts'];
+        if (result.status === 'fulfilled') {
+          console.log(`${operations[index]} sync completed successfully`);
+        } else {
+          console.error(`${operations[index]} sync failed:`, result.reason);
+        }
+      });
 
     } catch (error) {
       console.error('Sync failed:', error);
+      throw error;
     } finally {
       this.syncInProgress = false;
     }
   }
 
-  // Sync products
   private async syncProducts() {
-    const remoteProducts = await RemoteApi.fetchStoreProducts();
-    console.log("Fetched remote products");
-
-    await db.transaction('rw', db.products, async () => {
-      for (const product of remoteProducts) {
-        await db.products.put(product);
-      }
-    });
-    console.log("Synced Products with Local DB");
+    return this.retryOperation(async () => {
+      const remoteProducts = await RemoteApi.fetchStoreProducts();
+      await db.transaction('rw', db.products, async () => {
+        for (const product of remoteProducts) {
+          await db.products.put({
+            ...product,
+            lastSyncAt: new Date()
+          });
+        }
+      });
+    }, 'Products sync');
   }
 
-  // Sync customers
   private async syncCustomers() {
-    const remoteCustomers = await RemoteApi.fetchCustomer();
-    console.log("Fetched remote customers");
-
-    await db.transaction('rw', db.customers, async () => {
-      for (const customer of remoteCustomers) {
-        await db.customers.put(customer);
-      }
-    });
-    console.log("Synced Customers with Local DB");
+    return this.retryOperation(async () => {
+      const remoteCustomers = await RemoteApi.fetchCustomer();
+      await db.transaction('rw', db.customers, async () => {
+        for (const customer of remoteCustomers) {
+          await db.customers.put(customer);
+        }
+      });
+    }, 'Customers sync');
   }
 
-  // Sync transactions (unsynced local transactions)
   private async syncTransactions() {
-    const unsynedTransactions = await LocalApi.getUnsynedTransactions();
-    console.log("Unsynced Transactions", unsynedTransactions)
-    if (unsynedTransactions.length > 0) {
-      // TODO: SYNC LOCAL TRANSACTION
-      const transactiontoSync = unsynedTransactions.map((transaction) => {
+    return this.retryOperation(async () => {
+      const unsynedTransactions = await LocalApi.getUnsynedTransactions();
+      if (unsynedTransactions.length === 0) return;
+
+      // Process transactions in smaller batches
+      const batchSize = 10;
+      for (let i = 0; i < unsynedTransactions.length; i += batchSize) {
+        const batch = unsynedTransactions.slice(i, i + batchSize);
+        // TODO: SYNC LOCAL TRANSACTION
+      const transactiontoSync = batch.map((transaction) => {
         return {
           country: null,
           state: null,
@@ -145,48 +209,49 @@ export class SyncManager {
           email: transaction?.customer?.email || null
         }
       })
-
       console.log("Transaction to Sync", transactiontoSync)
-      return;
-      await RemoteApi.syncTransactions(unsynedTransactions as any);
-
-      // Mark transactions as synced
-      await db.transaction('rw', db.transactions, async () => {
-        for (const tx of unsynedTransactions) {
-          await LocalApi.markTransactionSynced(tx.id as string);
-        }
-      });
-    }
+      return
+        await RemoteApi.syncTransactions(batch as any);
+        await db.transaction('rw', db.transactions, async () => {
+          for (const tx of batch) {
+            await LocalApi.markTransactionSynced(tx.id as string);
+          }
+        });
+      }
+    }, 'Transactions sync');
   }
 
-  async syncPaymentMethods() {
-    const remotePaymentMethods = await RemoteApi.fetchPaymentMethod();
-    if (!this.paymentMethodsFetched) {
+  private async syncPaymentMethods() {
+    if (this.paymentMethodsFetched) {
+      console.log("Payment methods already synced");
+      return;
+    }
+
+    return this.retryOperation(async () => {
+      const remotePaymentMethods = await RemoteApi.fetchPaymentMethod();
       await db.transaction('rw', db.paymentMethods, async () => {
         for (const method of remotePaymentMethods) {
           await db.paymentMethods.put(method);
         }
       });
       this.paymentMethodsFetched = true;
-      console.log("Fresh Synced Payment Methods with Local DB");
-      return
-    }
-    console.log("Already Synced Payment Methods with Local DB");
+    }, 'Payment methods sync');
   }
 
-  // Fetch and cache discounts
-  async syncDiscounts() {
-    const remoteDiscounts = await RemoteApi.fetchDiscounts();
-    if (!this.discountsFetched) {
+  private async syncDiscounts() {
+    if (this.discountsFetched) {
+      console.log("Discounts already synced");
+      return;
+    }
+
+    return this.retryOperation(async () => {
+      const remoteDiscounts = await RemoteApi.fetchDiscounts();
       await db.transaction('rw', db.discounts, async () => {
         for (const discount of remoteDiscounts) {
           await db.discounts.put(discount);
         }
       });
       this.discountsFetched = true;
-      console.log("Fresh Synced Discounts with Local DB");
-      return
-    }
-    console.log("Already Synced Discounts with Local DB");
+    }, 'Discounts sync');
   }
 }

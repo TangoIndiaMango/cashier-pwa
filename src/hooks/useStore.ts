@@ -81,12 +81,14 @@ export function useStore() {
     try {
       setLoading(true);
       await syncManager.sync();
+      // Load data sequentially to prevent race conditions
       await loadProducts();
       await loadCustomers();
-      loadPaymentMethods();
-      loadDiscounts();
+      await loadPaymentMethods();
+      await loadDiscounts();
     } catch (error) {
       console.error("Sync failed:", error);
+      setError(error as Error);
     } finally {
       setLoading(false);
     }

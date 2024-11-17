@@ -61,29 +61,26 @@ const CustomerComponent: React.FC<CustomerComponentProps> = ({
   // console.log(customers)
 
   // Use debounced value for the search term
-  const debouncedSearchTerm = useDebounce(searchQuery, 500);
+// The search term is already converted to lowercase here
+const debouncedSearchTerm = useDebounce(searchQuery.toLowerCase(), 500);
 
-  useEffect(() => {
-    if (debouncedSearchTerm) {
-      const filtered = customers.filter((customer) => {
-        if (!customer) return false;
-        return (
-          customer.firstname
-            ?.toLowerCase()
-            .includes(debouncedSearchTerm?.toLowerCase()) ||
-          customer.lastname
-            ?.toLowerCase()
-            .includes(debouncedSearchTerm?.toLowerCase()) ||
-          customer.email
-            ?.toLowerCase()
-            .includes(debouncedSearchTerm?.toLowerCase())
-        );
-      });
-      setFilteredCustomers(filtered);
-    } else {
-      setFilteredCustomers([]);
-    }
-  }, [debouncedSearchTerm]);
+useEffect(() => {
+  if (debouncedSearchTerm) {
+    const filtered = customers.filter((customer) => {
+      if (!customer) return false;
+      
+      // Since debouncedSearchTerm is already lowercase, we don't need toLowerCase() on it again
+      return (
+        customer.firstname?.toLowerCase().includes(debouncedSearchTerm) ||
+        customer.lastname?.toLowerCase().includes(debouncedSearchTerm) ||
+        customer.email?.toLowerCase().includes(debouncedSearchTerm)
+      );
+    });
+    setFilteredCustomers(filtered);
+  } else {
+    setFilteredCustomers([]);
+  }
+}, [debouncedSearchTerm]);
 
   // Handle input changes
   const handleInputChange = (
@@ -162,7 +159,7 @@ const CustomerComponent: React.FC<CustomerComponentProps> = ({
       {filteredCustomers.length > 0 && (
         <div className="mt-4">
           <ul className="h-40 space-y-2 overflow-auto border rounded-sm">
-            {filteredCustomers.splice(0, 9).map((customer) => (
+            {filteredCustomers.map((customer) => (
               <li
                 key={customer.id}
                 onClick={() => handleSelectCustomer(customer)}
@@ -217,7 +214,6 @@ const CustomerComponent: React.FC<CustomerComponentProps> = ({
         <div>
           <Label>Age</Label>
           <Input
-            type="number"
             name="age"
             value={customerDetails.age || ""}
             onChange={handleInputChange}

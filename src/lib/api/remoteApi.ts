@@ -79,7 +79,8 @@ export class RemoteApi {
       price: item.price,
       product_id: item.product_id,
       redemption: item.redemption,
-      redemption_value: item.redemption_value
+      redemption_value: item.redemption_value,
+      type: item.type,
     }));
   }
 

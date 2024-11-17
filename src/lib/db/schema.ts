@@ -52,7 +52,7 @@ export interface LocalDiscount {
   value: number;
   code: string;
   value_type: number;
-  status: number;
+  status: string;
   start_date: Date;
   end_date: Date;
   is_active: number;
@@ -93,7 +93,7 @@ export class StoreDatabase extends Dexie {
       transactions: 'id, createdAt, synced',
       customers: 'id, firstname, lastname, email, phoneno',
       paymentMethods: 'id, account_id, createdAt, mopID, name, slug, is_active',
-      discounts: 'id, createdAt, name, discount_type, value, code, value_type, status, start_date, end_date, is_active, percentage, price',
+      discounts: 'id, createdAt, name, discount_type, value, code, value_type, status, start_date, end_date, is_active, percentage, price, type',
       orderedProduct: 'id, product_code, product_name, retail_price, quantity, discount, ean, lastSyncAt, isModified'
     });
   }

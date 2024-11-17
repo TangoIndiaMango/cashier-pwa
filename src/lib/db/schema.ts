@@ -1,6 +1,5 @@
-
-import { PaymentEntry } from '@/hooks/usePayment';
-import Dexie, { Table } from 'dexie';
+import { PaymentEntry } from "@/hooks/usePayment";
+import Dexie, { Table } from "dexie";
 
 export interface LocalPaymentMethod {
   id: string;
@@ -31,8 +30,8 @@ export interface LocalTransaction {
   createdAt?: Date;
   totalAmount: number;
   paymentMethods: PaymentEntry[];
-  status: string,
-  synced?: 'true' | 'false';
+  status: string;
+  synced?: "true" | "false";
   customer: LocalCustomer;
   items: LocalTransactionItem[];
 }
@@ -40,10 +39,11 @@ export interface LocalTransaction {
 export interface LocalTransactionItem extends Partial<LocalProduct> {
   quantity: number;
   totalPrice: number;
-  discount?: string;
+  discount?: LocalDiscount;
 }
 
 export interface LocalDiscount {
+  type: string | null;
   id: string;
   createdAt: Date;
   updatedAt: Date;
@@ -51,7 +51,7 @@ export interface LocalDiscount {
   discount_type: string;
   value: number;
   code: string;
-  value_type: number;
+  value_type: string;
   status: string;
   start_date: Date;
   end_date: Date;
@@ -75,26 +75,27 @@ export interface LocalCustomer {
   gender: string;
 }
 
-
 export class StoreDatabase extends Dexie {
   products!: Table<LocalProduct>;
   transactions!: Table<LocalTransaction>;
   customers!: Table<LocalCustomer>;
   paymentMethods!: Table<LocalPaymentMethod>;
   discounts!: Table<LocalDiscount>;
-  orderedProduct!: Table<LocalTransactionItem>
-
+  orderedProduct!: Table<LocalTransactionItem>;
 
   constructor() {
-    super('StoreDB');
+    super("StoreDB");
 
     this.version(1).stores({
-      products: 'id, product_name, product_code,ean, brand_name, brand_id, size, lastSyncAt',
-      transactions: 'id, createdAt, synced',
-      customers: 'id, firstname, lastname, email, phoneno',
-      paymentMethods: 'id, account_id, createdAt, mopID, name, slug, is_active',
-      discounts: 'id, createdAt, name, discount_type, value, code, value_type, status, start_date, end_date, is_active, percentage, price, type',
-      orderedProduct: 'id, product_code, product_name, retail_price, quantity, discount, ean, lastSyncAt, isModified'
+      products:
+        "id, product_name, product_code,ean, brand_name, brand_id, size, lastSyncAt",
+      transactions: "id, createdAt, synced",
+      customers: "id, firstname, lastname, email, phoneno",
+      paymentMethods: "id, account_id, createdAt, mopID, name, slug, is_active",
+      discounts:
+        "id, createdAt, name, discount_type, value, code, value_type, status, start_date, end_date, is_active, percentage, price, type",
+      orderedProduct:
+        "id, product_code, product_name, retail_price, quantity, discount, ean, lastSyncAt, isModified",
     });
   }
 }

@@ -9,25 +9,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ICartItem, ISetCartItems, useCart } from "@/hooks/useCart";
+import { useCart } from "@/hooks/useCart";
 import { useStore } from "@/hooks/useStore";
 import { LocalTransactionItem } from "@/lib/db/schema";
 import { formatBalance } from "@/lib/utils";
 import { Edit, Eye, Trash2 } from "lucide-react";
-import { useEffect, useCallback, useState } from "react";
+import { useCallback, useState } from "react";
 import { ProductDetailsDialog } from "./Modals/ProductDetailsDialog";
 import ProductSearchModal from "./Modals/ProductSearchModal";
 
-type CurrentProductType = {
-  data: ICartItem[];
-  setCartItems: (cartItems: ISetCartItems) => void;
-};
-
-export function CurrentProductTable({
-  data,
-  setCartItems,
-}: CurrentProductType) {
-  const { addProductToCart, removeItemFromCart } = useCart();
+export function CurrentProductTable() {
+  const { updateCartItem, removeItemFromCart, cartItems } = useCart();
   const { updateAvailableQuantity } = useStore();
 
   const [selectedProduct, setSelectedProduct] =
@@ -37,7 +29,7 @@ export function CurrentProductTable({
 
   // Maintain quantities in local state, not in refs
   const [quantities, setQuantities] = useState<Record<string, number>>(
-    data.reduce((acc, product) => {
+    cartItems.reduce((acc, product) => {
       acc[product.product_code!] = product.quantity || 1;
       return acc;
     }, {})
@@ -57,22 +49,11 @@ export function CurrentProductTable({
         };
       });
 
+      updateCartItem({ id: product.id, quantity });
       updateAvailableQuantity(product.product_code!, quantity);
     },
     [updateAvailableQuantity] // Ensures the callback stays memoized with respect to the update function
   );
-
-  useEffect(() => {
-    setCartItems((data) =>
-      data.map((item) => ({
-        ...item,
-        quantity: quantities[item.product_code!] || 1,
-        itemTotal:
-          Number(item.totalPrice || item.retail_price) *
-          (quantities[item.product_code!] || 1),
-      }))
-    );
-  }, [setCartItems, quantities]); // We are using memoized data here, so no infinite loop
 
   const handleEdit = (product: LocalTransactionItem, action: string) => {
     setSelectedProduct(product);
@@ -100,7 +81,7 @@ export function CurrentProductTable({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {data.map((product) => {
+          {cartItems.map((product) => {
             const quantity = quantities[product.product_code!] || 1;
             return (
               <TableRow key={product.product_code}>
@@ -117,7 +98,7 @@ export function CurrentProductTable({
                   {product.color || "N/A"}
                 </TableCell>
                 <TableCell>
-                  {product.retail_price?.toLocaleString() || "N/A"}
+                  {product.discountPrice?.toLocaleString() || "N/A"}
                 </TableCell>
                 <TableCell>
                   <div>
@@ -135,7 +116,8 @@ export function CurrentProductTable({
                 </TableCell>
                 <TableCell className="text-right">
                   {formatBalance(
-                    Number(product?.totalPrice) * Number(quantity)
+                    Number(product.discountPrice || product.retail_price) *
+                      Number(quantity)
                   )}
                 </TableCell>
                 <TableCell>
@@ -181,7 +163,7 @@ export function CurrentProductTable({
       <ProductSearchModal
         isOpen={showEditProd}
         onClose={() => setShowEditProd(false)}
-        onAddProduct={addProductToCart}
+        onFullfield={updateCartItem}
         fileredProduct={selectedProduct}
       />
     </div>

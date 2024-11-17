@@ -16,8 +16,16 @@ import { useState } from "react";
 const POSSystem = () => {
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
-  const { cartItems, addProductToCart, setCartItems, total, setTotal } =
-    useCart();
+  const {
+    cartItems,
+    addItemToCart,
+    total,
+    setTotal,
+    cartDiscountCode,
+    handleCartTotalDiscount,
+    setCartDiscountCode,
+    clearCart,
+  } = useCart();
   const { transactions, submitTransaction } = useTransaction();
   const {
     paymentStatus,
@@ -27,18 +35,6 @@ const POSSystem = () => {
     setPaymentMethod,
   } = usePayment();
   const { customer, handleAddCustomer, setCustomer } = useCustomer();
-
-  const handleAdd = (product: any) => {
-    const exisitingItem = cartItems.find(
-      (item) => item.product_code === product.product_code
-    );
-    if (exisitingItem) {
-      alert("Product already exist increase quantity");
-      return;
-    } else {
-      addProductToCart(product);
-    }
-  };
 
   const handleSubmit = async () => {
     const data = {
@@ -52,15 +48,13 @@ const POSSystem = () => {
 
     await submitTransaction(data);
     setTotal(0);
-    setCartItems([]);
+    clearCart();
     setPaymentMethod([]);
     setCustomer(null);
     setPaymentStatus(null);
 
     alert("Transaction completed successfully!");
   };
-
-  const handleCartDiscount = () => {};
 
   return (
     <div className="flex h-screen bg-gray-100">
@@ -103,10 +97,7 @@ const POSSystem = () => {
             </div>
           ) : (
             <div className="w-full">
-              <CurrentProductTable
-                data={cartItems}
-                setCartItems={setCartItems}
-              />
+              <CurrentProductTable />
             </div>
           )}
         </div>
@@ -131,11 +122,16 @@ const POSSystem = () => {
               Discount or Promotion Code
             </h3>
             <input
+              value={cartDiscountCode}
+              onChange={(e) => setCartDiscountCode(e.target.value)}
               type="text"
               placeholder="Enter code"
               className="w-full p-2 border rounded-lg"
             />
-            <button className="mt-2 text-blue-600" onClick={handleCartDiscount}>
+            <button
+              className="mt-2 text-blue-600"
+              onClick={() => handleCartTotalDiscount()}
+            >
               Apply Code
             </button>
           </div>
@@ -186,7 +182,7 @@ const POSSystem = () => {
       <ProductSearchModal
         isOpen={showAddProduct}
         onClose={() => setShowAddProduct(false)}
-        onAddProduct={handleAdd}
+        onFullfield={addItemToCart}
         fileredProduct={null}
       />
 

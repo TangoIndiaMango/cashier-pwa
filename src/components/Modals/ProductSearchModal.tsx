@@ -16,7 +16,7 @@ import { useEffect, useState } from "react";
 const ProductSearchModal = ({
   isOpen,
   onClose,
-  onAddProduct,
+  onFullfield,
   fileredProduct,
 }) => {
   const [searchTerm, setSearchTerm] = useState(""); // State to hold the search term
@@ -43,7 +43,7 @@ const ProductSearchModal = ({
   };
 
   const handleAdd = () => {
-    let discountObj = null;
+    let discountObj;
 
     if (discount) {
       discountObj = discounts.find(
@@ -57,7 +57,7 @@ const ProductSearchModal = ({
     }
 
     if (selectedProduct) {
-      onAddProduct({
+      onFullfield({
         ...selectedProduct,
         discount: discountObj,
       });

@@ -1,7 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { Search } from "lucide-react";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -9,13 +7,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
+import useDebounce from "@/hooks/useDebounce";
+import { useStore } from "@/hooks/useStore";
+import { LocalCustomer } from "@/lib/db/schema";
+import React, { useEffect, useState } from "react";
 import { Checkbox } from "./ui/checkbox";
 import { Textarea } from "./ui/textarea";
-import { useStore } from "@/hooks/useStore";
-import useDebounce from "@/hooks/useDebounce";
-import { LocalCustomer } from "@/lib/db/schema";
-import { useCustomer } from "@/hooks/useCustomer";
 
 // Define the types for customer details
 export interface CustomerDetails {

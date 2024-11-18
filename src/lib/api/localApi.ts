@@ -65,6 +65,12 @@ export class LocalApi {
     return id;
   }
 
+  static async deleteAllTransactions(): Promise<void> {
+    await db.transaction('rw', db.transactions, async () => {
+      await db.transactions.clear();
+    });
+  }
+
   static async getUnsynedTransactions(): Promise<LocalTransaction[]> {
     return await db.transactions.where('synced').equals('false').toArray();
   }

@@ -1,7 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { Search } from "lucide-react";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -9,12 +7,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
+import useDebounce from "@/hooks/useDebounce";
+import { useStore } from "@/hooks/useStore";
+import { LocalCustomer } from "@/lib/db/schema";
+import React, { useEffect, useState } from "react";
 import { Checkbox } from "./ui/checkbox";
 import { Textarea } from "./ui/textarea";
-import { useStore } from "@/hooks/useStore";
-import useDebounce from "@/hooks/useDebounce";
-import { LocalCustomer } from "@/lib/db/schema";
 
 // Define the types for customer details
 export interface CustomerDetails {
@@ -33,35 +31,28 @@ export interface CustomerDetails {
 }
 
 interface CustomerComponentProps {
-  onAddCustomer: (customerDetails: CustomerDetails) => void; // Function to pass data to parent
+  searchQuery: string; // Add searchQuery as a prop
+  setCustomerDetails: (customerDetails: CustomerDetails) => void; // Function to pass data to parent
+  handleInputChange: (e: any) => void;
+  customerDetails: CustomerDetails;
+  onAddCustomer:  (customerDetails: CustomerDetails) => void;
+  setSelectedCustomer: (t:boolean) => void;
 }
 
 const CustomerComponent: React.FC<CustomerComponentProps> = ({
-  onAddCustomer,
+  searchQuery,
+  setCustomerDetails,
+  handleInputChange,
+  customerDetails,
+  setSelectedCustomer,
+  onAddCustomer
 }) => {
-  const [customerDetails, setCustomerDetails] = useState<CustomerDetails>({
-    firstname: "",
-    lastname: "",
-    gender: null,
-    age: null,
-    phoneno: null,
-    email: "",
-    country: null,
-    state: null,
-    city: null,
-    address: null,
-    apply_loyalty_point: false,
-    apply_credit_note_point: false,
-  });
+
   const [filteredCustomers, setFilteredCustomers] = useState<LocalCustomer[]>(
     []
   );
-  const [searchQuery, setSearchQuery] = useState<string>("");
   const { customers, loading } = useStore();
-  // console.log(customers)
 
-  // Use debounced value for the search term
-// The search term is already converted to lowercase here
 const debouncedSearchTerm = useDebounce(searchQuery.toLowerCase(), 500);
 
 useEffect(() => {
@@ -69,7 +60,6 @@ useEffect(() => {
     const filtered = customers.filter((customer) => {
       if (!customer) return false;
       
-      // Since debouncedSearchTerm is already lowercase, we don't need toLowerCase() on it again
       return (
         customer.firstname?.toLowerCase().includes(debouncedSearchTerm) ||
         customer.lastname?.toLowerCase().includes(debouncedSearchTerm) ||
@@ -82,42 +72,11 @@ useEffect(() => {
   }
 }, [debouncedSearchTerm]);
 
-  // Handle input changes
-  const handleInputChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
-  ) => {
-    const { name, value } = e.target;
-    setCustomerDetails((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
+
 
   if (loading) {
     return <div>Loading....</div>;
   }
-
-  // console.log(filteredCustomers);
-  // Handle adding customer details to parent
-  const handleAddCustomer = () => {
-    onAddCustomer(customerDetails);
-    setCustomerDetails({
-      firstname: "",
-      lastname: "",
-      gender: null,
-      age: null,
-      phoneno: null,
-      email: "",
-      country: null,
-      state: null,
-      city: null,
-      address: null,
-      apply_loyalty_point: false,
-      apply_credit_note_point: false,
-    });
-  };
 
   // Handle selecting a customer
   const handleSelectCustomer = (customer: LocalCustomer) => {
@@ -135,26 +94,14 @@ useEffect(() => {
       apply_loyalty_point: false,
       apply_credit_note_point: false,
     });
-    setSearchQuery("");
+    onAddCustomer(customer as any);
     setFilteredCustomers([]);
+    setSelectedCustomer(true)
   };
 
   return (
-    <div className="p-6 bg-white rounded-lg shadow">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-semibold">Customer Information</h2>
-        <div className="relative">
-          <Search className="absolute text-gray-400 transform -translate-y-1/2 left-3 top-1/2" />
-          <Input
-            type="text"
-            name="searchQuery"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search for customer..."
-            className="w-64 py-2 !pl-10 !pr-4"
-          />
-        </div>
-      </div>
+    <>
+      
       {/* Display filtered search results */}
       {filteredCustomers.length > 0 && (
         <div className="mt-4">
@@ -305,15 +252,15 @@ useEffect(() => {
             />
             <Label>Apply Credit Note Point</Label>
           </div>
-          <Button
+          {/* <Button
             onClick={handleAddCustomer}
             className="px-4 py-2 text-white bg-blue-500 rounded-lg hover:bg-blue-600 focus:outline-none"
           >
             Add Customer
-          </Button>
+          </Button> */}
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

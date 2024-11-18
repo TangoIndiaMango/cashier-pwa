@@ -1,5 +1,5 @@
-import { LocalTransactionItem } from "@/lib/db/schema";
-import { useCallback, useEffect, useState } from "react";
+import { LocalDiscount, LocalTransactionItem } from "@/lib/db/schema";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useStore } from "./useStore";
 import { create } from "zustand";
 
@@ -12,17 +12,23 @@ type State = {
 };
 
 interface Actions {
-  calcDiscountPriveValue: (product: LocalTransactionItem) => number;
+  calcDiscountPriveValue: (product: ICartItem, priceKey?: string) => number;
   addItemToCart: (product: Partial<LocalTransactionItem>) => void;
   removeItemFromCart: (productCode: string) => void;
   updateCartItem: (product: Partial<LocalTransactionItem>) => void;
   clearCart: () => void;
 }
 
+type ICartRecords = {
+  total: number;
+  prevTotal: number;
+  discount: LocalDiscount | null;
+};
+
 export const useZudCart = create<State & Actions>((set) => ({
   cartItems: [],
-  calcDiscountPriveValue(product: LocalTransactionItem) {
-    const price = Number(product.retail_price) || 0;
+  calcDiscountPriveValue(product: ICartItem, priceKey = "retail_price") {
+    const price = Number(product[priceKey]) || 0;
 
     if (!product.discount) return price;
 
@@ -64,9 +70,7 @@ export const useZudCart = create<State & Actions>((set) => ({
           product_code: product.product_code,
           product_name: product.product_name,
           retail_price: product.retail_price,
-          discountPrice: values.calcDiscountPriveValue(
-            product as LocalTransactionItem
-          ),
+          discountPrice: values.calcDiscountPriveValue(product as ICartItem),
           color: product.color,
           size: product.size,
           ean: product.ean,
@@ -93,7 +97,7 @@ export const useZudCart = create<State & Actions>((set) => ({
               ...item,
               ...product,
               discountPrice: product.discount
-                ? values.calcDiscountPriveValue(product as LocalTransactionItem)
+                ? values.calcDiscountPriveValue(product as ICartItem)
                 : item.discountPrice,
             }
           : item
@@ -105,52 +109,88 @@ export const useZudCart = create<State & Actions>((set) => ({
   },
 }));
 
+const defaultCartRecords = {
+  total: 0,
+  prevTotal: 0,
+  discount: null,
+};
+
 export const useCart = () => {
   const cartZudApi = useZudCart((state) => state);
   const { discounts } = useStore();
-  const [total, setTotal] = useState(0);
   const [cartDiscountCode, setCartDiscountCode] = useState("");
+  const [cartRecords, setCartRecords] =
+    useState<ICartRecords>(defaultCartRecords);
+
+  const stateRef = useRef({ discountCode: "" });
 
   const handleCartTotalDiscount = useCallback(
-    (strict = true) => {
-      let discount;
+    (
+      cartDiscountCode: string = stateRef.current.discountCode,
+      forceUpdate: boolean = false
+    ) => {
+      let discount: LocalDiscount | null;
 
-      if (strict) {
-        if (!cartDiscountCode) {
-          return;
-        }
-
+      if (cartDiscountCode) {
         discount = discounts.find(
           (discountObj) => discountObj.code === cartDiscountCode
-        );
+        ) as LocalDiscount | null;
+
+        if (!discount) {
+          return alert("Invalid code");
+        }
       }
 
-      setTotal(
-        cartZudApi.cartItems.reduce(
-          (sum, item: ICartItem) =>
-            sum +
-            cartZudApi.calcDiscountPriveValue({
-              ...item,
-              discount: discount || item.discount,
-            }) *
-              (item.quantity || 1),
-          0
-        )
-      );
+      setCartRecords((values) => ({
+        ...values,
+        discount,
+        prevTotal:
+          !forceUpdate &&
+          cartDiscountCode &&
+          cartDiscountCode === values.discount?.code
+            ? values.prevTotal
+            : values.total,
+        total:
+          !forceUpdate &&
+          cartDiscountCode &&
+          cartDiscountCode === values.discount?.code
+            ? values.total
+            : cartZudApi.cartItems.reduce(
+                (sum, item: ICartItem) =>
+                  sum +
+                  cartZudApi.calcDiscountPriveValue(
+                    {
+                      ...item,
+                      discount: discount || item.discount,
+                    },
+                    cartDiscountCode ? "discountPrice" : "retail_price"
+                  ) *
+                    (item.quantity || 1),
+                0
+              ),
+      }));
     },
-    [cartZudApi.cartItems, cartDiscountCode]
+    [cartZudApi.cartItems]
   );
 
   useEffect(() => {
-    handleCartTotalDiscount(false);
+    handleCartTotalDiscount(stateRef.current.discountCode, true);
   }, [handleCartTotalDiscount]);
 
   return {
     ...cartZudApi,
-    total,
-    setTotal,
+    clearCart() {
+      setCartRecords(defaultCartRecords);
+      cartZudApi.clearCart();
+    },
+    setCartRecords,
     cartDiscountCode,
-    setCartDiscountCode,
+    setCartDiscountCode(code: string) {
+      stateRef.current.discountCode = code;
+      setCartDiscountCode(code);
+    },
     handleCartTotalDiscount,
+    cartRecords,
   };
 };
+// 4064533026926

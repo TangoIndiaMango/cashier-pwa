@@ -27,7 +27,6 @@ export function CurrentProductTable() {
   const [showEditProd, setShowEditProd] = useState(false);
   const [showViewProd, setShowViewProd] = useState(false);
 
-  // Maintain quantities in local state, not in refs
   const [quantities, setQuantities] = useState<Record<string, number>>(
     cartItems.reduce((acc, product) => {
       acc[product.product_code!] = product.quantity || 1;
@@ -52,7 +51,7 @@ export function CurrentProductTable() {
       updateCartItem({ id: product.id, quantity });
       updateAvailableQuantity(product.product_code!, quantity);
     },
-    [updateAvailableQuantity] // Ensures the callback stays memoized with respect to the update function
+    [updateAvailableQuantity]
   );
 
   const handleEdit = (product: LocalTransactionItem, action: string) => {
@@ -68,27 +67,43 @@ export function CurrentProductTable() {
     <div className="w-full overflow-auto">
       <Table>
         <TableCaption>A list of your recent products.</TableCaption>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-[100px]">Product Code</TableHead>
-            <TableHead className="hidden md:table-cell">Product</TableHead>
-            <TableHead className="hidden lg:table-cell">Size</TableHead>
-            <TableHead className="hidden lg:table-cell">Color</TableHead>
-            <TableHead className="text-right">Amount (NGN)</TableHead>
-            <TableHead className="text-right">Quantity</TableHead>
-            <TableHead className="text-right">Total Amount (NGN)</TableHead>
-            <TableHead className="w-[100px]">Action</TableHead>
+        <TableHeader className="bg-[#F9FAFB]">
+          <TableRow className="">
+            <TableHead className="w-[100px] text-xs font-normal">
+              Product Code
+            </TableHead>
+            <TableHead className="hidden text-xs font-normal md:table-cell">
+              Product
+            </TableHead>
+            <TableHead className="hidden text-xs font-normal lg:table-cell">
+              Size
+            </TableHead>
+            <TableHead className="hidden text-xs font-normal lg:table-cell">
+              Color
+            </TableHead>
+            <TableHead className="text-xs font-normal text-right">
+              Amount (NGN)
+            </TableHead>
+            <TableHead className="text-xs font-normal text-right">
+              Quantity
+            </TableHead>
+            <TableHead className="text-xs font-normal text-right">
+              Total Amount (NGN)
+            </TableHead>
+            <TableHead className="w-[100px] text-xs font-normal text-center">
+              Action
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {cartItems.map((product) => {
+          {cartItems.reverse().map((product, index) => {
             const quantity = quantities[product.product_code!] || 1;
             return (
-              <TableRow key={product.product_code}>
-                <TableCell className="font-medium">
+              <TableRow key={index}>
+                <TableCell className="font-medium text-[#303f9e]">
                   {product.product_code}
                 </TableCell>
-                <TableCell className="capitaliz line-clamp-2 md:line-clamp-none">
+                <TableCell className="capitalize line-clamp-2 md:line-clamp-none">
                   {product.product_name}
                 </TableCell>
                 <TableCell className="hidden md:table-cell">
@@ -99,6 +114,12 @@ export function CurrentProductTable() {
                 </TableCell>
                 <TableCell>
                   {product.discountPrice?.toLocaleString() || "N/A"}
+
+                  {product.discountPrice ? (
+                    <p className="mt-2 line-through">
+                      {product.retail_price?.toLocaleString() || "N/A"}
+                    </p>
+                  ) : null}
                 </TableCell>
                 <TableCell>
                   <div>

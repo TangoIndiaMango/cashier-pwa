@@ -26,9 +26,18 @@ export const useTransaction = () => {
     }
   };
 
+  const deleteTransaction = async () => {
+    try {
+      await LocalApi.deleteAllTransactions();
+      await getAllTransactions();
+    } catch (err) {
+      console.error('Error deleting transaction:', err);
+    }
+  };
+
   useEffect(() => {
     getAllTransactions();
   }, []);
 
-  return { transactions, submitTransaction };
+  return { transactions, submitTransaction , deleteTransaction};
 };

@@ -72,7 +72,7 @@ const ProductSearchModal = ({
   useEffect(() => {
     setSelectedProduct(fileredProduct);
     setFilteredProducts(fileredProduct);
-    setDiscount(fileredProduct?.discount.code || "");
+    setDiscount(fileredProduct?.discount?.code || "");
   }, [isOpen, fileredProduct]);
 
   useEffect(() => {

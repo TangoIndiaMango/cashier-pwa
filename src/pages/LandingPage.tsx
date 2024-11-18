@@ -12,7 +12,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
+  SelectValue
 } from "@/components/ui/select";
 import { useCart } from "@/hooks/useCart";
 import { useCustomer } from "@/hooks/useCustomer";
@@ -33,7 +33,7 @@ const POSSystem = () => {
     clearCart,
     handleCartTotalDiscount,
     cartDiscountCode,
-    setCartDiscountCode,
+    setCartDiscountCode
   } = useCart();
 
   const [showCartDiscount, setShowCartDiscount] = useState(false);
@@ -45,7 +45,7 @@ const POSSystem = () => {
     setPaymentStatus,
     paymentMethod,
     handlePaymentSubmit,
-    setPaymentMethod,
+    setPaymentMethod
   } = usePayment();
 
   const { customer, handleAddCustomer, setCustomer } = useCustomer();
@@ -62,10 +62,10 @@ const POSSystem = () => {
     state: null,
     city: null,
     address: null,
-    apply_loyalty_point: false,
-    apply_credit_note_point: false,
   });
-
+  console.log(cartDiscountCode);
+  console.log(cartRecords);
+  // console.log(cartItems)
   // Handle input changes
   const handleInputChange = (
     e: React.ChangeEvent<
@@ -75,7 +75,7 @@ const POSSystem = () => {
     const { name, value } = e.target;
     setCustomerDetails((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: value
     }));
   };
 
@@ -86,10 +86,13 @@ const POSSystem = () => {
       customer: customerDetails as any,
       status: paymentStatus ? paymentStatus.toUpperCase() : "DRAFT",
       items: cartItems,
+      discount: cartDiscountCode ? cartRecords?.discount : null,
+      discountAmount: cartRecords?.total,
+      noDiscountAmount: cartRecords?.prevTotal
     };
     console.log(data);
 
-    await submitTransaction(data);
+    await submitTransaction(data as any);
     clearCart();
     setPaymentMethod([]);
     setCustomer(null);
@@ -103,9 +106,7 @@ const POSSystem = () => {
       country: null,
       state: null,
       city: null,
-      address: null,
-      apply_loyalty_point: false,
-      apply_credit_note_point: false,
+      address: null
     });
     setPaymentStatus(null);
 
@@ -113,17 +114,17 @@ const POSSystem = () => {
   };
 
   return (
-    <div className="flex bg-gray-100">
+    <div className="grid w-full h-full grid-cols-1 p-6 md:grid-cols-3">
       {/* Main Content */}
-      <div className="flex flex-col flex-1 p-6 space-y-6">
+      <div className="w-full p-3 space-y-6 md:col-span-2">
         {/* Header Section */}
         <header className="flex items-center justify-between w-full">
           <h1 className="flex-1 text-2xl font-bold">Orders</h1>
-          <Button onClick={deleteTransaction}>Cear Tranactions</Button>
+          <Button onClick={() => deleteTransaction()}>Cear Tranactions</Button>
         </header>
 
         {/* Product Table */}
-        <div className="flex-1 w-full p-3 space-y-10 bg-white rounded-lg shadow h-fit">
+        <div className="flex-1 w-full p-3 space-y-10 bg-white border rounded-lg shadow-sm h-fit">
           <div className="flex items-center justify-between w-full gap-5 h-fit">
             <div>
               <h1 className="text-xl font-bold">Current Transaction</h1>
@@ -132,20 +133,19 @@ const POSSystem = () => {
               </p>
             </div>
 
-            <div className="flex gap-4">
+            <div className="flex flex-wrap justify-end w-full gap-4">
               <div className="relative">
                 <Search className="absolute text-gray-400 transform -translate-y-1/2 left-3 top-1/2" />
                 <input
                   type="text"
                   placeholder="Search for a product..."
-                  className="w-64 py-2 pl-10 pr-4 border rounded-lg"
+                  className="w-full py-2 pl-10 pr-4 border rounded-lg md:w-64"
                   onClick={() => setShowAddProduct(true)}
                 />
               </div>
               <Button
                 size="lg"
-                // onClick={() => setShowAddProduct(true)}
-                className=" text-white bg-[#303f9e] hover:bg-[#303f9e] rounded-lg"
+                className="text-white bg-[#303f9e] hover:bg-[#303f9e] rounded-lg"
               >
                 Scan barcode
               </Button>
@@ -166,7 +166,7 @@ const POSSystem = () => {
         </div>
 
         {/* Customer Information */}
-        <div className="p-6 space-y-5 bg-white rounded-lg shadow">
+        <div className="p-6 space-y-5 bg-white border rounded-lg shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-xl font-semibold">Customer Information</h2>
@@ -180,7 +180,7 @@ const POSSystem = () => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search for customer..."
-                className="w-64 py-2 !pl-10 !pr-4"
+                className="w-full py-2 !pl-10 pr-4 border rounded-lg md:w-64"
               />
             </div>
           </div>
@@ -200,9 +200,7 @@ const POSSystem = () => {
                   country: null,
                   state: null,
                   city: null,
-                  address: null,
-                  apply_loyalty_point: false,
-                  apply_credit_note_point: false,
+                  address: null
                 });
               }}
             />
@@ -217,11 +215,10 @@ const POSSystem = () => {
             />
           )}
         </div>
-        <div></div>
       </div>
 
       {/* Sidebar */}
-      <div className="p-6 space-y-12 bg-white border-l w-96">
+      <div className="p-6 space-y-12">
         <div className="space-y-6">
           <div>
             <h1 className="text-lg font-semibold ">
@@ -241,28 +238,30 @@ const POSSystem = () => {
               value={cartDiscountCode}
               onChange={(e) => setCartDiscountCode(e.target.value)}
             />
-            <button
-              className="mt-2 text-blue-600"
+            <Button
+              variant="lightblue"
+              disabled={!cartDiscountCode || cartItems.length === 0}
               onClick={() => {
                 handleCartTotalDiscount(cartDiscountCode);
                 setShowCartDiscount(true);
               }}
+              className="w-full py-2 rounded-lg"
             >
               Apply Code
-            </button>
+            </Button>
           </div>
           {showCartDiscount ? (
             <div>
-              <div className="flex justify-between text-[14px]">
-                <span>Discount</span>
-                <span className="font-medium line-through">
+              <div className="flex justify-between">
+                <span className="text-xs text-gray-500">Discount</span>
+                <span className="text-sm font-medium line-through">
                   {formatCurrency(cartRecords.prevTotal, "NGN")}
                 </span>
               </div>
               <div className="flex justify-between mt-2">
                 <span></span>
-                <span className="font-medium">
-                  {formatCurrency(cartRecords.discount?.value || "", "NGN")}
+                <span className="text-sm font-medium">
+                  {formatCurrency(cartRecords.total || "", "NGN")}
                 </span>
               </div>
             </div>
@@ -270,22 +269,27 @@ const POSSystem = () => {
 
           <div className="space-y-2">
             <div className="flex justify-between">
-              <span>Total Items</span>
+              <span className="text-xs text-gray-500">Total Items</span>
               <span>{cartItems.length}</span>
             </div>
             <div className="flex justify-between">
-              <span>Subtotal</span>
-              <span>{formatCurrency(cartRecords.total, "NGN")}</span>
+              <span className="text-xs text-gray-500">Subtotal</span>
+              <span className="text-sm font-medium">
+                {formatCurrency(cartRecords.total, "NGN")}
+              </span>
             </div>
             <div className="flex justify-between font-bold">
-              <span>TOTAL</span>
-              <span>{formatCurrency(cartRecords.total, "NGN")}</span>
+              <span className="text-sm">TOTAL</span>
+              <span className="text-sm font-medium">
+                {formatCurrency(cartRecords.total, "NGN")}
+              </span>
             </div>
           </div>
 
           <div className="space-y-4">
             <Button
               variant="lightblue"
+              disabled={cartItems.length === 0}
               onClick={() => setShowPayment(true)}
               className="w-full py-2 rounded-lg"
             >
@@ -296,7 +300,7 @@ const POSSystem = () => {
               <Label>Select Order Status</Label>
               <Select
                 name="status"
-                value={paymentStatus || "Draft"}
+                value={paymentStatus || "draft"}
                 onValueChange={(value) => setPaymentStatus(value)}
               >
                 <SelectTrigger className="w-full">
@@ -308,10 +312,18 @@ const POSSystem = () => {
                 </SelectContent>
               </Select>
             </div>
-            <Button onClick={handleSubmit} className="w-full py-2">
+            <Button
+              disabled={cartItems.length === 0}
+              onClick={handleSubmit}
+              className="w-full py-2"
+            >
               Submit & Print Receipt
             </Button>
-            <Button variant="lightblue" className="w-full py-2 rounded-lg">
+            <Button
+              disabled={cartItems.length === 0}
+              variant="lightblue"
+              className="w-full py-2 rounded-lg"
+            >
               Submit & Print Gift Receipt
             </Button>
           </div>

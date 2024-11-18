@@ -6,7 +6,7 @@ import { LocalCustomer } from '@/lib/db/schema';
 export const useCustomer = () => {
   const [customer, setCustomer] = useState<CustomerDetails | LocalCustomer | null>(null);
 
-  console.log(customer)
+  // console.log(customer)
   const handleAddCustomer = (customerDetails: CustomerDetails) => {
     setCustomer(customerDetails);
   };

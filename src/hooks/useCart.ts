@@ -46,6 +46,7 @@ export const useZudCart = create<State & Actions>((set) => ({
       return price!;
     }
   },
+
   addItemToCart(product: Partial<LocalTransactionItem>) {
     if (product.available_quantity === 0) {
       alert("Product out of stock");
@@ -53,14 +54,14 @@ export const useZudCart = create<State & Actions>((set) => ({
     }
 
     set((values) => {
-      const exisitingItem = values.cartItems.find(
-        (item) => item.product_code === product.product_code
-      );
+      // const exisitingItem = values.cartItems.find(
+      //   (item) => item.product_code === product.product_code
+      // );
 
-      if (exisitingItem) {
-        alert("Product already exist increase quantity");
-        return values;
-      }
+      // if (exisitingItem) {
+      //   alert("Product already exist increase quantity");
+      //   return values;
+      // }
 
       return {
         ...values,

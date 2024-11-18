@@ -34,6 +34,7 @@ export interface LocalTransaction {
   synced?: "true" | "false";
   customer: LocalCustomer;
   items: LocalTransactionItem[];
+  discount: LocalDiscount;
 }
 
 export interface LocalTransactionItem extends Partial<LocalProduct> {

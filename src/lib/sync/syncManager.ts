@@ -175,8 +175,8 @@ export class SyncManager {
             address: null,
             apply_loyalty_point: false,
             apply_credit_note_point: false,
-            payable_amount: '',
-            exact_total_amount: transaction.totalAmount,
+            payable_amount: transaction.totalAmount, //dicounted price
+            exact_total_amount: transaction.totalAmount, // i think should be the exact total amount
             payment_type: '',
             payment_methods: transaction.paymentMethods.map((method) => {
               return {
@@ -189,6 +189,7 @@ export class SyncManager {
             payment_status: transaction.status,
             total_price: transaction.totalAmount,
             receipt_no: transaction.id,
+            discount_id: transaction.discount.id || "",
             products: transaction.items.map((item: any) => {
               return {
                 id: item.productId,
@@ -198,7 +199,7 @@ export class SyncManager {
                 color: item.color || "red",
                 size: item.size || "XL",
                 total: item.totalPrice,
-                discount_id: item.discountId || 1
+                discount_id: item.discount.id || ""
               }
             }),
             firstname: transaction?.customer?.firstname || null,

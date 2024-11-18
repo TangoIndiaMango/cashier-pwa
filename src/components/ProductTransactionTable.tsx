@@ -103,23 +103,23 @@ export function CurrentProductTable() {
                 <TableCell className="font-medium text-[#303f9e]">
                   {product.product_code}
                 </TableCell>
-                <TableCell className="capitalize line-clamp-2 md:line-clamp-none">
+                <TableCell className="hidden capitalize md:table-cell">
                   {product.product_name}
                 </TableCell>
-                <TableCell className="hidden md:table-cell">
+                <TableCell className="hidden lg:table-cell">
                   {product.size || "N/A"}
                 </TableCell>
                 <TableCell className="hidden lg:table-cell">
                   {product.color || "N/A"}
                 </TableCell>
-                <TableCell>
-                  {product.discountPrice?.toLocaleString() || "N/A"}
+                <TableCell className="text-right">
+                ₦{product.discountPrice?.toLocaleString() || "N/A"}
 
-                  {product.discountPrice ? (
+                  {product.discount && (
                     <p className="mt-2 line-through">
-                      {product.retail_price?.toLocaleString() || "N/A"}
+                      ₦{product.retail_price?.toLocaleString() || "N/A"}
                     </p>
-                  ) : null}
+                  )}
                 </TableCell>
                 <TableCell>
                   <div>
@@ -136,13 +136,13 @@ export function CurrentProductTable() {
                   </div>
                 </TableCell>
                 <TableCell className="text-right">
-                  {formatBalance(
+                ₦{formatBalance(
                     Number(product.discountPrice || product.retail_price) *
                       Number(quantity)
                   )}
                 </TableCell>
                 <TableCell>
-                  <div className="flex items-center justify-center gap-3">
+                  <div className="flex items-center gap-1 justify-evenly">
                     <Button
                       variant="ghost"
                       size="sm"

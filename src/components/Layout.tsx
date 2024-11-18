@@ -13,11 +13,17 @@ const Layout: React.FC = () => {
   const { triggerSync } = useStore();
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="w-screen min-h-screen bg-white">
       {/* Navigation Bar */}
-      <nav className="flex items-center justify-between px-6 py-4 bg-white shadow-md">
+      <nav className="flex items-center justify-between px-6 py-4 border-b shadow-sm">
         <div className="flex items-center gap-4">
-          <h1 className="text-2xl font-bold text-blue-600">POS System</h1>
+          {/* Logo */}
+          <img
+            src="/persianas-logo-2.svg"
+            alt="logo"
+            className="h-10 md:h-10 lg:h-10 xl:h-12"
+          />
+          {/* Network Info (hidden on small screens) */}
           <div className="hidden space-x-4 text-sm text-gray-600 sm:flex">
             <p>Network: {networkType}</p>
             <p>RTT: {rtt} ms</p>
@@ -35,8 +41,9 @@ const Layout: React.FC = () => {
             <p>{isOnline ? "Online" : "Offline"}</p>
           </div>
 
-          {/* Sync and App Update */}
+          {/* Sync and App Update Buttons */}
           <div className="flex items-center space-x-2">
+            {/* Update App Button */}
             {needRefresh && (
               <Button
                 onClick={() => updateServiceWorker(true)}
@@ -46,12 +53,14 @@ const Layout: React.FC = () => {
               </Button>
             )}
 
+            {/* Offline Ready Status */}
             {offlineReady && (
               <span className="font-semibold text-green-500">
                 App is offline ready!
               </span>
             )}
 
+            {/* Sync Now Button */}
             <Button
               onClick={triggerSync}
               className="flex items-center px-3 py-2 space-x-2 text-white bg-blue-500 rounded-lg hover:bg-blue-600"
@@ -64,7 +73,7 @@ const Layout: React.FC = () => {
       </nav>
 
       {/* Main Content */}
-      <main className="container px-4 py-8 mx-auto">
+      <main className="container px-4 py-8 mx-auto ">
         <Outlet />
       </main>
     </div>

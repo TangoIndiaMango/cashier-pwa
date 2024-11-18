@@ -11,7 +11,6 @@ import useDebounce from "@/hooks/useDebounce";
 import { useStore } from "@/hooks/useStore";
 import { LocalCustomer } from "@/lib/db/schema";
 import React, { useEffect, useState } from "react";
-import { Checkbox } from "./ui/checkbox";
 import { Textarea } from "./ui/textarea";
 
 // Define the types for customer details
@@ -26,8 +25,8 @@ export interface CustomerDetails {
   state: string | null;
   city: string | null;
   address: string | null;
-  apply_loyalty_point: boolean;
-  apply_credit_note_point: boolean;
+  // apply_loyalty_point: boolean;
+  // apply_credit_note_point: boolean;
 }
 
 interface CustomerComponentProps {
@@ -80,23 +79,22 @@ useEffect(() => {
 
   // Handle selecting a customer
   const handleSelectCustomer = (customer: LocalCustomer) => {
-    setCustomerDetails({
-      firstname: customer.firstname,
-      lastname: customer.lastname,
-      gender: null,
-      age: customer.age,
-      phoneno: customer.phoneno,
-      email: customer.email,
-      country: null,
-      state: null,
-      city: null,
-      address: "",
-      apply_loyalty_point: false,
-      apply_credit_note_point: false,
-    });
+    
     onAddCustomer(customer as any);
     setFilteredCustomers([]);
     setSelectedCustomer(true)
+    setCustomerDetails({
+      firstname: customer.firstname || "",
+      lastname: customer.lastname || "",
+      gender: customer.gender || "",
+      age: customer.age || null,
+      phoneno: customer.phoneno || "",
+      email: customer.email || "",
+      country: customer.country || "",
+      state: customer.state || "",
+      city: customer.city || "",
+      address: customer.address || "",
+    });
   };
 
   return (
@@ -228,7 +226,7 @@ useEffect(() => {
         </div>
 
         <div className="flex items-center justify-between col-span-2">
-          <div className="flex items-center">
+          {/* <div className="flex items-center">
             <Checkbox
               checked={customerDetails.apply_loyalty_point}
               onCheckedChange={(checked) =>
@@ -251,7 +249,7 @@ useEffect(() => {
               }
             />
             <Label>Apply Credit Note Point</Label>
-          </div>
+          </div> */}
           {/* <Button
             onClick={handleAddCustomer}
             className="px-4 py-2 text-white bg-blue-500 rounded-lg hover:bg-blue-600 focus:outline-none"

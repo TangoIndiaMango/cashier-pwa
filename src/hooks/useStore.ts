@@ -121,7 +121,7 @@ export function useStore() {
 
   useEffect(() => {
     triggerSync();
-  }, []);
+  }, [syncManager.shouldSync]);
 
   const createTransaction = async (
     data: Omit<LocalTransaction, "id" | "createdAt" | "synced">

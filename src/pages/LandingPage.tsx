@@ -1,6 +1,7 @@
 import CustomerComponent, { CustomerDetails } from "@/components/CustomerInfo";
 import CustomerDisplay from "@/components/CustomerInfoCard";
 import CustomerProfileCard from "@/components/CustomerProfile";
+import LoyaltyModal from "@/components/Modals/LoyaltyModal";
 import PaymentMethodModal from "@/components/Modals/PaymentModal";
 import ProductSearchModal from "@/components/Modals/ProductSearchModal";
 import { CurrentProductTable } from "@/components/ProductTransactionTable.tsx";
@@ -12,8 +13,9 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
+  SelectValue,
 } from "@/components/ui/select";
+import { CustomSwitch } from "@/components/ui/switch";
 import { useCart } from "@/hooks/useCart";
 import { useCustomer } from "@/hooks/useCustomer";
 import { usePayment } from "@/hooks/usePayment";
@@ -22,6 +24,7 @@ import { formatCurrency } from "@/lib/utils";
 
 import { Search, ShoppingBag } from "lucide-react";
 import { useState } from "react";
+import toast from "react-hot-toast";
 
 const POSSystem = () => {
   const [showAddProduct, setShowAddProduct] = useState(false);
@@ -33,7 +36,7 @@ const POSSystem = () => {
     clearCart,
     handleCartTotalDiscount,
     cartDiscountCode,
-    setCartDiscountCode
+    setCartDiscountCode,
   } = useCart();
 
   const [showCartDiscount, setShowCartDiscount] = useState(false);
@@ -45,7 +48,7 @@ const POSSystem = () => {
     setPaymentStatus,
     paymentMethod,
     handlePaymentSubmit,
-    setPaymentMethod
+    setPaymentMethod,
   } = usePayment();
 
   const { customer, handleAddCustomer, setCustomer } = useCustomer();
@@ -63,6 +66,10 @@ const POSSystem = () => {
     city: null,
     address: null,
   });
+
+  const [withCreditNote, setWithCreditNote] = useState(false);
+  const [withLoyalty, setWithLoyalty] = useState(false);
+
   console.log(cartDiscountCode);
   console.log(cartRecords);
   // console.log(cartItems)
@@ -75,7 +82,7 @@ const POSSystem = () => {
     const { name, value } = e.target;
     setCustomerDetails((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -88,7 +95,7 @@ const POSSystem = () => {
       items: cartItems,
       discount: cartDiscountCode ? cartRecords?.discount : null,
       discountAmount: cartRecords?.total,
-      noDiscountAmount: cartRecords?.prevTotal
+      noDiscountAmount: cartRecords?.prevTotal,
     };
     console.log(data);
 
@@ -106,11 +113,21 @@ const POSSystem = () => {
       country: null,
       state: null,
       city: null,
-      address: null
+      address: null,
     });
     setPaymentStatus(null);
 
     alert("Transaction completed successfully!");
+  };
+
+  const handleCreditNote = (c) => {
+    console.log(c);
+  };
+
+  const handleLoyalty = (checked) => {
+    if (!selectedCustomer) return toast.error("No customer selected");
+
+    setWithLoyalty(checked);
   };
 
   return (
@@ -200,7 +217,7 @@ const POSSystem = () => {
                   country: null,
                   state: null,
                   city: null,
-                  address: null
+                  address: null,
                 });
               }}
             />
@@ -286,6 +303,21 @@ const POSSystem = () => {
             </div>
           </div>
 
+          <div className="flex flex-col gap-4">
+            <CustomSwitch
+              id="loyalty"
+              checked={withLoyalty}
+              label="Apply Loyalty Point"
+              onCheckedChange={handleLoyalty}
+            />
+            <CustomSwitch
+              id="credit-note"
+              checked={withCreditNote}
+              label="Apply Credit Note Point"
+              onCheckedChange={handleCreditNote}
+            />
+          </div>
+
           <div className="space-y-4">
             <Button
               variant="lightblue"
@@ -345,6 +377,8 @@ const POSSystem = () => {
         total={cartRecords.total}
         onPaymentSubmit={handlePaymentSubmit}
       />
+
+      <LoyaltyModal open={withLoyalty} onOpenChange={setWithLoyalty} />
     </div>
   );
 };

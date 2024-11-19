@@ -1,6 +1,7 @@
-import * as React from "react"
+import * as React from "react";
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
+import { Label } from "./label";
 
 const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
   ({ className, type, ...props }, ref) => {
@@ -14,9 +15,18 @@ const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
         ref={ref}
         {...props}
       />
-    )
+    );
   }
-)
-Input.displayName = "Input"
+);
+Input.displayName = "Input";
 
-export { Input }
+export { Input };
+
+export const FormField = ({ label = "", containerClassName = "", ...rest }) => {
+  return (
+    <div className={cn("flex flex-col gap-2", containerClassName)}>
+      {label ? <Label className="text-lg">{label}</Label> : null}
+      <Input type="text" name="firstname" {...rest} />
+    </div>
+  );
+};

@@ -6,15 +6,20 @@ import Layout from "./components/Layout";
 import POSSystem from "./pages/LandingPage";
 import LoginPage from "./pages/auth/login";
 
+import { Toaster } from "react-hot-toast";
+
 function App() {
   return (
-    <Routes>
-      <Route path="/" element={<Layout />}>
-        {/* <Route path="/:id" element={<POSPage />} /> */}
-        <Route index element={<POSSystem />} />
-      </Route>
+    <>
+      <Routes>
+        <Route path="/" element={<Layout />}>
+          {/* <Route path="/:id" element={<POSPage />} /> */}
+          <Route index element={<POSSystem />} />
+        </Route>
         <Route path="/login" element={<LoginPage />} />
-    </Routes>
+      </Routes>
+      <Toaster />
+    </>
   );
 }
 

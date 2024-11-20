@@ -13,7 +13,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
+  SelectValue
 } from "@/components/ui/select";
 import { CustomSwitch } from "@/components/ui/switch";
 import { useCart } from "@/hooks/useCart";
@@ -36,7 +36,7 @@ const POSSystem = () => {
     clearCart,
     handleCartTotalDiscount,
     cartDiscountCode,
-    setCartDiscountCode,
+    setCartDiscountCode
   } = useCart();
 
   const [showCartDiscount, setShowCartDiscount] = useState(false);
@@ -48,7 +48,7 @@ const POSSystem = () => {
     setPaymentStatus,
     paymentMethod,
     handlePaymentSubmit,
-    setPaymentMethod,
+    setPaymentMethod
   } = usePayment();
 
   const { customer, handleAddCustomer, setCustomer } = useCustomer();
@@ -64,14 +64,14 @@ const POSSystem = () => {
     country: null,
     state: null,
     city: null,
-    address: null,
+    address: null
   });
 
   const [withCreditNote, setWithCreditNote] = useState(false);
   const [withLoyalty, setWithLoyalty] = useState(false);
 
-  console.log(cartDiscountCode);
-  console.log(cartRecords);
+  // console.log(cartDiscountCode);
+  // console.log(cartRecords);
   // console.log(cartItems)
   // Handle input changes
   const handleInputChange = (
@@ -82,11 +82,14 @@ const POSSystem = () => {
     const { name, value } = e.target;
     setCustomerDetails((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: value
     }));
   };
 
   const handleSubmit = async () => {
+    if (!paymentMethod.length) {
+      return toast.error("No payment method selected");
+    }
     const data = {
       paymentMethods: paymentMethod,
       totalAmount: cartRecords.total,
@@ -95,7 +98,7 @@ const POSSystem = () => {
       items: cartItems,
       discount: cartDiscountCode ? cartRecords?.discount : null,
       discountAmount: cartRecords?.total,
-      noDiscountAmount: cartRecords?.prevTotal,
+      noDiscountAmount: cartRecords?.prevTotal
     };
     console.log(data);
 
@@ -113,11 +116,12 @@ const POSSystem = () => {
       country: null,
       state: null,
       city: null,
-      address: null,
+      address: null
     });
     setPaymentStatus(null);
+    setSearchQuery("")
 
-    alert("Transaction completed successfully!");
+    toast.success("Transaction completed successfully!");
   };
 
   const handleCreditNote = (c) => {
@@ -201,12 +205,13 @@ const POSSystem = () => {
               />
             </div>
           </div>
-          {selectedCustomer ? (
+          {selectedCustomer && customer !== null ? (
             <CustomerProfileCard
               customer={customer}
               handleRemove={() => {
                 setCustomer(null);
                 setSelectedCustomer(false);
+                setSearchQuery("")
                 setCustomerDetails({
                   firstname: "",
                   lastname: "",
@@ -217,7 +222,7 @@ const POSSystem = () => {
                   country: null,
                   state: null,
                   city: null,
-                  address: null,
+                  address: null
                 });
               }}
             />
@@ -345,7 +350,7 @@ const POSSystem = () => {
               </Select>
             </div>
             <Button
-              disabled={cartItems.length === 0}
+              disabled={cartItems.length === 0 || !paymentMethod.length}
               onClick={handleSubmit}
               className="w-full py-2"
             >
@@ -379,6 +384,12 @@ const POSSystem = () => {
       />
 
       <LoyaltyModal open={withLoyalty} onOpenChange={setWithLoyalty} />
+      <LoyaltyModal
+        open={withCreditNote}
+        onOpenChange={setWithCreditNote}
+        title="Apply Credit Note"
+        desc="Enter a value to be deducted"
+      />
     </div>
   );
 };

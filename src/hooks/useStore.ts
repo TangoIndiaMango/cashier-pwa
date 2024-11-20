@@ -94,33 +94,60 @@ export function useStore() {
     }
   };
 
+    // Trigger sync when online or manually
+    const triggerFetch = async () => {
+      try {
+        setLoading(true);
+        // Load data sequentially to prevent race conditions
+        await loadProducts();
+        await loadCustomers();
+        await loadPaymentMethods();
+        await loadDiscounts();
+      } catch (error) {
+        console.error("Sync failed:", error);
+        setError(error as Error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
   // Update product quantity after purchase
   const updateAvailableQuantity = (productCode: string, quantity: number) => {
     setProducts((prevProducts) =>
       prevProducts.map((product) =>
         product.product_code === productCode
           ? {
-              ...product,
-              available_quantity:
-                product.available_quantity >= quantity
-                  ? product.available_quantity - quantity
-                  : product.available_quantity,
-            }
+            ...product,
+            available_quantity:
+              product.available_quantity >= quantity
+                ? product.available_quantity - quantity
+                : product.available_quantity,
+          }
           : product
       )
     );
   };
 
   // Check if the app is online and trigger sync
-  // useEffect(() => {
-  //   if (isOnline) {
-  //     triggerSync();
-  //   }
-
-  // }, [isOnline]);
+  useEffect(() => {
+    const syncIfNeed = async () => {
+      if (isOnline) {
+        try {
+          const shouldSync = await syncManager.shouldSync()
+          if (shouldSync) {
+            console.log("Syncing data...");
+            await syncManager.sync();
+          }
+        } catch (error) {
+          console.error("Error checking sync status or triggering sync:", error);
+        }
+      }
+    }
+    syncIfNeed()
+  }, [isOnline]);
 
   useEffect(() => {
-    triggerSync();
+    triggerFetch();
   }, [syncManager.shouldSync]);
 
   const createTransaction = async (

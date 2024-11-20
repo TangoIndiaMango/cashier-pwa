@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Eye, EyeOff, Mail } from "lucide-react";
+import { Eye, EyeOff, Loader2, Mail } from "lucide-react";
 import AuthLayout from "@/components/auth/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { RemoteApi } from "@/lib/api/remoteApi";
 
 const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -10,10 +11,28 @@ const LoginPage = () => {
     email: "",
     password: ""
   });
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle login logic here
+    setLoading(true);
+    try {
+      const res = await RemoteApi.login(formData?.email, formData?.password);
+      console.log(res?.data);
+      // set item to local storage
+      localStorage.setItem("token", res?.data?.accessToken);
+      localStorage.setItem("user", JSON.stringify(res?.data?.user));
+      setFormData({
+        email: "",
+        password: ""
+      });
+      window.location.href = "/";
+      setLoading(false);
+    } catch (error) {
+      console.log("An error occured", error);
+      setLoading(false);
+    }
+    setLoading(false);
   };
 
   return (
@@ -86,8 +105,10 @@ const LoginPage = () => {
               <Button
                 type="submit"
                 className="bg-[#303F9E] text-white px-4 py-2 rounded-xl shadow-sm hover:bg-[#263284] transition-colors"
+                disabled={loading}
               >
-                Login
+                {loading ? "" : "Login"}
+                {loading && <Loader2 className="w-8 h-8 animate-spin" />}
               </Button>
             </div>
           </form>

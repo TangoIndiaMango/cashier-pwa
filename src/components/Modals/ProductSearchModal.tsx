@@ -4,7 +4,7 @@ import {
   DialogContent,
   DialogDescription,
   DialogHeader,
-  DialogTitle,
+  DialogTitle
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,12 +12,14 @@ import { useStore } from "@/hooks/useStore";
 import { LocalTransactionItem } from "@/lib/db/schema";
 import { formatCurrency } from "@/lib/utils";
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
+
 
 const ProductSearchModal = ({
   isOpen,
   onClose,
   onFullfield,
-  fileredProduct,
+  fileredProduct
 }) => {
   const [searchTerm, setSearchTerm] = useState(""); // State to hold the search term
   const [selectedProduct, setSelectedProduct] =
@@ -38,7 +40,7 @@ const ProductSearchModal = ({
     if (foundProduct) {
       setFilteredProducts(foundProduct);
     } else {
-      alert("Product not found");
+      toast.error("Product not found");
     }
   };
 
@@ -51,6 +53,7 @@ const ProductSearchModal = ({
       );
 
       if (!discountObj) {
+        toast("Invalid discount code");
         setError("Invalid discount code");
         return;
       } else setError(null);
@@ -59,12 +62,13 @@ const ProductSearchModal = ({
     if (selectedProduct) {
       onFullfield({
         ...selectedProduct,
-        discount: discountObj,
+        discount: discountObj
       });
       onClose();
       setSelectedProduct(null);
       setDiscount("");
       setSearchTerm("");
+      toast("Product added successfully");
     }
   };
   // console.log(quantity)
@@ -75,15 +79,15 @@ const ProductSearchModal = ({
     setDiscount(fileredProduct?.discount?.code || "");
   }, [isOpen, fileredProduct]);
 
-  useEffect(() => {
-    if (selectedProduct)
-      console.log(
-        selectedProduct,
-        discounts.filter((d) => d.type === "discountPerProduct"),
+  // useEffect(() => {
+  //   if (selectedProduct)
+  //     console.log(
+  //       selectedProduct,
+  //       discounts.filter((d) => d.type === "discountPerProduct"),
 
-        discounts.filter((d) => d.type === "discountOnTotal")
-      );
-  }, [selectedProduct, discounts]);
+  //       discounts.filter((d) => d.type === "discountOnTotal")
+  //     );
+  // }, [selectedProduct, discounts]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>

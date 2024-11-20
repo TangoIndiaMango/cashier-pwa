@@ -84,7 +84,7 @@ export class RemoteApi {
     }));
   }
 
-  static async syncTransactions(transactions: Transaction[]): Promise<void> {
+  static async syncTransactions(transactions: Transaction[], syncId: string): Promise<void> {
     // const mappedTransactions = transactions.map((transaction) => {
     //   return {
     //     firstname: transaction.firstname,
@@ -108,11 +108,24 @@ export class RemoteApi {
     // });
 
     try {
-      await api.post('/sync/transactions', { transactions });
+      await api.post('/transactions/sync', {
+        sync_session_id: syncId,
+        transactions
+      }, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        }
+      });
     } catch (error) {
       console.error('Sync failed:', error);
       throw error;
     }
+  }
+
+  static async login(email: string, password: string): Promise<any> {
+    const response = await axios.post('https://www.peresiana-ecomm-backend.nigeriasbsc.com/public/api/v1/auth/login', { email, password });
+    return response.data;
   }
 
 }

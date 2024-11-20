@@ -3,7 +3,7 @@ import {
   Dialog,
   DialogContent,
   DialogFooter,
-  DialogHeader,
+  DialogHeader
 } from "../ui/dialog";
 import { DialogProps } from "@radix-ui/react-dialog";
 import Typography from "../Typography";
@@ -12,16 +12,25 @@ import { Button } from "../ui/button";
 
 interface ILoyaltyModal extends DialogProps {
   open: boolean;
+  title?: string;
+  desc?: string;
 }
 
-const LoyaltyModal: React.FC<ILoyaltyModal> = ({ onOpenChange, ...rest }) => {
+const LoyaltyModal: React.FC<ILoyaltyModal> = ({
+  title,
+  desc,
+  onOpenChange,
+  ...rest
+}) => {
   return (
-    <Dialog onOpenChange={onOpenChange}  {...rest}>
+    <Dialog onOpenChange={onOpenChange} {...rest}>
       <DialogContent>
         <DialogHeader>
-          <Typography>Loyalty Point</Typography>
+          <Typography>{title ? title : "Apply Loyalty Point"}</Typography>
           <Typography>
-            Apply for all loyalty point to customer product purchase
+            {desc
+              ? desc
+              : "Apply for all loyalty point to customer product purchase"}
           </Typography>
 
           <FormField label="Loyalty Point" containerClassName="my-4" />
@@ -36,7 +45,7 @@ const LoyaltyModal: React.FC<ILoyaltyModal> = ({ onOpenChange, ...rest }) => {
             Cancel
           </Button>
 
-          <Button className="flex-1">Apply Point</Button>
+          <Button className="flex-1">Apply</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

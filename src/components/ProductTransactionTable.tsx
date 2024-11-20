@@ -7,7 +7,7 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
+  TableRow
 } from "@/components/ui/table";
 import { useCart } from "@/hooks/useCart";
 import { useStore } from "@/hooks/useStore";
@@ -17,6 +17,9 @@ import { Edit, Eye, Trash2 } from "lucide-react";
 import { useCallback, useState } from "react";
 import { ProductDetailsDialog } from "./Modals/ProductDetailsDialog";
 import ProductSearchModal from "./Modals/ProductSearchModal";
+import toast from "react-hot-toast";
+
+
 
 export function CurrentProductTable() {
   const { updateCartItem, removeItemFromCart, cartItems } = useCart();
@@ -37,14 +40,14 @@ export function CurrentProductTable() {
   const handleQuantitesChange = useCallback(
     (product: LocalTransactionItem, quantity: number) => {
       if (quantity > product.available_quantity!) {
-        alert("Quantity exceeds available stock");
+        toast.error("Quantity cannot be greater than available quantity");
         return;
       }
 
       setQuantities((prevQuantities) => {
         return {
           ...prevQuantities,
-          [product.product_code!]: quantity,
+          [product.product_code!]: quantity
         };
       });
 
@@ -96,7 +99,7 @@ export function CurrentProductTable() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {cartItems.reverse().map((product, index) => {
+          {[...cartItems].reverse().map((product, index) => {
             const quantity = quantities[product.product_code!] || 1;
             return (
               <TableRow key={index}>
@@ -113,8 +116,7 @@ export function CurrentProductTable() {
                   {product.color || "N/A"}
                 </TableCell>
                 <TableCell className="text-right">
-                ₦{product.discountPrice?.toLocaleString() || "N/A"}
-
+                  ₦{product.discountPrice?.toLocaleString() || "N/A"}
                   {product.discount && (
                     <p className="mt-2 line-through">
                       ₦{product.retail_price?.toLocaleString() || "N/A"}
@@ -124,19 +126,20 @@ export function CurrentProductTable() {
                 <TableCell>
                   <div>
                     <Input
-                      type="number"
+                    type="number"
                       value={Number(quantity)}
                       onChange={(e) =>
                         handleQuantitesChange(product, parseInt(e.target.value))
                       }
-                      min={1}
+                      
                       max={product.available_quantity}
                       className="w-16 p-1 border rounded"
                     />
                   </div>
                 </TableCell>
                 <TableCell className="text-right">
-                ₦{formatBalance(
+                  ₦
+                  {formatBalance(
                     Number(product.discountPrice || product.retail_price) *
                       Number(quantity)
                   )}

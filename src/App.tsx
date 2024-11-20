@@ -5,7 +5,6 @@ import Layout from "./components/Layout";
 // import POSPage from "./help/Post";
 import POSSystem from "./pages/LandingPage";
 import LoginPage from "./pages/auth/login";
-
 import { Toaster } from "react-hot-toast";
 
 function App() {
@@ -18,7 +17,7 @@ function App() {
         </Route>
         <Route path="/login" element={<LoginPage />} />
       </Routes>
-      <Toaster />
+      <Toaster position="top-right" />
     </>
   );
 }

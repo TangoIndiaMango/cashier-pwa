@@ -8,6 +8,12 @@ import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { FolderSync, Wifi } from "lucide-react";
 
 const Layout: React.FC = () => {
+  //check if no token in localstorage send to /login
+  const token = localStorage.getItem("token");
+  if (!token) {
+    window.location.href = "/login";
+  }
+
   const { needRefresh, offlineReady, updateServiceWorker } = usePWA();
   const { isOnline, networkType, rtt } = useOnlineStatus();
   const { triggerSync } = useStore();

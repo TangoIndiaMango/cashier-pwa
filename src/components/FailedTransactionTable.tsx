@@ -11,7 +11,7 @@ import {
 import { useCart } from "@/hooks/useCart";
 import { LocalTransactionItem } from "@/lib/db/schema";
 import { formatBalance } from "@/lib/utils";
-import { Edit, Eye, Trash2 } from "lucide-react";
+import { Edit, Eye, Loader2, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { ProductDetailsDialog } from "./Modals/ProductDetailsDialog";
 import ProductSearchModal from "./Modals/ProductSearchModal";
@@ -36,8 +36,8 @@ export function FailedTransactionTable({ failedTrx }) {
   };
 
   return loading ? (
-    <div className="flex items-center justify-center h-full">
-      <div className="w-32 h-32 border-t-2 border-b-2 border-gray-900 rounded-full animate-spin" />
+    <div className="flex items-center justify-center h-screen">
+      <Loader2 className=" animate-spin" />
     </div>
   ) : (
     <div className="w-full overflow-auto">

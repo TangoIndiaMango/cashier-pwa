@@ -246,7 +246,7 @@ export class SyncManager {
     const failedTransactions = await RemoteApi.fetchFailedTransactions();
     if (failedTransactions.length > 0) {
       const csv = parse(failedTransactions);
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const blob = new Blob([csv as any], { type: 'text/csv;charset=utf-8;' });
       saveAs(blob, 'failed_transactions.csv');
     }
   }

@@ -56,9 +56,10 @@ export function FailedTransactionTable({ failedTrx }) {
             <TableHead className="hidden text-xs font-normal lg:table-cell">
               Customer
             </TableHead>
-            <TableHead className="text-xs font-normal text-right">
-              Product summary
+            <TableHead className="hidden text-xs font-normal lg:table-cell">
+              Error Message
             </TableHead>
+
             <TableHead className="text-xs font-normal text-right">
               Amount
             </TableHead>
@@ -78,12 +79,11 @@ export function FailedTransactionTable({ failedTrx }) {
                   {trx.products[0].ean}
                 </TableCell>
                 <TableCell className="hidden lg:table-cell">
-                  {trx.firstname} {trx.lastname}
+                  {trx.customer_name || "N/A"}
                 </TableCell>
                 <TableCell className="hidden lg:table-cell">
-                  {trx.products[0].quantity_ordered || "N/A"}
+                  {trx.error_message || "N/A"}
                 </TableCell>
-                <TableCell className="text-right">{trx.status}</TableCell>
                 <TableCell className="text-right">
                   ₦{formatBalance(Number(trx.exact_total_amount))}
                 </TableCell>

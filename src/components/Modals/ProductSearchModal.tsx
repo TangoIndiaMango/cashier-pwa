@@ -14,7 +14,6 @@ import { formatCurrency } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
-
 const ProductSearchModal = ({
   isOpen,
   onClose,
@@ -29,7 +28,7 @@ const ProductSearchModal = ({
   // console.log(fileredProduct);
   const [discount, setDiscount] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const { products, loading, discounts } = useStore();
+  const { products, loading, discounts, updateAvailableQuantity } = useStore();
 
   // console.log(discounts)
 
@@ -41,6 +40,14 @@ const ProductSearchModal = ({
       setFilteredProducts(foundProduct);
     } else {
       toast.error("Product not found");
+    }
+  };
+
+  const handleClose = () => {
+    setSelectedProduct(null);
+    setSearchTerm("");
+    if (onClose()) {
+      onClose();
     }
   };
 
@@ -60,10 +67,18 @@ const ProductSearchModal = ({
     }
 
     if (selectedProduct) {
+      if (
+        selectedProduct?.available_quantity === 0 ||
+        selectedProduct.available_quantity === undefined
+      ) {
+        toast.error("Product is out of stock");
+        return;
+      }
       onFullfield({
         ...selectedProduct,
         discount: discountObj
       });
+
       onClose();
       setSelectedProduct(null);
       setDiscount("");
@@ -165,7 +180,14 @@ const ProductSearchModal = ({
                 </div>
                 <div>
                   <Label>Items Left</Label>
-                  <Input disabled value={selectedProduct.available_quantity} />
+                  <Input
+                    type="number"
+                    disabled
+                    value={
+                      Math.abs(selectedProduct?.available_quantity as number) ||
+                      0
+                    }
+                  />
                 </div>
               </div>
               <div className="w-full">
@@ -186,7 +208,7 @@ const ProductSearchModal = ({
           )}
         </div>
         <div className="flex justify-end gap-3">
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="outline" onClick={handleClose}>
             Cancel
           </Button>
           <Button onClick={handleAdd} disabled={!selectedProduct}>

@@ -2,6 +2,7 @@
 import { Transaction } from '@/types/type';
 import axios from 'axios';
 import { LocalCustomer, LocalDiscount, LocalPaymentMethod, LocalProduct } from '../db/schema';
+import toast from 'react-hot-toast';
 
 // type AnyData = any
 
@@ -84,31 +85,9 @@ export class RemoteApi {
     }));
   }
 
-  static async syncTransactions(transactions: Transaction[], syncId: string): Promise<void> {
-    // const mappedTransactions = transactions.map((transaction) => {
-    //   return {
-    //     firstname: transaction.firstname,
-    //     lastname: transaction.lastname,
-    //     email: transaction.email,
-    //     phoneno: transaction.phoneno,
-    //     gender: transaction.gender,
-    //     age: transaction.age,
-    //     products: transaction.products,
-    //     status: transaction.status,
-    //     receipt_no: transaction.receipt_no,
-    //     apply_loyalty_point: transaction.apply_loyalty_point,
-    //     apply_credit_note_point: transaction.apply_credit_note_point,
-    //     payable_amount: transaction.payable_amount,
-    //     exact_total_amount: transaction.exact_total_amount,
-    //     payment_type: transaction.payment_type,
-    //     payment_status: transaction.payment_status,
-    //     total_price: transaction.total_price,
-    //     payment_methods: transaction.payment_methods,
-    //   };
-    // });
-
+  static async syncTransactions(transactions: Transaction[], syncId: string): Promise<any> {
     try {
-      await api.post('/transactions/sync', {
+      const response = await api.post('/transactions/sync', {
         sync_session_id: syncId,
         transactions
       }, {
@@ -117,8 +96,10 @@ export class RemoteApi {
           'Content-Type': 'application/json'
         }
       });
+      return response.data;
     } catch (error) {
       console.error('Sync failed:', error);
+      toast.error('Sync failed:' + error)
       throw error;
     }
   }
@@ -126,6 +107,22 @@ export class RemoteApi {
   static async login(email: string, password: string): Promise<any> {
     const response = await axios.post('https://www.peresiana-ecomm-backend.nigeriasbsc.com/public/api/v1/auth/login', { email, password });
     return response.data;
+  }
+
+  static async fetchFailedTransactions(page?: string | number): Promise<any> {
+    const pageNumber = page ? page : 1;
+    const response = await api.get(`transactions/un-sync?page=${pageNumber}`, {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    return {
+      data: response.data.data.data,
+      current_page: response.data.current_page,
+      per_page: response.data.per_page,
+      total: response.data.total
+    };
   }
 
 }

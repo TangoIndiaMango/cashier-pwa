@@ -11,10 +11,12 @@ import {
 import { SyncManager } from "../lib/sync/syncManager";
 import { useOnlineStatus } from "./useOnlineStatus";
 import { LocalApiMethods } from "@/lib/api/localMethods";
+import { TransactionSync } from "@/types/trxType";
 
 export function useStore() {
   const [products, setProducts] = useState<LocalProduct[]>([]);
   const [discounts, setDiscounts] = useState<LocalDiscount[]>([]);
+  const [failedTrx, setFailedTrx] = useState<TransactionSync[]>([]);
   const [paymentMethod, setPaymentMethod] = useState<LocalPaymentMethod[]>([]);
   const [customers, setCustomers] = useState<LocalCustomer[]>([]);
   const [loading, setLoading] = useState(true);
@@ -76,6 +78,19 @@ export function useStore() {
     }
   };
 
+  const loadFailedTrx  = async () => {
+    try {
+      setLoading(true);
+      const failedTrx = await LocalApiMethods.getFailedSyncTrx();
+      setFailedTrx(failedTrx);
+      console.log("Loaded local failed transactions");
+    } catch (err) {
+      setError(err as Error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Trigger sync when online or manually
   const triggerSync = async () => {
     try {
@@ -83,6 +98,26 @@ export function useStore() {
       await syncManager.sync();
       // Load data sequentially to prevent race conditions
       await loadProducts();
+      await loadCustomers();
+      await loadPaymentMethods();
+      await loadDiscounts();
+      await loadFailedTrx();
+    } catch (error) {
+      console.error("Sync failed:", error);
+      setError(error as Error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Trigger sync when online or manually
+  const triggerFetch = async () => {
+    try {
+      setLoading(true);
+      await syncManager.refresh()
+      // Load data sequentially to prevent race conditions
+      await loadProducts();
+      await loadFailedTrx();
       await loadCustomers();
       await loadPaymentMethods();
       await loadDiscounts();
@@ -94,34 +129,14 @@ export function useStore() {
     }
   };
 
-    // Trigger sync when online or manually
-    const triggerFetch = async () => {
-      try {
-        setLoading(true);
-        // Load data sequentially to prevent race conditions
-        await loadProducts();
-        await loadCustomers();
-        await loadPaymentMethods();
-        await loadDiscounts();
-      } catch (error) {
-        console.error("Sync failed:", error);
-        setError(error as Error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
   // Update product quantity after purchase
-  const updateAvailableQuantity = (productCode: string, quantity: number) => {
+  const updateAvailableQuantity = (ean: string, quantity: number) => {
     setProducts((prevProducts) =>
       prevProducts.map((product) =>
-        product.product_code === productCode
+        product.ean === ean
           ? {
             ...product,
-            available_quantity:
-              product.available_quantity >= quantity
-                ? product.available_quantity - quantity
-                : product.available_quantity,
+            available_quantity: Math.max(Number(product?.available_quantity )- quantity, 0)
           }
           : product
       )
@@ -129,22 +144,22 @@ export function useStore() {
   };
 
   // Check if the app is online and trigger sync
-  useEffect(() => {
-    const syncIfNeed = async () => {
-      if (isOnline) {
-        try {
-          const shouldSync = await syncManager.shouldSync()
-          if (shouldSync) {
-            console.log("Syncing data...");
-            await syncManager.sync();
-          }
-        } catch (error) {
-          console.error("Error checking sync status or triggering sync:", error);
-        }
-      }
-    }
-    syncIfNeed()
-  }, [isOnline]);
+  // useEffect(() => {
+  //   const syncIfNeed = async () => {
+  //     if (isOnline) {
+  //       try {
+  //         const shouldSync = await syncManager.shouldSync()
+  //         if (shouldSync) {
+  //           console.log("Syncing data...");
+  //           await syncManager.sync();
+  //         }
+  //       } catch (error) {
+  //         console.error("Error checking sync status or triggering sync:", error);
+  //       }
+  //     }
+  //   }
+  //   syncIfNeed()
+  // }, [isOnline]);
 
   useEffect(() => {
     triggerFetch();
@@ -168,7 +183,9 @@ export function useStore() {
     customers,
     loading,
     error,
+    failedTrx,
     triggerSync,
+    triggerFetch,
     updateAvailableQuantity,
     createTransaction,
   };

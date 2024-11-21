@@ -1,4 +1,5 @@
 // src/lib/api/localApi.ts
+import toast from 'react-hot-toast';
 import { db } from '../db/schema';
 import type { LocalCustomer, LocalProduct, LocalTransaction } from '../db/schema';
 
@@ -46,24 +47,32 @@ export class LocalApi {
   // Transaction Operations
   static async createTransaction(transaction: Omit<LocalTransaction, 'id' | 'createdAt' | 'synced'>): Promise<string> {
     const id = crypto.randomUUID();
-    await db.transaction('rw', [db.transactions, db.products], async () => {
-      // Update product quantities
-      for (const item of transaction.items) {
-        
-        await this.updateProductQuantity(item.product_code!, -item.quantity);
-      }
-
-      // Create transaction
-      await db.transactions.add({
-        ...transaction,
-        id,
-        createdAt: new Date(),
-        synced: 'false'
+    
+    try {
+      await db.transaction('rw', [db.transactions, db.products], async () => {
+        for (const item of transaction.items) {
+          console.log('Updating product:', item)
+          console.log(item.product_code, item.quantity)
+          await this.updateProductQuantity(item.product_code!, -item.quantity);
+        }
+  
+        await db.transactions.add({
+          ...transaction,
+          id,
+          createdAt: new Date(),
+          synced: 'false',
+        });
       });
-    });
-
-    return id;
+      
+      return id;
+  
+    } catch (error) {
+      console.error('Transaction creation failed:', error);
+      toast.error('Transaction failed. Please try again later ' + error);
+      throw new Error('Transaction failed. Please try again later.');
+    }
   }
+  
 
   static async deleteAllTransactions(): Promise<void> {
     await db.transaction('rw', db.transactions, async () => {

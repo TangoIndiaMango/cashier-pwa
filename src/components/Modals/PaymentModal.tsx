@@ -19,6 +19,7 @@ import { LocalPaymentMethod } from "@/lib/db/schema";
 import { formatCurrency } from "@/lib/utils";
 import { DialogDescription } from "@radix-ui/react-dialog";
 import { useEffect, useState } from "react";
+import { ScrollArea } from "../ui/scroll-area";
 
 // Dummy branch data for POS Machine
 const branches = [
@@ -94,12 +95,14 @@ const PaymentMethodModal = ({ isOpen, onClose, total, onPaymentSubmit }) => {
     console.log("Processing payments:", paymentEntries);
     onPaymentSubmit(paymentEntries);
     onClose();
-    setPaymentEntries([{ mode_of_payment_id: "", amount: "", mode_of_payment_pos_id: "" }]);
+    setPaymentEntries([
+      { mode_of_payment_id: "", amount: "", mode_of_payment_pos_id: "" }
+    ]);
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className=" sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Payment Method</DialogTitle>
           <DialogDescription className="text-sm text-gray-500">
@@ -107,109 +110,115 @@ const PaymentMethodModal = ({ isOpen, onClose, total, onPaymentSubmit }) => {
           </DialogDescription>
         </DialogHeader>
 
-        <div>
-          <div className="mb-4">
-            <Label>Total: {formatCurrency(total, "NGN")}</Label>
-          </div>
-
-          {paymentEntries.map((entry, index) => (
-            <div key={index} className="grid gap-4 mb-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>Select Payment Method</Label>
-                  <Select
-                    value={entry.mode_of_payment_id}
-                    onValueChange={(value) =>
-                      updatePaymentEntry(index, "mode_of_payment_id", value)
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue
-                        placeholder="Select method"
-                        className="placeholder:text-gray-500"
-                      />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {paymentMethods.map((method) => (
-                        <SelectItem
-                          key={method.mopID}
-                          value={method.mopID.toString()}
-                        >
-                          {method.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label>Amount</Label>
-                  <Input
-                    type="number"
-                    value={entry.amount}
-                    className="placeholder:text-gray-500"
-                    onChange={(e) =>
-                      updatePaymentEntry(index, "amount", e.target.value)
-                    }
-                    placeholder="Amount"
-                  />
-                </div>
-              </div>
-
-              {/* Conditionally render branch selection if POS Machine is selected */}
-              {entry.mode_of_payment_id === "MOP-0000013" && (
-                <div>
-                  <Label>Select Branch</Label>
-                  <Select
-                    value={entry.mode_of_payment_pos_id}
-                    onValueChange={(value) =>
-                      updatePaymentEntry(index, "mode_of_payment_pos_id", value)
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue
-                        placeholder="Select branch"
-                        className="placeholder:text-gray-500"
-                      />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {branches.map((branch) => (
-                        <SelectItem
-                          key={branch.id}
-                          value={branch.id.toString()}
-                        >
-                          {branch.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-
-              {paymentEntries.length > 1 && (
-                <Button
-                  variant="destructive"
-                  onClick={() => removePaymentEntry(index)}
-                  className="w-full"
-                >
-                  Delete
-                </Button>
-              )}
+        <ScrollArea className="h-[500px] rounded-md border p-4">
+          <div>
+            <div className="mb-4">
+              <Label>Total: {formatCurrency(total, "NGN")}</Label>
             </div>
-          ))}
 
-          <div className="flex gap-3 mt-6">
-            <Button
-              variant="outline"
-              onClick={addPaymentEntry}
-              className="w-full"
-            >
-              Add Another Method
-            </Button>
-            <Button onClick={handleSubmit} className="w-full">
-              Add Method
-            </Button>
+            {paymentEntries.map((entry, index) => (
+              <div key={index} className="grid gap-4 mb-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Select Payment Method</Label>
+                    <Select
+                      value={entry.mode_of_payment_id}
+                      onValueChange={(value) =>
+                        updatePaymentEntry(index, "mode_of_payment_id", value)
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue
+                          placeholder="Select method"
+                          className="placeholder:text-gray-500"
+                        />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {paymentMethods.map((method) => (
+                          <SelectItem
+                            key={method.id}
+                            value={method.id.toString()}
+                          >
+                            {method.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Amount</Label>
+                    <Input
+                      type="number"
+                      value={entry.amount}
+                      className="placeholder:text-gray-500"
+                      onChange={(e) =>
+                        updatePaymentEntry(index, "amount", e.target.value)
+                      }
+                      placeholder="Amount"
+                    />
+                  </div>
+                </div>
+
+                {/* Conditionally render branch selection if POS Machine is selected */}
+                {entry.mode_of_payment_id === "13" && (
+                  <div>
+                    <Label>Select Branch</Label>
+                    <Select
+                      value={entry.mode_of_payment_pos_id}
+                      onValueChange={(value) =>
+                        updatePaymentEntry(
+                          index,
+                          "mode_of_payment_pos_id",
+                          value
+                        )
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue
+                          placeholder="Select branch"
+                          className="placeholder:text-gray-500"
+                        />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {branches.map((branch) => (
+                          <SelectItem
+                            key={branch.id}
+                            value={branch.id.toString()}
+                          >
+                            {branch.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                {paymentEntries.length > 1 && (
+                  <Button
+                    variant="destructive"
+                    onClick={() => removePaymentEntry(index)}
+                    className="w-full"
+                  >
+                    Delete
+                  </Button>
+                )}
+              </div>
+            ))}
+
+            <div className="flex gap-3 mt-6">
+              <Button
+                variant="outline"
+                onClick={addPaymentEntry}
+                className="w-full"
+              >
+                Add Another Method
+              </Button>
+              <Button onClick={handleSubmit} className="w-full">
+                Add Method
+              </Button>
+            </div>
           </div>
-        </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );

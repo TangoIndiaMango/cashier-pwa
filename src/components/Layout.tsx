@@ -5,7 +5,7 @@ import { Outlet } from "react-router-dom";
 import { Button } from "./ui/button";
 import { useStore } from "@/hooks/useStore";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
-import { FolderSync, Wifi } from "lucide-react";
+import { FeatherIcon, FolderSync, Loader2, Wifi } from "lucide-react";
 
 const Layout: React.FC = () => {
   //check if no token in localstorage send to /login
@@ -16,7 +16,7 @@ const Layout: React.FC = () => {
 
   const { needRefresh, offlineReady, updateServiceWorker } = usePWA();
   const { isOnline, networkType, rtt } = useOnlineStatus();
-  const { triggerSync } = useStore();
+  const { triggerSync, triggerFetch, loading } = useStore();
 
   return (
     <div className="w-screen min-h-screen bg-white">
@@ -52,6 +52,7 @@ const Layout: React.FC = () => {
             {/* Update App Button */}
             {needRefresh && (
               <Button
+                disabled={loading}
                 onClick={() => updateServiceWorker(true)}
                 className="px-3 py-2 text-white bg-yellow-500 rounded-lg hover:bg-yellow-600"
               >
@@ -65,13 +66,30 @@ const Layout: React.FC = () => {
                 App is offline ready!
               </span>
             )}
+            <Button
+              onClick={triggerFetch}
+              variant={"lightblue"}
+              disabled={loading}
+            >
+              {loading ? (
+                <FeatherIcon className="w-4 h-4 animate-pulse" />
+              ) : (
+                <FeatherIcon className="w-4 h-4" />
+              )}
+              <span>Refresh Now</span>
+            </Button>
 
             {/* Sync Now Button */}
             <Button
               onClick={triggerSync}
+              disabled={loading}
               className="flex items-center px-3 py-2 space-x-2 text-white bg-blue-500 rounded-lg hover:bg-blue-600"
             >
-              <FolderSync className="w-4 h-4" />
+              {loading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <FolderSync className="w-4 h-4" />
+              )}
               <span>Sync Now</span>
             </Button>
           </div>
@@ -79,7 +97,7 @@ const Layout: React.FC = () => {
       </nav>
 
       {/* Main Content */}
-      <main className="container px-4 py-8 mx-auto ">
+      <main className="container w-full mx-auto lg:py-8 lg:px-4 ">
         <Outlet />
       </main>
     </div>

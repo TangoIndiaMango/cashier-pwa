@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -10,51 +9,22 @@ import {
   TableRow
 } from "@/components/ui/table";
 import { useCart } from "@/hooks/useCart";
-import { useStore } from "@/hooks/useStore";
 import { LocalTransactionItem } from "@/lib/db/schema";
 import { formatBalance } from "@/lib/utils";
 import { Edit, Eye, Trash2 } from "lucide-react";
 import { useState } from "react";
-import toast from "react-hot-toast";
 import { ProductDetailsDialog } from "./Modals/ProductDetailsDialog";
 import ProductSearchModal from "./Modals/ProductSearchModal";
+import { useStore } from "../hooks/useStore";
 
-export function CurrentProductTable() {
-  const { updateCartItem, removeItemFromCart, cartItems } = useCart();
-  const { updateAvailableQuantity } = useStore();
-
+export function FailedTransactionTable({ failedTrx }) {
+  const { updateCartItem } = useCart();
 
   const [selectedProduct, setSelectedProduct] =
     useState<LocalTransactionItem | null>(null);
   const [showEditProd, setShowEditProd] = useState(false);
   const [showViewProd, setShowViewProd] = useState(false);
-
-  const [quantities, setQuantities] = useState<Record<string, number>>(
-    cartItems.reduce((acc, product) => {
-      acc[product.product_code!] = product.quantity || 1;
-      return acc;
-    }, {})
-  );
-
-  const handleQuantitesChange = (
-    product: LocalTransactionItem,
-    quantity: number
-  ) => {
-    if (quantity > product.available_quantity!) {
-      toast.error("Quantity cannot be greater than available quantity");
-      return;
-    }
-
-    setQuantities((prevQuantities) => {
-      return {
-        ...prevQuantities,
-        [product.product_code!]: quantity
-      };
-    });
-console.log("Quantiyi", quantity)
-    updateCartItem({ id: product.id, quantity });
-    // updateAvailableQuantity(product.ean!, quantity);
-  };
+  const { loading } = useStore();
 
   const handleEdit = (product: LocalTransactionItem, action: string) => {
     setSelectedProduct(product);
@@ -65,32 +35,32 @@ console.log("Quantiyi", quantity)
     }
   };
 
-  return (
+  return loading ? (
+    <div className="flex items-center justify-center h-full">
+      <div className="w-32 h-32 border-t-2 border-b-2 border-gray-900 rounded-full animate-spin" />
+    </div>
+  ) : (
     <div className="w-full overflow-auto">
       <Table>
-        <TableCaption>A list of your recent products.</TableCaption>
+        <TableCaption>
+          A list of your failed synced transactions products.
+        </TableCaption>
         <TableHeader className="bg-[#F9FAFB]">
           <TableRow className="">
             <TableHead className="w-[100px] text-xs font-normal">
-              Product Code
+              Sync Session ID
             </TableHead>
             <TableHead className="hidden text-xs font-normal md:table-cell">
-              Product
+              Product Ean
             </TableHead>
             <TableHead className="hidden text-xs font-normal lg:table-cell">
-              Size
-            </TableHead>
-            <TableHead className="hidden text-xs font-normal lg:table-cell">
-              Color
+              Customer
             </TableHead>
             <TableHead className="text-xs font-normal text-right">
-              Amount (NGN)
+              Product summary
             </TableHead>
             <TableHead className="text-xs font-normal text-right">
-              Quantity
-            </TableHead>
-            <TableHead className="text-xs font-normal text-right">
-              Total Amount (NGN)
+              Amount
             </TableHead>
             <TableHead className="w-[100px] text-xs font-normal text-center">
               Action
@@ -98,56 +68,31 @@ console.log("Quantiyi", quantity)
           </TableRow>
         </TableHeader>
         <TableBody>
-          {[...cartItems].reverse().map((product, index) => {
-            const quantity = quantities[product.product_code!] || 1;
+          {failedTrx.map((trx, index) => {
             return (
               <TableRow key={index}>
                 <TableCell className="font-medium text-[#303f9e]">
-                  {product.product_code}
+                  {trx.sync_session_id}
                 </TableCell>
                 <TableCell className="hidden capitalize md:table-cell">
-                  {product.product_name}
+                  {trx.products[0].ean}
                 </TableCell>
                 <TableCell className="hidden lg:table-cell">
-                  {product.size || "N/A"}
+                  {trx.firstname} {trx.lastname}
                 </TableCell>
                 <TableCell className="hidden lg:table-cell">
-                  {product.color || "N/A"}
+                  {trx.products[0].quantity_ordered || "N/A"}
                 </TableCell>
+                <TableCell className="text-right">{trx.status}</TableCell>
                 <TableCell className="text-right">
-                  ₦{product.discountPrice?.toLocaleString() || "N/A"}
-                  {product.discount && (
-                    <p className="mt-2 line-through">
-                      ₦{product.retail_price?.toLocaleString() || "N/A"}
-                    </p>
-                  )}
-                </TableCell>
-                <TableCell>
-                  <div>
-                    <Input
-                      type="number"
-                      value={Number(quantity)}
-                      onChange={(e) =>
-                        handleQuantitesChange(product, parseInt(e.target.value))
-                      }
-                      max={product?.available_quantity}
-                      className="w-16 p-1 border rounded"
-                    />
-                  </div>
-                </TableCell>
-                <TableCell className="text-right">
-                  ₦
-                  {formatBalance(
-                    Number(product.discountPrice || product.retail_price) *
-                      Number(quantity)
-                  )}
+                  ₦{formatBalance(Number(trx.exact_total_amount))}
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-1 justify-evenly">
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleEdit(product, "edit")}
+                      // onClick={() => handleEdit(trx, "edit")}
                     >
                       <Edit className="w-4 h-4" />
                       <span className="sr-only">Edit</span>
@@ -155,7 +100,7 @@ console.log("Quantiyi", quantity)
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleEdit(product, "view")}
+                      // onClick={() => handleEdit(trx, "view")}
                     >
                       <Eye className="w-4 h-4" />
                       <span className="sr-only">View</span>
@@ -164,7 +109,8 @@ console.log("Quantiyi", quantity)
                       variant="ghost"
                       size="sm"
                       onClick={() =>
-                        removeItemFromCart(product.product_code as string)
+                        // removeItemFromCart(product.product_code as string)
+                        console.log("clicked")
                       }
                     >
                       <Trash2 className="w-4 h-4 text-red-600" />

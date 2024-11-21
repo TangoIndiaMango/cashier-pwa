@@ -2,15 +2,13 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
 const CustomerProfileCard = ({ customer, handleRemove }) => {
-
   return (
     <Card className="w-full p-6">
-      <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
+      <div className="flex flex-col gap-5 space-y-4 lg:flex-row lg:items-center lg:justify-between md:space-y-0">
         {/* Customer Name and Gender */}
-        <div>
+        <div className="w-full">
           <h2 className="text-sm font-semibold text-gray-700 ">
-            {customer?.firstname}
-            {customer?.lastname}
+            {customer?.firstname} {customer?.lastname}
           </h2>
           <div className="flex items-center gap-2">
             <span className="text-xs text-gray-600">Gender:</span>
@@ -21,13 +19,13 @@ const CustomerProfileCard = ({ customer, handleRemove }) => {
         </div>
 
         {/* Email Section */}
-        <div className="flex-grow md:mx-8">
+        <div className="flex-grow lg:mx-8">
           <div className="text-xs text-gray-600">Email</div>
           <div className="text-sm font-medium">{customer?.email || "--"}</div>
         </div>
 
         {/* Action Buttons */}
-        <div className="flex flex-wrap items-center w-full gap-4">
+        <div className="flex flex-wrap items-center w-full gap-4 md:w-auto md:max-w-full">
           <Button
             size="sm"
             className="text-sm bg-[#303F9E] hover:bg-[#263284] text-white px-6"

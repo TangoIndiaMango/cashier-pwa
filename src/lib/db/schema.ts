@@ -1,4 +1,5 @@
 import { PaymentEntry } from "@/hooks/usePayment";
+import { TransactionSync } from "@/types/trxType";
 import Dexie, { Table } from "dexie";
 
 export interface LocalPaymentMethod {
@@ -26,7 +27,7 @@ export interface LocalProduct {
 }
 
 export interface LocalTransaction {
-  id?: string;
+  id: string;
   createdAt?: Date;
   totalAmount: number;
   paymentMethods: PaymentEntry[];
@@ -86,7 +87,8 @@ export class StoreDatabase extends Dexie {
   customers!: Table<LocalCustomer>;
   paymentMethods!: Table<LocalPaymentMethod>;
   discounts!: Table<LocalDiscount>;
-  orderedProduct!: Table<LocalTransactionItem>;
+  // orderedProduct!: Table<LocalTransactionItem>;
+  failedSyncTransactions!: Table<TransactionSync>;
 
   constructor() {
     super("StoreDB");
@@ -99,8 +101,9 @@ export class StoreDatabase extends Dexie {
       paymentMethods: "id, account_id, createdAt, mopID, name, slug, is_active",
       discounts:
         "id, createdAt, name, discount_type, value, code, value_type, status, start_date, end_date, is_active, percentage, price, type",
-      orderedProduct:
-        "id, product_code, product_name, retail_price, quantity, discount, ean, lastSyncAt, isModified",
+        failedSyncTransactions: "id, created_at, sync_session_id"
+      // orderedProduct:
+      //   "id, product_code, product_name, retail_price, quantity, discount, ean, lastSyncAt, isModified",
     });
   }
 }

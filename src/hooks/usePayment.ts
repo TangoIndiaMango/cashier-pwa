@@ -4,8 +4,9 @@ import { useState } from 'react';
 
 export interface PaymentEntry {
   mode_of_payment_id: string;
-    amount: number;
-  }
+  amount: number;
+  mode_of_payment_pos_id?: string
+}
 export const usePayment = () => {
   const [paymentStatus, setPaymentStatus] = useState<string | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<PaymentEntry[]>([]);

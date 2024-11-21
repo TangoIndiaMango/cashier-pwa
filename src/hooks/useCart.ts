@@ -2,6 +2,7 @@ import { LocalDiscount, LocalTransactionItem } from "@/lib/db/schema";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useStore } from "./useStore";
 import { create } from "zustand";
+import toast from "react-hot-toast";
 
 export type ICartItem = LocalTransactionItem & { discountPrice?: number; id };
 
@@ -54,14 +55,17 @@ export const useZudCart = create<State & Actions>((set) => ({
     }
 
     set((values) => {
-      // const exisitingItem = values.cartItems.find(
-      //   (item) => item.product_code === product.product_code
-      // );
+      const exisitingItem = values.cartItems.find(
+        (item) => item.product_code === product.product_code
+      );
 
-      // if (exisitingItem) {
-      //   alert("Product already exist increase quantity");
-      //   return values;
-      // }
+      if (exisitingItem) {
+        // check the available quantity if it is not 0
+        if (exisitingItem.available_quantity === 0) {
+          toast.error("Product out of stock");
+          return values;
+        }
+      }
 
       return {
         ...values,
@@ -95,12 +99,12 @@ export const useZudCart = create<State & Actions>((set) => ({
       cartItems: values.cartItems.map((item) =>
         item.id === product.id
           ? {
-              ...item,
-              ...product,
-              discountPrice: product.discount
-                ? values.calcDiscountPriveValue(product as ICartItem)
-                : item.discountPrice,
-            }
+            ...item,
+            ...product,
+            discountPrice: product.discount
+              ? values.calcDiscountPriveValue(product as ICartItem)
+              : item.discountPrice,
+          }
           : item
       ),
     }));
@@ -147,28 +151,28 @@ export const useCart = () => {
         discount,
         prevTotal:
           !forceUpdate &&
-          cartDiscountCode &&
-          cartDiscountCode === values.discount?.code
+            cartDiscountCode &&
+            cartDiscountCode === values.discount?.code
             ? values.prevTotal
             : values.total,
         total:
           !forceUpdate &&
-          cartDiscountCode &&
-          cartDiscountCode === values.discount?.code
+            cartDiscountCode &&
+            cartDiscountCode === values.discount?.code
             ? values.total
             : cartZudApi.cartItems.reduce(
-                (sum, item: ICartItem) =>
-                  sum +
-                  cartZudApi.calcDiscountPriveValue(
-                    {
-                      ...item,
-                      discount: discount || item.discount,
-                    },
-                    cartDiscountCode ? "discountPrice" : "retail_price"
-                  ) *
-                    (item.quantity || 1),
-                0
-              ),
+              (sum, item: ICartItem) =>
+                sum +
+                cartZudApi.calcDiscountPriveValue(
+                  {
+                    ...item,
+                    discount: discount || item.discount,
+                  },
+                  cartDiscountCode ? "discountPrice" : "retail_price"
+                ) *
+                (item.quantity || 1),
+              0
+            ),
       }));
     },
     [cartZudApi.cartItems]

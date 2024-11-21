@@ -43,7 +43,7 @@ const POSSystem = () => {
   } = useCart();
 
   const [showCartDiscount, setShowCartDiscount] = useState(false);
-
+  const [barcode, setBarcode] = useState('');
   const { submitTransaction, deleteTransaction } = useTransaction();
   // console.log(transactions);
   const {
@@ -89,6 +89,24 @@ const POSSystem = () => {
       [name]: value
     }));
   };
+
+  const handleScan = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const scannedBarcode = event.target.value;
+    setBarcode(scannedBarcode);
+  };
+
+  const handleonClickBarCode = () => {
+    setShowAddProduct(true)
+    const scannedBarcode = barcode;
+    setBarcode(scannedBarcode);
+    const item = cartItems.find((item) => item.ean === scannedBarcode);
+    if (item) {
+      addItemToCart(item);
+    } else {
+      toast.error("Item not found");
+    }
+  };
+
 
   const handleSubmit = async () => {
     if (!paymentMethod.length) {
@@ -177,6 +195,7 @@ const POSSystem = () => {
                 <Button
                   size="lg"
                   className="text-white bg-[#303f9e] hover:bg-[#303f9e] rounded-lg"
+                  onClick={handleonClickBarCode}
                 >
                   Scan barcode
                 </Button>

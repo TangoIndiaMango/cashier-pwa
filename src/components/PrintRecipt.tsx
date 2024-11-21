@@ -45,15 +45,18 @@ export const Receipt: React.FC<ReceiptProps> = ({ data, onClose }) => {
                     padding: 2px;
                     text-align: left;
                   }
+                  th {
+                    border-bottom: 1px dashed #000;
+                  }
+                  td.amount, td.price {
+                    text-align: right;
+                  }
                   hr {
                     border: none;
                     border-top: 1px dashed #000;
                   }
                   .text-center {
                     text-align: center;
-                  }
-                  .text-right {
-                    text-align: right;
                   }
                   .font-bold {
                     font-weight: bold;
@@ -95,8 +98,8 @@ export const Receipt: React.FC<ReceiptProps> = ({ data, onClose }) => {
                 <th>QTY</th>
                 <th>BARCODE</th>
                 <th>DESCRIPTION</th>
-                <th className="text-right">PRICE</th>
-                <th className="text-right">AMOUNT</th>
+                <th className="price">PRICE</th>
+                <th className="amount">AMOUNT</th>
               </tr>
             </thead>
             <tbody>
@@ -105,8 +108,8 @@ export const Receipt: React.FC<ReceiptProps> = ({ data, onClose }) => {
                   <td>{item.quantity}</td>
                   <td>{item.ean}</td>
                   <td>{item.product_name}</td>
-                  <td className="text-right">{item.retail_price}</td>
-                  <td className="text-right">{item.amount}</td>
+                  <td className="price">{item.retail_price}</td>
+                  <td className="amount">{item.amount}</td>
                 </tr>
               ))}
             </tbody>

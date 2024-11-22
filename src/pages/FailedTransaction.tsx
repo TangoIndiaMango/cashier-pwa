@@ -8,7 +8,7 @@ const FailedTransaction = () => {
   const { failedTrx } = useStore();
   const { goBackButton } = useGoBack();
   return (
-    <div className="space-y-6">
+    <div className="container mx-auto space-y-6">
       <div>
         {goBackButton()}
         <header className="flex items-center justify-between w-full">

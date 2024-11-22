@@ -64,6 +64,7 @@ export class SyncManager {
 
   async sync(): Promise<void> {
     if (this.syncInProgress) {
+      toast.success("Sync already in progress, skipping...")
       console.log("Sync already in progress, skipping...");
       return;
     }

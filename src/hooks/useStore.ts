@@ -12,6 +12,7 @@ import { SyncManager } from "../lib/sync/syncManager";
 import { useOnlineStatus } from "./useOnlineStatus";
 import { LocalApiMethods } from "@/lib/api/localMethods";
 import { TransactionSync } from "@/types/trxType";
+import toast from "react-hot-toast";
 
 export function useStore() {
   const [products, setProducts] = useState<LocalProduct[]>([]);
@@ -78,7 +79,7 @@ export function useStore() {
     }
   };
 
-  const loadFailedTrx  = async () => {
+  const loadFailedTrx = async () => {
     try {
       setLoading(true);
       const failedTrx = await LocalApiMethods.getFailedSyncTrx();
@@ -102,9 +103,11 @@ export function useStore() {
       await loadPaymentMethods();
       await loadDiscounts();
       await loadFailedTrx();
+      toast.success("Synced successfully");
     } catch (error) {
       console.error("Sync failed:", error);
       setError(error as Error);
+      toast.error("Sync failed");
     } finally {
       setLoading(false);
     }
@@ -136,7 +139,7 @@ export function useStore() {
         product.ean === ean
           ? {
             ...product,
-            available_quantity: Math.max(Number(product?.available_quantity )- quantity, 0)
+            available_quantity: Math.max(Number(product?.available_quantity) - quantity, 0)
           }
           : product
       )

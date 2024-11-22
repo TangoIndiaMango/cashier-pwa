@@ -132,6 +132,22 @@ export function useStore() {
     }
   };
 
+  const triggerLocalFetch = async () => {
+    try {
+      setLoading(true);
+      await loadProducts();
+      await loadFailedTrx();
+      await loadCustomers();
+      await loadPaymentMethods();
+      await loadDiscounts();
+    } catch (error) {
+      console.error("Sync failed:", error);
+      setError(error as Error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Update product quantity after purchase
   const updateAvailableQuantity = (ean: string, quantity: number) => {
     setProducts((prevProducts) =>
@@ -165,8 +181,8 @@ export function useStore() {
   // }, [isOnline]);
 
   useEffect(() => {
-    triggerFetch();
-  }, [syncManager.shouldSync]);
+    triggerLocalFetch();
+  }, []);
 
   const createTransaction = async (
     data: Omit<LocalTransaction, "id" | "createdAt" | "synced">

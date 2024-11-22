@@ -181,6 +181,12 @@ export function useStore() {
   // }, [isOnline]);
 
   useEffect(() => {
+    if (isOnline) {
+      triggerFetch();
+    }
+  }, []);
+
+  useEffect(() => {
     triggerLocalFetch();
   }, []);
 

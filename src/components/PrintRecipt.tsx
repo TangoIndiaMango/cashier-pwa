@@ -36,14 +36,17 @@ export const Receipt: React.FC<ReceiptProps> = ({ data, onClose }) => {
                     font-size: 8px;
                     margin: 0;
                     padding: 0;
+                    line-height: 1.2;
+                    white-space: nowrap;
                   }
                   table {
                     width: 100%;
                     border-collapse: collapse;
                   }
                   th, td {
-                    padding: 2px;
+                    padding: 1px;
                     text-align: left;
+                    font-size: 8px;
                   }
                   th {
                     border-bottom: 1px dashed #000;
@@ -54,12 +57,22 @@ export const Receipt: React.FC<ReceiptProps> = ({ data, onClose }) => {
                   hr {
                     border: none;
                     border-top: 1px dashed #000;
+                    margin: 2px 0;
                   }
                   .text-center {
                     text-align: center;
                   }
                   .font-bold {
                     font-weight: bold;
+                  }
+                  .no-break {
+                    white-space: nowrap;
+                  }
+                  .wrap-text {
+                    word-wrap: break-word;
+                    word-break: break-word;
+                    max-width: 100%;
+                    overflow-wrap: break-word;
                   }
                 }
               </style>
@@ -125,7 +138,7 @@ export const Receipt: React.FC<ReceiptProps> = ({ data, onClose }) => {
           <p>New Accumulated Points: 0</p>
           <hr className="my-2 border-t border-dashed" />
           <p className="text-xs">No Exchange/Refund on 'Sale Items'.</p>
-          <p className="text-xs">Exchange on regular items is permitted within 7 days from invoice date accompanied by the original invoice and returned in saleable condition.</p>
+          <p className="text-xs break-words">Exchange on regular items is permitted within 7 days from invoice date accompanied by the original invoice and returned in saleable condition.</p>
           <p className="text-xs">No Exchange in Lingerie/Bodywear items due to Hygiene Reasons.</p>
           <p className="mt-4 font-bold text-center">THANK YOU FOR SHOPPING AT LACOSTE</p>
         </div>
@@ -142,4 +155,3 @@ export const Receipt: React.FC<ReceiptProps> = ({ data, onClose }) => {
     </div>
   );
 };
-

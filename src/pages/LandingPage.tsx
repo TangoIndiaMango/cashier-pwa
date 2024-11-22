@@ -380,7 +380,7 @@ const POSSystem = () => {
                 </Select>
               </div>
               <Button
-                disabled={cartItems.length === 0 || !paymentMethod.length}
+                disabled={cartItems.length === 0 || !paymentMethod.length || !selectedCustomer}
                 onClick={handleSubmit}
                 className="w-full py-2"
               >

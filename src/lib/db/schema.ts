@@ -109,3 +109,11 @@ export class StoreDatabase extends Dexie {
 }
 
 export const db = new StoreDatabase();
+
+db.open()
+  .then(() => {
+    console.log("Database opened successfully!");
+  })
+  .catch((error) => {
+    console.error("Failed to open database:", error);
+  });

@@ -73,19 +73,19 @@ export function FailedTransactionTable({ failedTrx }) {
             return (
               <TableRow key={index}>
                 <TableCell className="font-medium text-[#303f9e]">
-                  {trx.sync_session_id}
+                  {trx?.sync_session_id}
                 </TableCell>
                 <TableCell className="hidden capitalize md:table-cell">
-                  {trx.products[0].ean}
+                  {trx?.products[0]?.ean || "N/A"}
                 </TableCell>
                 <TableCell className="hidden lg:table-cell">
-                  {trx.customer_name || "N/A"}
+                  {trx?.customer_name || "N/A"}
                 </TableCell>
                 <TableCell className="hidden lg:table-cell">
-                  {trx.error_message || "N/A"}
+                  {trx?.error_message || "N/A"}
                 </TableCell>
                 <TableCell className="text-right">
-                  ₦{formatBalance(Number(trx.exact_total_amount))}
+                  ₦{formatBalance(Number(trx?.exact_total_amount))}
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-1 justify-evenly">

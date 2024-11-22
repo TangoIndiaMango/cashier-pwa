@@ -1,7 +1,7 @@
 // src/components/Layout.tsx
 import { usePWA } from "@/hooks/usePWA";
 import React from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
 import { useStore } from "@/hooks/useStore";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
@@ -9,9 +9,11 @@ import { FeatherIcon, FolderSync, Loader2, Wifi } from "lucide-react";
 
 const Layout: React.FC = () => {
   //check if no token in localstorage send to /login
+  const navigate = useNavigate();
+
   const token = localStorage.getItem("token");
   if (!token) {
-    window.location.href = "/login";
+    navigate("/login");
   }
 
   const { needRefresh, offlineReady, updateServiceWorker } = usePWA();

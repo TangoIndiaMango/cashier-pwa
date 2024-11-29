@@ -26,12 +26,12 @@ const CustomerProfileCard = ({ customer, handleRemove }) => {
 
         {/* Action Buttons */}
         <div className="flex flex-wrap items-center w-full gap-4 md:w-auto md:max-w-full">
-          <Button
+          {/* <Button
             size="sm"
             className="text-sm bg-[#303F9E] hover:bg-[#263284] text-white px-6"
           >
             View Customer Profile
-          </Button>
+          </Button> */}
           <Button
             onClick={handleRemove}
             variant="ghost"

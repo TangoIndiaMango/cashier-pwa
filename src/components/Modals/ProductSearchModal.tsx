@@ -4,7 +4,7 @@ import {
   DialogContent,
   DialogDescription,
   DialogHeader,
-  DialogTitle
+  DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,7 +18,7 @@ const ProductSearchModal = ({
   isOpen,
   onClose,
   onFullfield,
-  fileredProduct
+  fileredProduct,
 }) => {
   const [searchTerm, setSearchTerm] = useState(""); // State to hold the search term
   const [selectedProduct, setSelectedProduct] =
@@ -76,7 +76,7 @@ const ProductSearchModal = ({
       }
       onFullfield({
         ...selectedProduct,
-        discount: discountObj
+        discount: discountObj,
       });
 
       onClose();
@@ -144,7 +144,7 @@ const ProductSearchModal = ({
                     {filteredProducts.brand_name}
                   </p>
                   <p className="text-sm text-gray-500">
-                    SKU: {filteredProducts.product_code}
+                    Product code: {filteredProducts.product_code}
                   </p>
                 </div>
               )}

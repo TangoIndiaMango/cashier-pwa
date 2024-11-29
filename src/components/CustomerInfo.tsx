@@ -25,8 +25,8 @@ export interface CustomerDetails {
   state: string | null;
   city: string | null;
   address: string | null;
-  // apply_loyalty_point: boolean;
-  // apply_credit_note_point: boolean;
+  loyalty_points: number | string | null;
+  credit_note_balance: number | string | null;
 }
 
 interface CustomerComponentProps {
@@ -34,8 +34,8 @@ interface CustomerComponentProps {
   setCustomerDetails: (customerDetails: CustomerDetails) => void; // Function to pass data to parent
   handleInputChange: (e: any) => void;
   customerDetails: CustomerDetails;
-  onAddCustomer:  (customerDetails: CustomerDetails) => void;
-  setSelectedCustomer: (t:boolean) => void;
+  onAddCustomer: (customerDetails: CustomerDetails) => void;
+  setSelectedCustomer: (t: boolean) => void;
 }
 
 const CustomerComponent: React.FC<CustomerComponentProps> = ({
@@ -44,34 +44,31 @@ const CustomerComponent: React.FC<CustomerComponentProps> = ({
   handleInputChange,
   customerDetails,
   setSelectedCustomer,
-  onAddCustomer
+  onAddCustomer,
 }) => {
-
   const [filteredCustomers, setFilteredCustomers] = useState<LocalCustomer[]>(
     []
   );
   const { customers, loading } = useStore();
 
-const debouncedSearchTerm = useDebounce(searchQuery.toLowerCase(), 500);
+  const debouncedSearchTerm = useDebounce(searchQuery.toLowerCase(), 500);
 
-useEffect(() => {
-  if (debouncedSearchTerm) {
-    const filtered = customers.filter((customer) => {
-      if (!customer) return false;
-      
-      return (
-        customer.firstname?.toLowerCase().includes(debouncedSearchTerm) ||
-        customer.lastname?.toLowerCase().includes(debouncedSearchTerm) ||
-        customer.email?.toLowerCase().includes(debouncedSearchTerm)
-      );
-    });
-    setFilteredCustomers(filtered);
-  } else {
-    setFilteredCustomers([]);
-  }
-}, [debouncedSearchTerm]);
+  useEffect(() => {
+    if (debouncedSearchTerm) {
+      const filtered = customers.filter((customer) => {
+        if (!customer) return false;
 
-
+        return (
+          customer.firstname?.toLowerCase().includes(debouncedSearchTerm) ||
+          customer.lastname?.toLowerCase().includes(debouncedSearchTerm) ||
+          customer.email?.toLowerCase().includes(debouncedSearchTerm)
+        );
+      });
+      setFilteredCustomers(filtered);
+    } else {
+      setFilteredCustomers([]);
+    }
+  }, [debouncedSearchTerm]);
 
   if (loading) {
     return <div>Loading....</div>;
@@ -79,10 +76,9 @@ useEffect(() => {
 
   // Handle selecting a customer
   const handleSelectCustomer = (customer: LocalCustomer) => {
-    
     onAddCustomer(customer as any);
     setFilteredCustomers([]);
-    setSelectedCustomer(true)
+    setSelectedCustomer(true);
     setCustomerDetails({
       firstname: customer.firstname || "",
       lastname: customer.lastname || "",
@@ -94,12 +90,13 @@ useEffect(() => {
       state: customer.state || "",
       city: customer.city || "",
       address: customer.address || "",
+      loyalty_points: customer?.loyalty_points,
+      credit_note_balance: customer?.credit_note_balance,
     });
   };
 
   return (
     <>
-      
       {/* Display filtered search results */}
       {filteredCustomers.length > 0 && (
         <div className="mt-4">

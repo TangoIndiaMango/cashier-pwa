@@ -1,3 +1,4 @@
+import BarcodeScanner from "@/components/BarcodeScanner";
 import CustomerComponent, { CustomerDetails } from "@/components/CustomerInfo";
 import CustomerDisplay from "@/components/CustomerInfoCard";
 import CustomerProfileCard from "@/components/CustomerProfile";
@@ -14,7 +15,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
+  SelectValue,
 } from "@/components/ui/select";
 import { CustomSwitch } from "@/components/ui/switch";
 import { useCart } from "@/hooks/useCart";
@@ -28,6 +29,21 @@ import { useState } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 
+const initCustomer = {
+  firstname: "",
+  lastname: "",
+  gender: null,
+  age: null,
+  phoneno: null,
+  email: "",
+  country: null,
+  state: null,
+  city: null,
+  address: null,
+  loyalty_points: null,
+  credit_note_balance: null,
+};
+
 const POSSystem = () => {
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
@@ -39,11 +55,12 @@ const POSSystem = () => {
     clearCart,
     handleCartTotalDiscount,
     cartDiscountCode,
-    setCartDiscountCode
+    setCartDiscountCode,
+    setCartRecords,
   } = useCart();
 
   const [showCartDiscount, setShowCartDiscount] = useState(false);
-  const [barcode, setBarcode] = useState('');
+
   const { submitTransaction, deleteTransaction } = useTransaction();
   // console.log(transactions);
   const {
@@ -51,29 +68,22 @@ const POSSystem = () => {
     setPaymentStatus,
     paymentMethod,
     handlePaymentSubmit,
-    setPaymentMethod
+    setPaymentMethod,
   } = usePayment();
 
   const { customer, handleAddCustomer, setCustomer } = useCustomer();
   const [selectedCustomer, setSelectedCustomer] = useState(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [customerDetails, setCustomerDetails] = useState<CustomerDetails>({
-    firstname: "",
-    lastname: "",
-    gender: null,
-    age: null,
-    phoneno: null,
-    email: "",
-    country: null,
-    state: null,
-    city: null,
-    address: null
-  });
+  const [customerDetails, setCustomerDetails] =
+    useState<CustomerDetails>(initCustomer);
 
   const [withCreditNote, setWithCreditNote] = useState(false);
+  const [withCreditNoteModal, setWithCreditNoteModal] = useState(false);
   const [withLoyalty, setWithLoyalty] = useState(false);
+  const [withLoyaltyModal, setWithLoyaltyModal] = useState(false);
   const [showReceipt, setShowReceipt] = useState(false);
   const [receiptData, setReceiptData] = useState(null);
+
   // console.log(cartDiscountCode);
   // console.log(cartRecords);
   // console.log(cartItems)
@@ -86,27 +96,9 @@ const POSSystem = () => {
     const { name, value } = e.target;
     setCustomerDetails((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
-
-  const handleScan = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const scannedBarcode = event.target.value;
-    setBarcode(scannedBarcode);
-  };
-
-  const handleonClickBarCode = () => {
-    setShowAddProduct(true)
-    const scannedBarcode = barcode;
-    setBarcode(scannedBarcode);
-    const item = cartItems.find((item) => item.ean === scannedBarcode);
-    if (item) {
-      addItemToCart(item);
-    } else {
-      toast.error("Item not found");
-    }
-  };
-
 
   const handleSubmit = async () => {
     if (!paymentMethod.length) {
@@ -120,7 +112,7 @@ const POSSystem = () => {
       items: cartItems,
       discount: cartDiscountCode ? cartRecords?.discount : null,
       discountAmount: cartRecords?.total,
-      noDiscountAmount: cartRecords?.prevTotal
+      noDiscountAmount: cartRecords?.prevTotal,
     };
 
     await submitTransaction(data as any);
@@ -129,33 +121,98 @@ const POSSystem = () => {
     clearCart();
     setPaymentMethod([]);
     setCustomer(null);
-    setCustomerDetails({
-      firstname: "",
-      lastname: "",
-      gender: null,
-      age: null,
-      phoneno: null,
-      email: "",
-      country: null,
-      state: null,
-      city: null,
-      address: null
-    });
+    setCustomerDetails(initCustomer);
     setPaymentStatus(null);
     setSearchQuery("");
     setCartDiscountCode("");
 
     toast.success("Transaction completed successfully!");
+    setWithLoyalty(false);
+    setWithCreditNote(false);
   };
 
-  const handleCreditNote = (c) => {
-    console.log(c);
+  const checkCustomerAndCart = () => {
+    if (!selectedCustomer) {
+      toast.error("No customer selected", {
+        className: "bg-red-500 text-white",
+      });
+      return false;
+    }
+    if (cartItems?.length < 1) {
+      toast.error("No products selected", {
+        className: "bg-red-500 text-white",
+      });
+      return false;
+    }
+
+    return true;
   };
 
-  const handleLoyalty = (checked) => {
-    if (!selectedCustomer) return toast.error("No customer selected");
+  const handleCreditNote = (c: boolean) => {
+    if (!checkCustomerAndCart()) return;
 
-    setWithLoyalty(checked);
+    setWithCreditNote(c);
+
+    if (c) {
+      if (!customer?.credit_note_balance) {
+        return toast.error("Sorry, No Credit Note points", {
+          className: "bg-red-500 text-white",
+        });
+      }
+
+      setWithCreditNote(true);
+      setWithCreditNoteModal(true);
+    } else {
+      const { total, prevTotal, ...rest } = cartRecords;
+      setWithCreditNote(false);
+      setCartRecords({
+        ...rest,
+        total: prevTotal || total,
+        prevTotal: 0,
+      });
+      toast.error("Credit note points removed.", {
+        className: "bg-red-500 text-white",
+      });
+    }
+  };
+
+  const handleLoyalty = (checked: boolean) => {
+    if (!checkCustomerAndCart()) return;
+
+    if (checked) {
+      if (!customer?.loyalty_points) {
+        return toast.error("Sorry, No loyalty points", {
+          className: "bg-red-500 text-white",
+        });
+      }
+
+      setWithLoyalty(true);
+      setWithLoyaltyModal(true);
+    } else {
+      const { total, prevTotal, ...rest } = cartRecords;
+      setWithLoyalty(false);
+      setCartRecords({
+        ...rest,
+        total: prevTotal || total,
+        prevTotal: 0,
+      });
+      toast.error("Loyalty points removed.", {
+        className: "bg-red-500 text-white",
+      });
+    }
+  };
+
+  const handleApplyLoyaltyPoints = (points: number) => {
+    const { total, prevTotal, ...rest } = cartRecords;
+
+    {
+      const pointsToUse = Math.min(points, total);
+      setCartRecords({
+        ...rest,
+        prevTotal: prevTotal || total,
+        total: total - pointsToUse,
+      });
+    }
   };
 
   return (
@@ -164,7 +221,9 @@ const POSSystem = () => {
         {/* Header Section */}
         <header className="flex items-center justify-between w-full gap-5 p-5">
           <h1 className="flex-1 text-2xl font-bold">Orders</h1>
-          <Button onClick={() => deleteTransaction()}>Cear Tranactions</Button>
+          <Button onClick={() => deleteTransaction()} variant={"destructive"}>
+            Clear Tranactions
+          </Button>
           <Button onClick={() => navigate("/failed-sync")}>Failed Sync</Button>
         </header>
       </div>
@@ -192,13 +251,8 @@ const POSSystem = () => {
                     onClick={() => setShowAddProduct(true)}
                   />
                 </div>
-                <Button
-                  size="lg"
-                  className="text-white bg-[#303f9e] hover:bg-[#303f9e] rounded-lg"
-                  onClick={handleonClickBarCode}
-                >
-                  Scan barcode
-                </Button>
+
+                <BarcodeScanner />
               </div>
             </div>
             {cartItems.length > 0 ? (
@@ -206,12 +260,10 @@ const POSSystem = () => {
                 <CurrentProductTable />
               </div>
             ) : (
-              <>
-                <div className="flex flex-col items-center justify-center gap-5 text-gray-500">
-                  <ShoppingBag size={48} />
-                  <p className="mt-2 text-[#303f9e]">No data available</p>
-                </div>
-              </>
+              <div className="flex flex-col items-center justify-center gap-5 text-gray-500">
+                <ShoppingBag size={48} />
+                <p className="mt-2 text-[#303f9e]">No data available</p>
+              </div>
             )}
           </div>
 
@@ -241,18 +293,7 @@ const POSSystem = () => {
                   setCustomer(null);
                   setSelectedCustomer(false);
                   setSearchQuery("");
-                  setCustomerDetails({
-                    firstname: "",
-                    lastname: "",
-                    gender: null,
-                    age: null,
-                    phoneno: null,
-                    email: "",
-                    country: null,
-                    state: null,
-                    city: null,
-                    address: null
-                  });
+                  setCustomerDetails(initCustomer);
                 }}
               />
             ) : (
@@ -367,20 +408,27 @@ const POSSystem = () => {
                 <Label>Select Order Status</Label>
                 <Select
                   name="status"
-                  value={paymentStatus || "draft"}
+                  value={paymentStatus || "completed"}
                   onValueChange={(value) => setPaymentStatus(value)}
                 >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Order status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="draft">Draft</SelectItem>
+                    <SelectItem disabled value="default">
+                      Select order status
+                    </SelectItem>
                     <SelectItem value="completed">Completed</SelectItem>
+                    <SelectItem value="draft">Draft</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <Button
-                disabled={cartItems.length === 0 || !paymentMethod.length || !selectedCustomer}
+                disabled={
+                  cartItems.length === 0 ||
+                  !paymentMethod.length ||
+                  !selectedCustomer
+                }
                 onClick={handleSubmit}
                 className="w-full py-2"
               >
@@ -415,12 +463,19 @@ const POSSystem = () => {
           onPaymentSubmit={handlePaymentSubmit}
         />
 
-        <LoyaltyModal open={withLoyalty} onOpenChange={setWithLoyalty} />
         <LoyaltyModal
-          open={withCreditNote}
-          onOpenChange={setWithCreditNote}
+          open={withLoyaltyModal}
+          onOpenChange={setWithLoyaltyModal}
+          handleApplyPoints={handleApplyLoyaltyPoints}
+          points={Number(customer?.loyalty_points)}
+        />
+        <LoyaltyModal
+          open={withCreditNoteModal}
+          onOpenChange={setWithCreditNoteModal}
           title="Apply Credit Note"
           desc="Enter a value to be deducted"
+          handleApplyPoints={handleApplyLoyaltyPoints}
+          points={Number(customer?.credit_note_balance)}
         />
       </div>
     </>

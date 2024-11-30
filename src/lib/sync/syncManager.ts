@@ -49,6 +49,7 @@ export class SyncManager {
       return true; // Default to requiring sync on error
     }
   }
+  
   async refresh() {
     try {
       await this.syncProducts();
@@ -56,6 +57,7 @@ export class SyncManager {
       await this.syncPaymentMethods();
       await this.syncDiscounts();
       await this.syncFailedTrx();
+      await this.syncBranches(1);
     } catch (error) {
       console.error("Error refreshing data:", error);
       throw error;
@@ -77,6 +79,7 @@ export class SyncManager {
       await this.syncProducts()
       await this.syncCustomers()
       await this.syncPaymentMethods()
+      await this.syncBranches(1)
       await this.syncDiscounts()
 
     } catch (error) {
@@ -265,6 +268,15 @@ export class SyncManager {
       }
     });
     this.failedTrxFetched = true;
+  }
+
+  async syncBranches(soterId: string | number) {
+    const remoteBranches = await RemoteApi.fetchPos(soterId);
+    await db.transaction('rw', db.branches, async () => {
+      for (const branch of remoteBranches) {
+        await db.branches.put(branch);
+      }
+    });
   }
 
 }

@@ -7,6 +7,7 @@ import {
   LocalDiscount,
   LocalPaymentMethod,
   LocalTransaction,
+  LocalBranch,
 } from "../lib/db/schema";
 import { SyncManager } from "../lib/sync/syncManager";
 import { useOnlineStatus } from "./useOnlineStatus";
@@ -20,6 +21,7 @@ export function useStore() {
   const [failedTrx, setFailedTrx] = useState<TransactionSync[]>([]);
   const [paymentMethod, setPaymentMethod] = useState<LocalPaymentMethod[]>([]);
   const [customers, setCustomers] = useState<LocalCustomer[]>([]);
+  const [branches, setBranches] = useState<LocalBranch[]>([])
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const { isOnline } = useOnlineStatus();
@@ -92,6 +94,19 @@ export function useStore() {
     }
   };
 
+  const loadBranches = async () => {
+    try {
+      setLoading(true);
+      const branches = await LocalApiMethods.getBranches();
+      setBranches(branches);
+      console.log("Loaded local branches");
+    } catch (err) {
+      setError(err as Error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Trigger sync when online or manually
   const triggerSync = async () => {
     try {
@@ -101,6 +116,7 @@ export function useStore() {
       await loadProducts();
       await loadCustomers();
       await loadPaymentMethods();
+      await loadBranches();
       await loadDiscounts();
       await loadFailedTrx();
       toast.success("Synced successfully");
@@ -123,6 +139,7 @@ export function useStore() {
       await loadFailedTrx();
       await loadCustomers();
       await loadPaymentMethods();
+      await loadBranches();
       await loadDiscounts();
     } catch (error) {
       console.error("Sync failed:", error);
@@ -139,6 +156,7 @@ export function useStore() {
       await loadFailedTrx();
       await loadCustomers();
       await loadPaymentMethods();
+      await loadBranches();
       await loadDiscounts();
     } catch (error) {
       console.error("Sync failed:", error);
@@ -205,6 +223,7 @@ export function useStore() {
     products,
     discounts,
     paymentMethod,
+    branches,
     customers,
     loading,
     error,

@@ -14,53 +14,32 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
-import { LocalApiMethods } from "@/lib/api/localMethods";
-import { LocalPaymentMethod } from "@/lib/db/schema";
+import { useStore } from "@/hooks/useStore";
 import { formatCurrency } from "@/lib/utils";
 import { DialogDescription } from "@radix-ui/react-dialog";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ScrollArea } from "../ui/scroll-area";
-
-// Dummy branch data for POS Machine
-const branches = [
-  { id: 1, name: "Branch 1" },
-  { id: 2, name: "Branch 2" },
-  { id: 3, name: "Branch 3" }
-];
-
-// Payment methods with id and method_name
-// const paymentMethods = [
-//   { id: 1, method_name: "Transfer (CLEAN)" },
-//   { id: 2, method_name: "Cash" },
-//   { id: 3, method_name: "Marketing" },
-//   { id: 4, method_name: "Gift Voucher" },
-//   { id: 5, method_name: "Uniform" },
-//   { id: 6, method_name: "POS Machine" },
-//   { id: 7, method_name: "Transfer" },
-//   { id: 8, method_name: "Pending Impact" },
-//   { id: 9, method_name: "Credit Note" },
-//   { id: 10, method_name: "Paystack" }
-// ];
 
 const PaymentMethodModal = ({ isOpen, onClose, total, onPaymentSubmit }) => {
   const [paymentEntries, setPaymentEntries] = useState([
     { mode_of_payment_id: "", amount: "", mode_of_payment_pos_id: "" }
   ]);
-  const [paymentMethods, setPaymentMethods] = useState<LocalPaymentMethod[]>(
-    []
-  );
-  const getpaymentMethods = async () => {
-    try {
-      const methods = await LocalApiMethods.getAllPaymentMethods();
-      setPaymentMethods(methods);
-    } catch (err) {
-      console.error("Error fetching transactions:", err);
-    }
-  };
+  // const [paymentMethods, setPaymentMethods] = useState<LocalPaymentMethod[]>(
+  //   []
+  // );
+  // const getpaymentMethods = async () => {
+  //   try {
+  //     const methods = await LocalApiMethods.getAllPaymentMethods();
+  //     setPaymentMethods(methods);
+  //   } catch (err) {
+  //     console.error("Error fetching transactions:", err);
+  //   }
+  // };
 
-  useEffect(() => {
-    getpaymentMethods();
-  }, []);
+  // useEffect(() => {
+  //   getpaymentMethods();
+  // }, []);
+  const { paymentMethod: paymentMethods, branches } = useStore();
 
   const addPaymentEntry = () => {
     setPaymentEntries([
@@ -176,10 +155,10 @@ const PaymentMethodModal = ({ isOpen, onClose, total, onPaymentSubmit }) => {
                       <SelectTrigger>
                         <SelectValue
                           placeholder="Select branch"
-                          className="placeholder:text-gray-500"
+                          className="max-w-md overflow-auto placeholder:text-gray-500"
                         />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="max-w-md">
                         {branches.map((branch) => (
                           <SelectItem
                             key={branch.id}

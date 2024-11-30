@@ -1,5 +1,5 @@
 import { TransactionSync } from "@/types/trxType";
-import { db, LocalDiscount, LocalPaymentMethod } from "../db/schema";
+import { db, LocalBranch, LocalDiscount, LocalPaymentMethod } from "../db/schema";
 
 export class LocalApiMethods {
 
@@ -13,5 +13,9 @@ export class LocalApiMethods {
 
     static async getFailedSyncTrx(): Promise<TransactionSync[]> {
         return db.failedSyncTransactions.toArray();
+    }
+
+    static async getBranches(): Promise<LocalBranch[]> {
+        return db.branches.toArray();
     }
 }

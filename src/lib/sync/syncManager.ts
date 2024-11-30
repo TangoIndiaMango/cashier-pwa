@@ -6,6 +6,7 @@ import { db } from "../db/schema";
 import dayjs from 'dayjs';
 import { saveAs } from 'file-saver';
 import { parse } from 'papaparse';
+
 export class SyncManager {
   private static instance: SyncManager;
   private syncInProgress: boolean = false;
@@ -13,9 +14,12 @@ export class SyncManager {
   private discountsFetched: boolean = false;
   private failedTrxFetched: boolean = false;
   private syncWindow: number = 10 * 60 * 1000; // 5 minutes
+  private userInfo = JSON.parse(localStorage.getItem('user') || '{}')
+  private storeId = Array.isArray(this.userInfo?.store) && this.userInfo?.store.length > 0
+  ? this.userInfo.store[0].id
+  : 1;
 
-
-  private constructor() { }
+  private constructor() {}
 
   static getInstance(): SyncManager {
     if (!SyncManager.instance) {
@@ -49,7 +53,7 @@ export class SyncManager {
       return true; // Default to requiring sync on error
     }
   }
-  
+
   async refresh() {
     try {
       await this.syncProducts();
@@ -57,7 +61,7 @@ export class SyncManager {
       await this.syncPaymentMethods();
       await this.syncDiscounts();
       await this.syncFailedTrx();
-      await this.syncBranches(1);
+      await this.syncBranches(this.storeId);
     } catch (error) {
       console.error("Error refreshing data:", error);
       throw error;
@@ -79,7 +83,7 @@ export class SyncManager {
       await this.syncProducts()
       await this.syncCustomers()
       await this.syncPaymentMethods()
-      await this.syncBranches(1)
+      await this.syncBranches(this.storeId)
       await this.syncDiscounts()
 
     } catch (error) {

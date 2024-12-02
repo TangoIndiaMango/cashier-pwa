@@ -99,12 +99,12 @@ export const useZudCart = create<State & Actions>((set) => ({
       cartItems: values.cartItems.map((item) =>
         item.id === product.id
           ? {
-            ...item,
-            ...product,
-            discountPrice: product.discount
-              ? values.calcDiscountPriveValue(product as ICartItem)
-              : item.discountPrice,
-          }
+              ...item,
+              ...product,
+              discountPrice: product.discount
+                ? values.calcDiscountPriveValue(product as ICartItem)
+                : item.discountPrice,
+            }
           : item
       ),
     }));
@@ -151,28 +151,28 @@ export const useCart = () => {
         discount,
         prevTotal:
           !forceUpdate &&
-            cartDiscountCode &&
-            cartDiscountCode === values.discount?.code
+          cartDiscountCode &&
+          cartDiscountCode === values.discount?.code
             ? values.prevTotal
             : values.total,
         total:
           !forceUpdate &&
-            cartDiscountCode &&
-            cartDiscountCode === values.discount?.code
+          cartDiscountCode &&
+          cartDiscountCode === values.discount?.code
             ? values.total
             : cartZudApi.cartItems.reduce(
-              (sum, item: ICartItem) =>
-                sum +
-                cartZudApi.calcDiscountPriveValue(
-                  {
-                    ...item,
-                    discount: discount || item.discount,
-                  },
-                  cartDiscountCode ? "discountPrice" : "retail_price"
-                ) *
-                (item.quantity || 1),
-              0
-            ),
+                (sum, item: ICartItem) =>
+                  sum +
+                  cartZudApi.calcDiscountPriveValue(
+                    {
+                      ...item,
+                      discount: discount || item.discount,
+                    },
+                    cartDiscountCode ? "discountPrice" : "retail_price"
+                  ) *
+                    (item.quantity || 1),
+                0
+              ),
       }));
     },
     [cartZudApi.cartItems]

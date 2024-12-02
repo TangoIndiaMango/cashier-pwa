@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -11,57 +11,52 @@ import Typography from "../Typography";
 import { FormField } from "../ui/input";
 import { Button } from "../ui/button";
 import toast from "react-hot-toast";
+import { useApplyPoints } from "@/hooks/useApplyPoints";
 
 interface ILoyaltyModal extends DialogProps {
   open: boolean;
-  title?: string;
-  desc?: string;
-  points?: number;
-  handleApplyPoints: (point: number) => void;
-  // appliedPoints: number;
-  // setAppliedPoints: React.Dispatch<React.SetStateAction<number>>;
+  points: number;
+  onOpenChange: any;
+  total: number;
 }
 
 const LoyaltyModal: React.FC<ILoyaltyModal> = ({
-  title,
-  desc,
-  onOpenChange,
   points,
-  handleApplyPoints,
-  // appliedPoints = 0,
-  // setAppliedPoints,
+  onOpenChange,
+  total,
   ...rest
 }) => {
+  const setLoyaltyPoints = useApplyPoints((state) => state.setLoyaltyPoints);
+
   const [appliedPoints, setAppliedPoints] = useState(0);
   const onChange = (e: any) => {
     const val = e.target?.value;
-    if (points && val > points)
-      return toast.error("Value is more than available loyal points");
-    setAppliedPoints(e.target?.value);
+    if (val > points)
+      return toast.error("Value is more than available loyal points", {
+        className: "bg-red-500 text-white",
+      });
+    console.log(total);
+    if (val > total)
+      return toast.error("Value is more than the total to pay for", {
+        className: "bg-red-500 text-white",
+      });
+    setAppliedPoints(val);
+    setLoyaltyPoints(val);
   };
 
   const close = () => {
-    if (onOpenChange) {
-      onOpenChange(false);
-    }
+    onOpenChange(false);
     setAppliedPoints(0);
   };
-
-  useEffect(() => {
-    if (!points) return;
-    setAppliedPoints(points);
-  }, [points]);
 
   return (
     <Dialog onOpenChange={onOpenChange} {...rest}>
       <DialogContent>
         <DialogTitle></DialogTitle>
         <DialogHeader>
-          <Typography>{title ? title : "Apply Loyalty Point"}</Typography>
+          <Typography>{"Apply Loyalty Point"}</Typography>
           <Typography>
-            {desc
-              ? desc
-              : "Apply for all loyalty point to customer product purchase"}
+            {"Apply for all loyalty point to customer product purchase"}
           </Typography>
 
           <FormField
@@ -81,7 +76,6 @@ const LoyaltyModal: React.FC<ILoyaltyModal> = ({
           <Button
             className="flex-1"
             onClick={() => {
-              handleApplyPoints(appliedPoints);
               close();
             }}
           >

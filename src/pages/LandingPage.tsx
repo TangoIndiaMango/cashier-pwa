@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { CustomSwitch } from "@/components/ui/switch";
+import { useApplyPoints } from "@/hooks/useApplyPoints";
 import { useCart } from "@/hooks/useCart";
 import { useCustomer } from "@/hooks/useCustomer";
 import { usePayment } from "@/hooks/usePayment";
@@ -83,6 +84,7 @@ const POSSystem = () => {
   const [withLoyaltyModal, setWithLoyaltyModal] = useState(false);
   const [showReceipt, setShowReceipt] = useState(false);
   const [receiptData, setReceiptData] = useState(null);
+  const { loyaltyPoints, setLoyaltyPoints } = useApplyPoints((state) => state);
 
   // console.log(cartDiscountCode);
   // console.log(cartRecords);
@@ -189,28 +191,12 @@ const POSSystem = () => {
       setWithLoyalty(true);
       setWithLoyaltyModal(true);
     } else {
-      const { total, prevTotal, ...rest } = cartRecords;
+      console.log(loyaltyPoints);
+      setLoyaltyPoints(0);
       setWithLoyalty(false);
-      setCartRecords({
-        ...rest,
-        total: prevTotal || total,
-        prevTotal: 0,
-      });
+      handleApplyLoyaltyPoints(Number(loyaltyPoints), true);
       toast.error("Loyalty points removed.", {
         className: "bg-red-500 text-white",
-      });
-    }
-  };
-
-  const handleApplyLoyaltyPoints = (points: number) => {
-    const { total, prevTotal, ...rest } = cartRecords;
-
-    {
-      const pointsToUse = Math.min(points, total);
-      setCartRecords({
-        ...rest,
-        prevTotal: prevTotal || total,
-        total: total - pointsToUse,
       });
     }
   };
@@ -374,7 +360,10 @@ const POSSystem = () => {
               <div className="flex justify-between font-bold">
                 <span className="text-sm">TOTAL</span>
                 <span className="text-sm font-medium">
-                  {formatCurrency(cartRecords.total, "NGN")}
+                  {formatCurrency(
+                    cartRecords.total - Number(loyaltyPoints),
+                    "NGN"
+                  )}
                 </span>
               </div>
             </div>
@@ -466,17 +455,18 @@ const POSSystem = () => {
         <LoyaltyModal
           open={withLoyaltyModal}
           onOpenChange={setWithLoyaltyModal}
-          handleApplyPoints={handleApplyLoyaltyPoints}
           points={Number(customer?.loyalty_points)}
+          total={Number(cartRecords.total)}
         />
-        <LoyaltyModal
+
+        {/* <LoyaltyModal
           open={withCreditNoteModal}
           onOpenChange={setWithCreditNoteModal}
           title="Apply Credit Note"
           desc="Enter a value to be deducted"
           handleApplyPoints={handleApplyLoyaltyPoints}
           points={Number(customer?.credit_note_balance)}
-        />
+        /> */}
       </div>
     </>
   );

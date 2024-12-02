@@ -1,7 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { useApplyPoints } from "@/hooks/useApplyPoints";
+import { formatBalance } from "@/lib/utils";
 
 const CustomerProfileCard = ({ customer, handleRemove }) => {
+  const loyaltyPoints = useApplyPoints((state) => state.loyaltyPoints);
+
+  const points = useApplyPoints((state) => state);
+
   return (
     <Card className="w-full p-6">
       <div className="flex flex-col gap-5 space-y-4 lg:flex-row lg:items-center lg:justify-between md:space-y-0">
@@ -57,7 +63,13 @@ const CustomerProfileCard = ({ customer, handleRemove }) => {
         <div>
           <div className="mb-1 text-sm text-gray-600">Loyalty Points</div>
           <div className="text-xs font-medium">
-            {customer?.loyalty_points || "--"}
+            {formatBalance(Number(customer?.loyalty_points) - loyaltyPoints) ||
+              "--"}{" "}
+            {loyaltyPoints > 0 && (
+              <span className="text-[11px] line-through text-gray-500">
+                {customer?.loyalty_points}
+              </span>
+            )}
           </div>
         </div>
 

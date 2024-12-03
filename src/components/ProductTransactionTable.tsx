@@ -155,14 +155,6 @@ console.log("Quantiyi", quantity)
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleEdit(product, "view")}
-                    >
-                      <Eye className="w-4 h-4" />
-                      <span className="sr-only">View</span>
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
                       onClick={() =>
                         removeItemFromCart(product.product_code as string)
                       }

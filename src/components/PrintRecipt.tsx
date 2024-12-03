@@ -17,7 +17,7 @@ interface ReceiptProps {
 export const Receipt: React.FC<ReceiptProps> = ({ data, onClose }) => {
   const printFrameRef = useRef<HTMLIFrameElement>(null);
 
-  console.log(data);
+  // console.log(data);
 
   const printReceipt = () => {
     const printFrame = printFrameRef.current;
@@ -109,7 +109,7 @@ export const Receipt: React.FC<ReceiptProps> = ({ data, onClose }) => {
             fontFamily: "'Courier New', monospace",
           }}
         >
-          <h2 className="mb-2 font-bold text-center text-sm">
+          <h2 className="mb-2 text-sm font-bold text-center">
             Persiana Retail Ltd.
           </h2>
           <p>PALMS SHOPPING MALL</p>

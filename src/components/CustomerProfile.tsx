@@ -2,11 +2,27 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useApplyPoints } from "@/hooks/useApplyPoints";
 import { formatBalance } from "@/lib/utils";
+import { useEffect } from "react";
 
 const CustomerProfileCard = ({ customer, handleRemove }) => {
-  const loyaltyPoints = useApplyPoints((state) => state.loyaltyPoints);
+  // const loyaltyPoints = useApplyPoints((state) => state.loyaltyPoints);
+  // const creditNotePoints = useApplyPoints((state) => state.creditNotePoints);
 
   const points = useApplyPoints((state) => state);
+  const {creditNotePoints, loyaltyPoints,newLoyaltyPoints, newCreditNotePoints, setNewCreditNotePoints, setNewLoyaltyPoints} = useApplyPoints((state) => state)
+
+    // Handle updating the points after subtraction
+    const updatePoints = () => {
+      const newLoyaltyPoints = Number(customer?.loyalty_points) - loyaltyPoints;
+      const newCreditNotePoints = Number(customer?.credit_note_balance) - creditNotePoints;
+      setNewLoyaltyPoints(newLoyaltyPoints);
+      setNewCreditNotePoints(newCreditNotePoints);
+    };
+  
+    // Call updatePoints to ensure the points are set after rendering
+    useEffect(() => {
+      updatePoints();
+    }, [loyaltyPoints, creditNotePoints]);
 
   return (
     <Card className="w-full p-6">
@@ -63,7 +79,7 @@ const CustomerProfileCard = ({ customer, handleRemove }) => {
         <div>
           <div className="mb-1 text-sm text-gray-600">Loyalty Points</div>
           <div className="text-xs font-medium">
-            {formatBalance(Number(customer?.loyalty_points) - loyaltyPoints) ||
+            {formatBalance(newLoyaltyPoints) ||
               "--"}{" "}
             {loyaltyPoints > 0 && (
               <span className="text-[11px] line-through text-gray-500">
@@ -76,7 +92,14 @@ const CustomerProfileCard = ({ customer, handleRemove }) => {
         <div>
           <div className="mb-1 text-sm text-gray-600">Credit Note Balance</div>
           <div className="text-xs font-medium">
-            ₦{customer?.credit_note_balance || "--"}
+            {formatBalance(
+              newCreditNotePoints
+            ) || "--"}{" "}
+            {creditNotePoints > 0 && (
+              <span className="text-[11px] line-through text-gray-500">
+                {customer?.credit_note_balance}
+              </span>
+            )}
           </div>
         </div>
       </div>

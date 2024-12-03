@@ -14,6 +14,7 @@ import { useOnlineStatus } from "./useOnlineStatus";
 import { LocalApiMethods } from "@/lib/api/localMethods";
 import { TransactionSync } from "@/types/trxType";
 import toast from "react-hot-toast";
+import { useCustomer } from "./useCustomer";
 
 export function useStore() {
   const [products, setProducts] = useState<LocalProduct[]>([]);
@@ -198,11 +199,11 @@ export function useStore() {
   //   syncIfNeed()
   // }, [isOnline]);
 
-  useEffect(() => {
-    if (isOnline) {
-      triggerFetch();
-    }
-  }, []);
+  // useEffect(() => {
+  //   if (isOnline) {
+  //     triggerFetch();
+  //   }
+  // }, []);
 
   useEffect(() => {
     triggerLocalFetch();
@@ -213,7 +214,7 @@ export function useStore() {
   ) => {
     try {
       await LocalApi.createTransaction(data);
-      await loadProducts();
+      await triggerLocalFetch();
     } catch (err) {
       setError(err as Error);
       throw err;

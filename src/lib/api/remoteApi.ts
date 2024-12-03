@@ -127,7 +127,7 @@ export class RemoteApi {
 
   static async fetchPos(storeId:string|number): Promise<any> {
     const response = await api.get(`mop_terminals/${storeId}`);
-    console.log(response?.data?.data);
+    // console.log(response?.data?.data);
     return response.data.data;
   }
 

@@ -2,6 +2,7 @@ import BarcodeScanner from "@/components/BarcodeScanner";
 import CustomerComponent, { CustomerDetails } from "@/components/CustomerInfo";
 import CustomerDisplay from "@/components/CustomerInfoCard";
 import CustomerProfileCard from "@/components/CustomerProfile";
+import CreditNote from "@/components/Modals/CreditNoteModal";
 import LoyaltyModal from "@/components/Modals/LoyaltyModal";
 import PaymentMethodModal from "@/components/Modals/PaymentModal";
 import ProductSearchModal from "@/components/Modals/ProductSearchModal";
@@ -15,7 +16,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
+  SelectValue
 } from "@/components/ui/select";
 import { CustomSwitch } from "@/components/ui/switch";
 import { useApplyPoints } from "@/hooks/useApplyPoints";
@@ -42,7 +43,7 @@ const initCustomer = {
   city: null,
   address: null,
   loyalty_points: null,
-  credit_note_balance: null,
+  credit_note_balance: null
 };
 
 const POSSystem = () => {
@@ -57,7 +58,7 @@ const POSSystem = () => {
     handleCartTotalDiscount,
     cartDiscountCode,
     setCartDiscountCode,
-    setCartRecords,
+    setCartRecords
   } = useCart();
 
   const [showCartDiscount, setShowCartDiscount] = useState(false);
@@ -69,7 +70,7 @@ const POSSystem = () => {
     setPaymentStatus,
     paymentMethod,
     handlePaymentSubmit,
-    setPaymentMethod,
+    setPaymentMethod
   } = usePayment();
 
   const { customer, handleAddCustomer, setCustomer } = useCustomer();
@@ -85,6 +86,9 @@ const POSSystem = () => {
   const [showReceipt, setShowReceipt] = useState(false);
   const [receiptData, setReceiptData] = useState(null);
   const { loyaltyPoints, setLoyaltyPoints } = useApplyPoints((state) => state);
+  const { creditNotePoints, setCreditNotePoints } = useApplyPoints(
+    (state) => state
+  );
 
   // console.log(cartDiscountCode);
   // console.log(cartRecords);
@@ -98,7 +102,7 @@ const POSSystem = () => {
     const { name, value } = e.target;
     setCustomerDetails((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: value
     }));
   };
 
@@ -114,7 +118,7 @@ const POSSystem = () => {
       items: cartItems,
       discount: cartDiscountCode ? cartRecords?.discount : null,
       discountAmount: cartRecords?.total,
-      noDiscountAmount: cartRecords?.prevTotal,
+      noDiscountAmount: cartRecords?.prevTotal
     };
 
     await submitTransaction(data as any);
@@ -127,6 +131,8 @@ const POSSystem = () => {
     setPaymentStatus(null);
     setSearchQuery("");
     setCartDiscountCode("");
+    setLoyaltyPoints(0);
+    setCreditNotePoints(0);
 
     toast.success("Transaction completed successfully!");
     setWithLoyalty(false);
@@ -136,13 +142,13 @@ const POSSystem = () => {
   const checkCustomerAndCart = () => {
     if (!selectedCustomer) {
       toast.error("No customer selected", {
-        className: "bg-red-500 text-white",
+        className: "bg-red-500 text-white"
       });
       return false;
     }
     if (cartItems?.length < 1) {
       toast.error("No products selected", {
-        className: "bg-red-500 text-white",
+        className: "bg-red-500 text-white"
       });
       return false;
     }
@@ -150,30 +156,25 @@ const POSSystem = () => {
     return true;
   };
 
-  const handleCreditNote = (c: boolean) => {
+  const handleCreditNote = (checked: boolean) => {
     if (!checkCustomerAndCart()) return;
 
-    setWithCreditNote(c);
-
-    if (c) {
-      if (!customer?.credit_note_balance) {
-        return toast.error("Sorry, No Credit Note points", {
-          className: "bg-red-500 text-white",
+    if (checked) {
+      if (!customer?.loyalty_points) {
+        return toast.error("Sorry, No loyalty points", {
+          className: "bg-red-500 text-white"
         });
       }
 
       setWithCreditNote(true);
       setWithCreditNoteModal(true);
     } else {
-      const { total, prevTotal, ...rest } = cartRecords;
+      console.log(loyaltyPoints);
+      setCreditNotePoints(0);
       setWithCreditNote(false);
-      setCartRecords({
-        ...rest,
-        total: prevTotal || total,
-        prevTotal: 0,
-      });
-      toast.error("Credit note points removed.", {
-        className: "bg-red-500 text-white",
+      // handleApplyLoyaltyPoints(Number(loyaltyPoints), true);
+      toast.error("Credit Note points removed.", {
+        className: "bg-red-500 text-white"
       });
     }
   };
@@ -184,7 +185,7 @@ const POSSystem = () => {
     if (checked) {
       if (!customer?.loyalty_points) {
         return toast.error("Sorry, No loyalty points", {
-          className: "bg-red-500 text-white",
+          className: "bg-red-500 text-white"
         });
       }
 
@@ -194,9 +195,9 @@ const POSSystem = () => {
       console.log(loyaltyPoints);
       setLoyaltyPoints(0);
       setWithLoyalty(false);
-      handleApplyLoyaltyPoints(Number(loyaltyPoints), true);
+      // handleApplyLoyaltyPoints(Number(loyaltyPoints), true);
       toast.error("Loyalty points removed.", {
-        className: "bg-red-500 text-white",
+        className: "bg-red-500 text-white"
       });
     }
   };
@@ -361,7 +362,9 @@ const POSSystem = () => {
                 <span className="text-sm">TOTAL</span>
                 <span className="text-sm font-medium">
                   {formatCurrency(
-                    cartRecords.total - Number(loyaltyPoints),
+                    cartRecords.total -
+                      (Number(loyaltyPoints) || 0) -
+                      (Number(creditNotePoints) || 0),
                     "NGN"
                   )}
                 </span>
@@ -448,7 +451,9 @@ const POSSystem = () => {
         <PaymentMethodModal
           isOpen={showPayment}
           onClose={() => setShowPayment(false)}
-          total={cartRecords.total}
+          total={ cartRecords.total -
+            (Number(loyaltyPoints) || 0) -
+            (Number(creditNotePoints) || 0)}
           onPaymentSubmit={handlePaymentSubmit}
         />
 
@@ -456,6 +461,13 @@ const POSSystem = () => {
           open={withLoyaltyModal}
           onOpenChange={setWithLoyaltyModal}
           points={Number(customer?.loyalty_points)}
+          total={Number(cartRecords.total)}
+        />
+
+        <CreditNote
+          open={withCreditNoteModal}
+          onOpenChange={setWithCreditNoteModal}
+          points={Number(customer?.credit_note_balance)}
           total={Number(cartRecords.total)}
         />
 

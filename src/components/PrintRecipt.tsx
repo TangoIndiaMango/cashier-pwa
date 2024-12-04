@@ -52,14 +52,18 @@ export const Receipt: React.FC<ReceiptProps> = ({ data, onClose }) => {
                   }
                   table {
                     width: 100%;
+                    table-layout: fixed;
                     border-collapse: collapse;
                     margin: 5px 0;
                   }
                   th, td {
-                    padding: 2px;
+                    padding: 4px 2px;
                     text-align: left;
                     font-size: 8px;
                     border: none;
+                  }
+                  td {
+                    word-wrap: break-word;
                   }
                   th {
                     border-bottom: 1px dashed #000;
@@ -106,7 +110,7 @@ export const Receipt: React.FC<ReceiptProps> = ({ data, onClose }) => {
           style={{
             maxWidth: "58mm",
             margin: "0 auto",
-            fontFamily: "'Courier New', monospace",
+            fontFamily: "'Courier New', monospace"
           }}
         >
           <h2 className="mb-2 text-sm font-bold text-center">

@@ -18,7 +18,7 @@ const LoginPage = () => {
     setLoading(true);
     try {
       const res = await RemoteApi.login(formData?.email, formData?.password);
-      // console.log(res?.data);
+      console.log(res?.data);
       // set item to local storage
       localStorage.setItem("token", res?.data?.accessToken);
       localStorage.setItem("user", JSON.stringify(res?.data?.user));
@@ -26,6 +26,7 @@ const LoginPage = () => {
         email: "",
         password: ""
       });
+      window.location.href = "/";
       setLoading(false);
     } catch (error) {
       console.log("An error occured", error);

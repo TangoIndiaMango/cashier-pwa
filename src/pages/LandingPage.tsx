@@ -451,9 +451,11 @@ const POSSystem = () => {
         <PaymentMethodModal
           isOpen={showPayment}
           onClose={() => setShowPayment(false)}
-          total={ cartRecords.total -
+          total={
+            cartRecords.total -
             (Number(loyaltyPoints) || 0) -
-            (Number(creditNotePoints) || 0)}
+            (Number(creditNotePoints) || 0)
+          }
           onPaymentSubmit={handlePaymentSubmit}
         />
 

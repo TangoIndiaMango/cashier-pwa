@@ -166,8 +166,8 @@ export const Receipt: React.FC<ReceiptProps> = ({ data, onClose }) => {
               Total QTY:{" "}
               {data.items.reduce((acc, item) => acc + item.quantity, 0)}
             </p>
-            <p>Subtotal: {data.noDiscountAmount.toFixed(2)}</p>
-            <p>Total: {data.totalAmount.toFixed(2)}</p>
+            <p>Subtotal: {data?.discountAmount?.toFixed(2)}</p>
+            <p>Total: {data?.totalAmount?.toFixed(2)}</p>
             <p>VAT(5%) Included</p>
           </div>
 

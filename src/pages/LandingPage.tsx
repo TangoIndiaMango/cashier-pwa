@@ -117,8 +117,10 @@ const POSSystem = () => {
       status: paymentStatus ? paymentStatus.toUpperCase() : "DRAFT",
       items: cartItems,
       discount: cartDiscountCode ? cartRecords?.discount : null,
-      discountAmount: cartRecords?.total,
-      noDiscountAmount: cartRecords?.prevTotal
+      discountAmount: cartRecords.total -
+      (Number(loyaltyPoints) || 0) -
+      (Number(creditNotePoints) || 0),
+      noDiscountAmount: cartRecords?.total
     };
 
     await submitTransaction(data as any);

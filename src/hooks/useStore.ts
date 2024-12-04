@@ -202,11 +202,11 @@ export function useStore() {
   //   syncIfNeed()
   // }, [isOnline]);
 
-  // useEffect(() => {
-  //   if (isOnline) {
-  //     triggerFetch();
-  //   }
-  // }, []);
+  useEffect(() => {
+    if (isOnline) {
+      triggerFetch();
+    }
+  }, [isOnline]);
 
   useEffect(() => {
     triggerLocalFetch();

@@ -4,7 +4,7 @@ import AuthLayout from "@/components/auth/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { RemoteApi } from "@/lib/api/remoteApi";
-import { useNavigate } from "react-router-dom";
+import { db } from "@/lib/db/schema";
 
 const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -28,12 +28,14 @@ const LoginPage = () => {
         email: "",
         password: ""
       });
-      navigate("/")
+      window.location.href = "/";
       setLoading(false);
+      await db.open().catch((err) => {
+        console.log(err);
+      });
     } catch (error) {
       console.log("An error occured", error);
       setLoading(false);
-      navigate("/")
     }
     setLoading(false);
   };

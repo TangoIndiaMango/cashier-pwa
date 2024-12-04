@@ -4,7 +4,6 @@ import AuthLayout from "@/components/auth/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { RemoteApi } from "@/lib/api/remoteApi";
-import { useNavigate } from "react-router-dom";
 
 const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -13,14 +12,13 @@ const LoginPage = () => {
     password: ""
   });
   const [loading, setLoading] = useState(false);
-  const naviagte = useNavigate()
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
       const res = await RemoteApi.login(formData?.email, formData?.password);
-      // console.log(res?.data);
+      console.log(res?.data);
       // set item to local storage
       localStorage.setItem("token", res?.data?.accessToken);
       localStorage.setItem("user", JSON.stringify(res?.data?.user));
@@ -28,15 +26,13 @@ const LoginPage = () => {
         email: "",
         password: ""
       });
-      naviagte('/');
+      window.location.href = "/";
       setLoading(false);
     } catch (error) {
       console.log("An error occured", error);
       setLoading(false);
-      naviagte('/login')
     }
     setLoading(false);
-    naviagte('/login')
   };
 
   return (

@@ -13,7 +13,7 @@ const LoginPage = () => {
     password: ""
   });
   const [loading, setLoading] = useState(false);
-  const naviagte = useNavigate()
+  const navigate = useNavigate()
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -33,7 +33,7 @@ const LoginPage = () => {
     } catch (error) {
       console.log("An error occured", error);
       setLoading(false);
-      naviagte('/login')
+      navigate("/")
     }
     setLoading(false);
     naviagte('/login')

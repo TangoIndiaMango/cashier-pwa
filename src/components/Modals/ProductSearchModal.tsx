@@ -4,7 +4,7 @@ import {
   DialogContent,
   DialogDescription,
   DialogHeader,
-  DialogTitle,
+  DialogTitle
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,7 +18,7 @@ const ProductSearchModal = ({
   isOpen,
   onClose,
   onFullfield,
-  fileredProduct,
+  fileredProduct
 }) => {
   const [searchTerm, setSearchTerm] = useState(""); // State to hold the search term
   const [selectedProduct, setSelectedProduct] =
@@ -33,8 +33,12 @@ const ProductSearchModal = ({
   // console.log(discounts)
 
   const handleEnter = () => {
+    const searchTermStr = searchTerm.toString().trim();
+    console.log(searchTerm)
     const foundProduct = products.find(
-      (prod) => prod.ean.toString() === searchTerm.toString()
+      (prod) =>
+        prod?.ean?.toString() === searchTermStr ||
+        prod?.product_code?.toString() === searchTermStr
     );
     if (foundProduct) {
       setFilteredProducts(foundProduct);
@@ -76,7 +80,7 @@ const ProductSearchModal = ({
       }
       onFullfield({
         ...selectedProduct,
-        discount: discountObj,
+        discount: discountObj
       });
 
       onClose();

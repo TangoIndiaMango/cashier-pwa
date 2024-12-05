@@ -4,6 +4,7 @@ import AuthLayout from "@/components/auth/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { RemoteApi } from "@/lib/api/remoteApi";
+import { db } from "@/lib/db/schema";
 
 const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -28,6 +29,9 @@ const LoginPage = () => {
       });
       window.location.href = "/";
       setLoading(false);
+      await db.open().catch((err) => {
+        console.log(err);
+      });
     } catch (error) {
       console.log("An error occured", error);
       setLoading(false);

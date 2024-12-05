@@ -1,4 +1,5 @@
 import React, { useRef, useEffect } from "react";
+import { ScrollArea } from "@/components/ui/scroll-area"
 
 interface ReceiptProps {
   data: {
@@ -98,8 +99,10 @@ export const Receipt: React.FC<ReceiptProps> = ({ data, onClose }) => {
   };
 
   return (
+    
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="w-full max-w-md p-4 bg-white rounded-lg">
+      <ScrollArea className="w-full md:h-[600px] max-w-lg p-4 bg-white rounded-lg">
+      <div className="w-full p-4 ">
         <div
           id="receipt-content"
           className="mb-4 font-mono text-xs text-center"
@@ -163,8 +166,8 @@ export const Receipt: React.FC<ReceiptProps> = ({ data, onClose }) => {
               Total QTY:{" "}
               {data.items.reduce((acc, item) => acc + item.quantity, 0)}
             </p>
-            <p>Subtotal: {data.noDiscountAmount.toFixed(2)}</p>
-            <p>Total: {data.totalAmount.toFixed(2)}</p>
+            <p>Subtotal: {data?.discountAmount?.toFixed(2)}</p>
+            <p>Total: {data?.totalAmount?.toFixed(2)}</p>
             <p>VAT(5%) Included</p>
           </div>
 
@@ -206,6 +209,8 @@ export const Receipt: React.FC<ReceiptProps> = ({ data, onClose }) => {
         </div>
       </div>
       <iframe ref={printFrameRef} style={{ display: "none" }} />
+      </ScrollArea>
+      
     </div>
   );
 };

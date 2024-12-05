@@ -5,7 +5,8 @@ import { Outlet, useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
 import { useStore } from "@/hooks/useStore";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
-import { FeatherIcon, FolderSync, Loader2, Wifi } from "lucide-react";
+import { FeatherIcon, FolderSync, Loader2, LogOut, Wifi } from "lucide-react";
+import { db } from "@/lib/db/schema";
 
 const Layout: React.FC = () => {
   //check if no token in localstorage send to /login
@@ -15,6 +16,13 @@ const Layout: React.FC = () => {
   if (!token) {
     navigate("/login");
   }
+
+  const handleLogOut = () => {
+    localStorage.removeItem("token");
+    // await db.delete()
+    db.close()
+    navigate("/login");
+  };
 
   const { needRefresh, offlineReady, updateServiceWorker } = usePWA();
   const { isOnline, networkType, rtt } = useOnlineStatus();
@@ -93,6 +101,10 @@ const Layout: React.FC = () => {
                 <FolderSync className="w-4 h-4" />
               )}
               <span>Sync Now</span>
+            </Button>
+
+            <Button variant="lightblue" onClick={handleLogOut}>
+              <LogOut/>
             </Button>
           </div>
         </div>

@@ -8,6 +8,7 @@ import {
   LocalPaymentMethod,
   LocalTransaction,
   LocalBranch,
+  db,
 } from "../lib/db/schema";
 import { SyncManager } from "../lib/sync/syncManager";
 import { useOnlineStatus } from "./useOnlineStatus";
@@ -159,6 +160,8 @@ export function useStore() {
       await loadPaymentMethods();
       await loadBranches();
       await loadDiscounts();
+
+      await db.open();
     } catch (error) {
       console.error("Sync failed:", error);
       setError(error as Error);
@@ -199,11 +202,11 @@ export function useStore() {
   //   syncIfNeed()
   // }, [isOnline]);
 
-  // useEffect(() => {
-  //   if (isOnline) {
-  //     triggerFetch();
-  //   }
-  // }, []);
+  useEffect(() => {
+    if (isOnline) {
+      triggerFetch();
+    }
+  }, [isOnline]);
 
   useEffect(() => {
     triggerLocalFetch();

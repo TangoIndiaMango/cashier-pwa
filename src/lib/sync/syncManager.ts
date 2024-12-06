@@ -222,8 +222,29 @@ export class SyncManager {
     // }
   }
 
-  private async syncSingleTransaction() {
+  async syncSingleTransaction(transaction:any) {
+    // const syncId = `${Math.floor(Date.now() / 1000)}_SYNC`
+    const syncId = `${transaction.sync_session_id}`
 
+    try {
+      const response = await RemoteApi.syncTransactions([transaction], syncId);
+      const { successful_transaction, failed_transaction } = response?.data || {};
+
+      const successfulCount = successful_transaction || 0;
+      const failedCount = failed_transaction || 0;
+
+      if (failedCount > 0) {
+        console.error("Sync failed:", response?.message);
+        toast.error(response?.message); // Show error with failed count
+      } else {
+        console.log("Transactions synced successfully.");
+        toast.success(`Successfully synced ${successfulCount} transactions.`);
+      }
+
+    } catch (error) {
+      console.error("Failed to sync transactions:", error);
+      toast.error("Failed to sync transactions, please try again.");
+    }
   }
 
   private async syncPaymentMethods() {

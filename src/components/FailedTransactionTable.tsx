@@ -17,6 +17,7 @@ import { ProductDetailsDialog } from "./Modals/ProductDetailsDialog";
 import ProductSearchModal from "./Modals/ProductSearchModal";
 import { useStore } from "../hooks/useStore";
 import dayjs from 'dayjs';
+import { SyncManager } from "@/lib/sync/syncManager";
 
 export function FailedTransactionTable({ failedTrx }) {
   const { updateCartItem } = useCart();
@@ -26,6 +27,7 @@ export function FailedTransactionTable({ failedTrx }) {
   const [showEditProd, setShowEditProd] = useState(false);
   const [showViewProd, setShowViewProd] = useState(false);
   const { loading } = useStore();
+  const syncMang = SyncManager.getInstance()
 
   const handleEdit = (product: LocalTransactionItem, action: string) => {
     setSelectedProduct(product);
@@ -35,6 +37,10 @@ export function FailedTransactionTable({ failedTrx }) {
       setShowViewProd(true);
     }
   };
+
+  const handleTransactionSync = async (trx:any) => {
+    syncMang.syncSingleTransaction(trx)
+  }
 
   return loading ? (
     <div className="flex items-center justify-center h-screen">
@@ -99,7 +105,7 @@ export function FailedTransactionTable({ failedTrx }) {
                     <Button
                       variant="lightblue"
                       size="sm"
-                      onClick={() => console.log(trx)}
+                      onClick={() => handleTransactionSync(trx)}
                     >
                       <LucideFolderSync className="w-4 h-4" />
                       <span className="sr-only">Sync</span>

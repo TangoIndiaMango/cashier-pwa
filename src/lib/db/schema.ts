@@ -46,6 +46,7 @@ export interface LocalProduct {
 export interface LocalTransaction {
   id: string;
   createdAt?: Date;
+  recieptNo?:string;
   totalAmount: number;
   paymentMethods: PaymentEntry[];
   status: string;

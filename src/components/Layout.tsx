@@ -1,32 +1,51 @@
 // src/components/Layout.tsx
 import { usePWA } from "@/hooks/usePWA";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
 import { useStore } from "@/hooks/useStore";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { FeatherIcon, FolderSync, Loader2, LogOut, Wifi } from "lucide-react";
 import { db } from "@/lib/db/schema";
+import { LogoutModal } from "./Modals/LogOutModal";
+import { LocalApi } from "@/lib/api/localApi";
 
 const Layout: React.FC = () => {
   //check if no token in localstorage send to /login
+  const { needRefresh, offlineReady, updateServiceWorker } = usePWA();
+  const { isOnline, networkType, rtt } = useOnlineStatus();
+  const { triggerSync, triggerFetch, loading } = useStore();
+  const [usnynceTransLength, setUnsyncedTransLength] = useState(0);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+
+  useEffect(() => {
+    const fetchUnsyncedTrans = async () => {
+      const trnx = await LocalApi.getUnsynedTransactions();
+      setUnsyncedTransLength(trnx.length);
+    };
+
+    fetchUnsyncedTrans();
+  }, []);
+
+  const handleSync = () => {
+    triggerSync();
+  };
   const navigate = useNavigate();
 
   const token = localStorage.getItem("token");
   if (!token) {
     navigate("/login");
   }
-
-  const handleLogOut = () => {
-    localStorage.removeItem("token");
-    // await db.delete()
-    db.close()
-    navigate("/login");
+  const handleCloseModal = () => {
+    setIsLogoutModalOpen(false);
   };
 
-  const { needRefresh, offlineReady, updateServiceWorker } = usePWA();
-  const { isOnline, networkType, rtt } = useOnlineStatus();
-  const { triggerSync, triggerFetch, loading } = useStore();
+  const handleLogOut = async () => {
+    localStorage.removeItem("token");
+    await db.delete();
+    db.close();
+    navigate("/login");
+  };
 
   return (
     <div className="w-screen min-h-screen bg-white">
@@ -103,8 +122,11 @@ const Layout: React.FC = () => {
               <span>Sync Now</span>
             </Button>
 
-            <Button variant="lightblue" onClick={handleLogOut}>
-              <LogOut/>
+            <Button
+              variant="lightblue"
+              onClick={() => setIsLogoutModalOpen(true)}
+            >
+              <LogOut />
             </Button>
           </div>
         </div>
@@ -114,6 +136,14 @@ const Layout: React.FC = () => {
       <main className="container w-full mx-auto lg:py-8 lg:px-4 ">
         <Outlet />
       </main>
+
+      <LogoutModal
+        isOpen={isLogoutModalOpen}
+        onClose={handleCloseModal}
+        onLogout={handleLogOut}
+        onSync={handleSync}
+        unsyncedTransactions={usnynceTransLength}
+      />
     </div>
   );
 };

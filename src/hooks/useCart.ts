@@ -87,11 +87,11 @@ export const useZudCart = create<State & Actions>((set) => ({
       };
     });
   },
-  removeItemFromCart(productCode: string) {
+  removeItemFromCart(ean: string) {
     set((values) => ({
       ...values,
       cartItems: values.cartItems.filter(
-        (item) => item.product_code !== productCode
+        (item) => item.ean !== ean
       ),
     }));
   },

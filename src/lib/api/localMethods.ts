@@ -18,4 +18,8 @@ export class LocalApiMethods {
     static async getBranches(): Promise<LocalBranch[]> {
         return db.branches.toArray();
     }
+
+    static async getPaymentMethodById(id: string): Promise<LocalPaymentMethod | undefined> {
+        return db.paymentMethods.where("id").equals(id).first();
+    }
 }

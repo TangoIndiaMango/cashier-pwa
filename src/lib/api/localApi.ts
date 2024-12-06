@@ -17,8 +17,8 @@ export class LocalApi {
     return db.products.where({ brand_name }).first();
   }
 
-  static async getProductByCode(product_code: string): Promise<LocalProduct | undefined> {
-    return db.products.where({ product_code }).first();
+  static async getProductByCode(product_code: string): Promise<LocalProduct[] | undefined> {
+    return db.products.where({ product_code }).toArray();
   }
 
   static async getProductByBrandID(brandId: string): Promise<LocalProduct | undefined> {
@@ -32,15 +32,26 @@ export class LocalApi {
 
       if (!product) throw new Error('Product not found');
 
+      console.log(`Current quantity: ${product.available_quantity}`);
+      console.log(`Quantity change: ${quantityChange}`);
+  
       if (product.available_quantity + quantityChange < 0) {
         throw new Error('Insufficient quantity');
       }
+  
+      const newQuantity = product.available_quantity - quantityChange;
+      console.log(`Updated quantity: ${newQuantity}`);
 
-      await db.products.update(product.id, {
-        available_quantity: product.available_quantity - quantityChange,
+      const updated = await db.products.update(product.id, {
+        available_quantity: newQuantity,
         isModified: true,
         // version: product.version + 1
       });
+      if (updated) {
+        console.log(`Product quantity updated successfully for EAN ${ean}. New quantity: ${newQuantity}`);
+      } else {
+        console.log('Failed to update product quantity');
+      }
     });
   }
 
@@ -59,7 +70,7 @@ export class LocalApi {
           console.log(item.ean, item.quantity)
           await this.updateProductQuantity(item.ean!, item.quantity);
         }
-
+        // console.log("After updating quantity", transaction)
         await db.transactions.add({
           ...transaction,
           id,

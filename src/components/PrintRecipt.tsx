@@ -1,9 +1,12 @@
-import React, { useRef, useEffect } from "react";
-import { ScrollArea } from "@/components/ui/scroll-area"
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { useStore } from "@/hooks/useStore";
+import { LocalApiMethods } from "@/lib/api/localMethods";
+import React, { useRef, useEffect, useState } from "react";
 
 interface ReceiptProps {
   data: {
-    paymentMethods: string[];
+    recieptNo: string;
+    paymentMethods: any[];
     totalAmount: number;
     customer: any;
     status: string;
@@ -17,7 +20,7 @@ interface ReceiptProps {
 
 export const Receipt: React.FC<ReceiptProps> = ({ data, onClose }) => {
   const printFrameRef = useRef<HTMLIFrameElement>(null);
-
+const {paymentMethod } = useStore()
   // console.log(data);
 
   const printReceipt = () => {
@@ -101,120 +104,161 @@ export const Receipt: React.FC<ReceiptProps> = ({ data, onClose }) => {
       }
     }
   };
+  const [paymentMethods, setPaymentMethods] = useState(data.paymentMethods || []);
+  
+  useEffect(() => {
+ 
+    const paymentData = data.paymentMethods.map((method) => {
+      // Find the corresponding payment method in the store
+      const matchedMethod = paymentMethod?.find(
+        (method2) => method2.id.toString() === method.mode_of_payment_id.toString()
+      );
+
+      if (matchedMethod) {
+        return {
+          ...method,
+          name: matchedMethod.name || 'Unknown', 
+        };
+      }
+      return {
+        ...method,
+        name: 'Unknown',
+      };
+    });
+
+    setPaymentMethods(paymentData);
+  }, [data.paymentMethods, paymentMethod]);
+
+
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
 
   return (
-    
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 space-y-1">
       <ScrollArea className="w-full md:h-[600px] max-w-lg p-4 bg-white rounded-lg">
-      <div className="w-full p-4 ">
-        <div
-          id="receipt-content"
-          className="mb-4 font-mono text-xs text-center"
-          style={{
-            maxWidth: "58mm",
-            margin: "0 auto",
-            fontFamily: "'Courier New', monospace"
-          }}
-        >
-          <h2 className="mb-2 text-sm font-bold text-center">
-            Persiana Retail Ltd.
-          </h2>
-          <p>PALMS SHOPPING MALL</p>
-          <p>BIS WAY</p>
-          <p>Email: lacoste@persianaretail.com</p>
-          <p>TIN: 10213154-001</p>
-          <p>Customer Care Line: 08188830487</p>
-          <p>08080558055</p>
-          <hr className="my-2 border-t border-dashed" />
-
-          <div className="text-left">
-            <p>Receipt No: {data.status}</p>
-            <p>Date/Time: {new Date().toLocaleString()}</p>
-            <p>
-              Client Name: {data.customer.firstname} {data.customer.lastname}
-            </p>
-            <p>Cashier: [Cashier Name]</p>
-          </div>
-
-          <hr className="my-2 border-t border-dashed" />
-
-          <table>
-            <thead>
-              <tr>
-                <th>QTY</th>
-                <th>BARCODE</th>
-                <th>DESC</th>
-                <th className="price">PRICE</th>
-                <th className="amount">AMOUNT</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.items.map((item, index) => (
-                <tr key={index}>
-                  <td>{item.quantity}</td>
-                  <td>{item.ean}</td>
-                  <td>{item.product_name}</td>
-                  <td className="price">{item.retail_price?.toFixed(2)}</td>
-                  <td className="amount">
-                    {(item.retail_price * item.quantity)?.toFixed(2)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          <hr className="my-2 border-t border-dashed" />
-
-          <div className="text-left">
-            <p>
-              Total QTY:{" "}
-              {data.items.reduce((acc, item) => acc + item.quantity, 0)}
-            </p>
-            <p>Subtotal: {data?.discountAmount?.toFixed(2)}</p>
-            <p>Total: {data?.totalAmount?.toFixed(2)}</p>
-            <p>VAT(5%) Included</p>
-          </div>
-
-          <hr className="my-2 border-t border-dashed" />
-
-          <div>
-            <p>Points Gained in Purchase: 0</p>
-            <p>Points Used in Purchase: 0</p>
-            <p>New Accumulated Points: 0</p>
-          </div>
-
-          <hr className="my-2 border-t border-dashed" />
-
-          <div className="text-xs">
-            <p>No Exchange/Refund on 'Sale Items'.</p>
-            <p>
-              Exchange on regular items is permitted within 7 days from invoice
-              date accompanied by the original invoice and returned in saleable
-              condition.
-            </p>
-            <p>
-              No Exchange in Lingerie/Bodywear items due to Hygiene Reasons.
-            </p>
-          </div>
-
-          <p className="mt-4 font-bold">THANK YOU FOR SHOPPING AT LACOSTE</p>
-        </div>
-
-        <div className="flex justify-between mt-4">
-          <button
-            onClick={printReceipt}
-            className="px-4 py-2 text-white bg-blue-500 rounded"
+        <div className="w-full p-4 ">
+          <div
+            id="receipt-content"
+            className="mb-4 font-mono text-xs text-center"
+            style={{
+              maxWidth: "58mm",
+              margin: "0 auto",
+              fontFamily: "'Courier New', monospace"
+            }}
           >
-            Print Receipt
-          </button>
-          <button onClick={onClose} className="px-4 py-2 bg-gray-300 rounded">
-            Close
-          </button>
+            <h2 className="mb-2 text-sm font-bold text-center">
+              Persiana Retail Ltd.
+            </h2>
+            <p>PALMS SHOPPING MALL</p>
+            <p>BIS WAY</p>
+            <p>Email: lacoste@persianaretail.com</p>
+            <p>TIN: 10213154-001</p>
+            <p>Customer Care Line: 08188830487</p>
+            <p>08080558055</p>
+            <hr className="my-2 border-t border-dashed" />
+
+            <div className="text-left">
+              <p>Receipt No: {data?.recieptNo}</p>
+              <p>Date/Time: {new Date().toLocaleString()}</p>
+              <p>
+                Client Name: {data?.customer?.firstname}{" "}
+                {data?.customer?.lastname}
+              </p>
+              <p>
+                Cashier: [{user?.firstname} {user?.lastname}]
+              </p>
+            </div>
+
+            <hr className="my-2 border-t border-dashed" />
+
+            <table>
+              <thead>
+                <tr>
+                  <th>QTY</th>
+                  <th>BARCODE</th>
+                  <th>DESC</th>
+                  <th className="price">PRICE</th>
+                  <th className="amount">AMOUNT</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.items.map((item, index) => (
+                  <tr key={index}>
+                    <td>{item.quantity}</td>
+                    <td>{item.ean}</td>
+                    <td>{item.product_name}</td>
+                    <td className="price">{item.retail_price?.toFixed(2)}</td>
+                    <td className="amount">
+                      {(item.retail_price * item.quantity)?.toFixed(2)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            <hr className="my-2 border-t border-dashed" />
+
+            <div className="text-left space-y-1 grid grid-cols-2">
+              <p>
+                Total QTY:
+              </p>
+              <p> {data.items.reduce((acc, item) => acc + item.quantity, 0)}</p>
+              <p>Subtotal:</p>
+              <p> {data?.discountAmount?.toFixed(2)}</p>
+              <p>Total: </p>
+              <p>{data?.totalAmount?.toFixed(2)}</p>
+              <div>
+              {paymentMethods.map((paymentMethod) => (
+                <div key={paymentMethod.mode_of_payment_id} className="grid grid-cols-2">
+                  <p>
+                    {paymentMethod.name}: 
+                  </p>
+                  <span>{paymentMethod.amount}</span>
+                </div>
+              ))}
+            </div>
+            </div>
+            <p>VAT(5%) Included</p>
+
+            <hr className="my-2 border-t border-dashed" />
+         
+
+            <div>
+              <p>Points Gained in Purchase: 0</p>
+              <p>Points Used in Purchase: 0</p>
+              <p>New Accumulated Points: 0</p>
+            </div>
+
+            <hr className="my-2 border-t border-dashed" />
+
+            <div className="text-xs">
+              <p>No Exchange/Refund on 'Sale Items'.</p>
+              <p>
+                Exchange on regular items is permitted within 7 days from
+                invoice date accompanied by the original invoice and returned in
+                saleable condition.
+              </p>
+              <p>
+                No Exchange in Lingerie/Bodywear items due to Hygiene Reasons.
+              </p>
+            </div>
+
+            <p className="mt-4 font-bold">THANK YOU FOR SHOPPING AT LACOSTE</p>
+          </div>
+
+          <div className="flex justify-between mt-4">
+            <button
+              onClick={printReceipt}
+              className="px-4 py-2 text-white bg-blue-500 rounded"
+            >
+              Print Receipt
+            </button>
+            <button onClick={onClose} className="px-4 py-2 bg-gray-300 rounded">
+              Close
+            </button>
+          </div>
         </div>
-      </div>
-      <iframe ref={printFrameRef} style={{ display: "none" }} />
+        <iframe ref={printFrameRef} style={{ display: "none" }} />
       </ScrollArea>
-      
     </div>
   );
 };

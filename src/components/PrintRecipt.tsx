@@ -1,6 +1,5 @@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useStore } from "@/hooks/useStore";
-import { LocalApiMethods } from "@/lib/api/localMethods";
 import React, { useRef, useEffect, useState } from "react";
 
 interface ReceiptProps {
@@ -11,6 +10,8 @@ interface ReceiptProps {
     customer: any;
     status: string;
     items: any[];
+    loyaltyPoints: any;
+    creditNotePoints: any;
     discount: number | null;
     discountAmount: number;
     noDiscountAmount: number;
@@ -20,7 +21,7 @@ interface ReceiptProps {
 
 export const Receipt: React.FC<ReceiptProps> = ({ data, onClose }) => {
   const printFrameRef = useRef<HTMLIFrameElement>(null);
-const {paymentMethod } = useStore()
+  const { paymentMethod } = useStore();
   // console.log(data);
 
   const printReceipt = () => {
@@ -104,33 +105,46 @@ const {paymentMethod } = useStore()
       }
     }
   };
-  const [paymentMethods, setPaymentMethods] = useState(data.paymentMethods || []);
-  
+  const [paymentMethods, setPaymentMethods] = useState(
+    data.paymentMethods || []
+  );
+
   useEffect(() => {
- 
     const paymentData = data.paymentMethods.map((method) => {
       // Find the corresponding payment method in the store
       const matchedMethod = paymentMethod?.find(
-        (method2) => method2.id.toString() === method.mode_of_payment_id.toString()
+        (method2) =>
+          method2.id.toString() === method.mode_of_payment_id.toString()
       );
 
       if (matchedMethod) {
         return {
           ...method,
-          name: matchedMethod.name || 'Unknown', 
+          name: matchedMethod.name || "Unknown"
         };
       }
       return {
         ...method,
-        name: 'Unknown',
+        name: "Unknown"
       };
     });
 
     setPaymentMethods(paymentData);
   }, [data.paymentMethods, paymentMethod]);
 
-
   const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const store = user?.store[0];
+  console.log(store);
+
+  const getAccumulatedPoints = () => {
+    let acc_points = 0;
+    if (data.customer.loyalty_points > 0) {
+      acc_points =
+        Number(data.customer.loyalty_points) + Number(data.totalAmount * 0.02);
+    }
+    acc_points = Number(data.totalAmount * 0.02);
+    return acc_points.toFixed(2);
+  };
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 space-y-1">
@@ -146,11 +160,11 @@ const {paymentMethod } = useStore()
             }}
           >
             <h2 className="mb-2 text-sm font-bold text-center">
-              Persiana Retail Ltd.
+              Persianas Retail Ltd.
             </h2>
-            <p>PALMS SHOPPING MALL</p>
-            <p>BIS WAY</p>
-            <p>Email: lacoste@persianaretail.com</p>
+            <p className="uppercase">{store.name}</p>
+            <p className="uppercase">{`${store.location} ${store.state}, ${store.country}`}</p>
+            <p>Email: {store?.email}</p>
             <p>TIN: 10213154-001</p>
             <p>Customer Care Line: 08188830487</p>
             <p>08080558055</p>
@@ -197,35 +211,30 @@ const {paymentMethod } = useStore()
 
             <hr className="my-2 border-t border-dashed" />
 
-            <div className="text-left space-y-1 grid grid-cols-2">
-              <p>
-                Total QTY:
-              </p>
-              <p> {data.items.reduce((acc, item) => acc + item.quantity, 0)}</p>
-              <p>Subtotal:</p>
-              <p> {data?.discountAmount?.toFixed(2)}</p>
-              <p>Total: </p>
-              <p>{data?.totalAmount?.toFixed(2)}</p>
+            <div className="text-left px-3 space-y-1 ">
+              <p>Total QTY: {data.items.reduce((acc, item) => acc + item.quantity, 0)}</p>
+              <p>Subtotal: {data?.discountAmount?.toFixed(2)}</p>
+              <p>Total: {data?.totalAmount?.toFixed(2)}</p>
               <div>
-              {paymentMethods.map((paymentMethod) => (
-                <div key={paymentMethod.mode_of_payment_id} className="grid grid-cols-2">
-                  <p>
-                    {paymentMethod.name}: 
-                  </p>
-                  <span>{paymentMethod.amount}</span>
-                </div>
-              ))}
-            </div>
+                {paymentMethods.map((paymentMethod) => (
+                  <div
+                    key={paymentMethod.mode_of_payment_id}
+                    className=""
+                  >
+                    <p>{paymentMethod.name}: <span>{paymentMethod.amount}</span></p>
+                    
+                  </div>
+                ))}
+              </div>
             </div>
             <p>VAT(5%) Included</p>
 
             <hr className="my-2 border-t border-dashed" />
-         
 
             <div>
-              <p>Points Gained in Purchase: 0</p>
-              <p>Points Used in Purchase: 0</p>
-              <p>New Accumulated Points: 0</p>
+              <p>Points Gained in Purchase: {Number(data.totalAmount * 0.02) || 0}</p>
+              <p>Points Used in Purchase: {data?.loyaltyPoints || 0}</p>
+              <p>New Accumulated Points: {getAccumulatedPoints()}</p>
             </div>
 
             <hr className="my-2 border-t border-dashed" />

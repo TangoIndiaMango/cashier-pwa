@@ -5,7 +5,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
+  SelectValue
 } from "@/components/ui/select";
 import useDebounce from "@/hooks/useDebounce";
 import { useStore } from "@/hooks/useStore";
@@ -44,7 +44,7 @@ const CustomerComponent: React.FC<CustomerComponentProps> = ({
   handleInputChange,
   customerDetails,
   setSelectedCustomer,
-  onAddCustomer,
+  onAddCustomer
 }) => {
   const [filteredCustomers, setFilteredCustomers] = useState<LocalCustomer[]>(
     []
@@ -91,7 +91,7 @@ const CustomerComponent: React.FC<CustomerComponentProps> = ({
       city: customer.city || "",
       address: customer.address || "",
       loyalty_points: customer?.loyalty_points,
-      credit_note_balance: customer?.credit_note_balance,
+      credit_note_balance: customer?.credit_note_balance
     });
   };
 
@@ -113,10 +113,11 @@ const CustomerComponent: React.FC<CustomerComponentProps> = ({
           </ul>
         </div>
       )}
-      <div className="grid grid-cols-2 gap-6 mt-4">
+      <div className="grid w-full grid-cols-1 sm:grid-cols-2 gap-6 mt-4">
         <div>
-          <Label>Recipient's First Name</Label>
+          <Label htmlFor="firstname">Recipient's First Name</Label>
           <Input
+            id="firstname"
             type="text"
             name="firstname"
             value={customerDetails.firstname}
@@ -125,8 +126,9 @@ const CustomerComponent: React.FC<CustomerComponentProps> = ({
         </div>
 
         <div>
-          <Label>Recipient's Last Name</Label>
+          <Label htmlFor="lastname">Recipient's Last Name</Label>
           <Input
+            id="lastname"
             type="text"
             name="lastname"
             value={customerDetails.lastname}
@@ -135,7 +137,7 @@ const CustomerComponent: React.FC<CustomerComponentProps> = ({
         </div>
 
         <div>
-          <Label>Gender</Label>
+          <Label htmlFor="gender">Gender</Label>
           <Select
             name="gender"
             value={customerDetails.gender || ""}
@@ -143,7 +145,7 @@ const CustomerComponent: React.FC<CustomerComponentProps> = ({
               setCustomerDetails({ ...customerDetails, gender: value })
             }
           >
-            <SelectTrigger>
+            <SelectTrigger id="gender">
               <SelectValue placeholder="Select gender" />
             </SelectTrigger>
             <SelectContent>
@@ -154,8 +156,9 @@ const CustomerComponent: React.FC<CustomerComponentProps> = ({
         </div>
 
         <div>
-          <Label>Age</Label>
+          <Label htmlFor="age">Age</Label>
           <Input
+            id="age"
             name="age"
             value={customerDetails.age || ""}
             onChange={handleInputChange}
@@ -163,8 +166,9 @@ const CustomerComponent: React.FC<CustomerComponentProps> = ({
         </div>
 
         <div>
-          <Label>Email</Label>
+          <Label htmlFor="email">Email</Label>
           <Input
+            id="email"
             type="email"
             name="email"
             value={customerDetails.email}
@@ -173,8 +177,9 @@ const CustomerComponent: React.FC<CustomerComponentProps> = ({
         </div>
 
         <div>
-          <Label>Phone Number</Label>
+          <Label htmlFor="phoneno">Phone Number</Label>
           <Input
+            id="phoneno"
             type="tel"
             name="phoneno"
             value={customerDetails.phoneno || ""}
@@ -183,8 +188,9 @@ const CustomerComponent: React.FC<CustomerComponentProps> = ({
         </div>
 
         <div>
-          <Label>Country</Label>
+          <Label htmlFor="country">Country</Label>
           <Input
+            id="country"
             type="text"
             name="country"
             value={customerDetails.country || ""}
@@ -193,8 +199,9 @@ const CustomerComponent: React.FC<CustomerComponentProps> = ({
         </div>
 
         <div>
-          <Label>State</Label>
+          <Label htmlFor="state">State</Label>
           <Input
+            id="state"
             type="text"
             name="state"
             value={customerDetails.state || ""}
@@ -203,8 +210,9 @@ const CustomerComponent: React.FC<CustomerComponentProps> = ({
         </div>
 
         <div>
-          <Label>City</Label>
+          <Label htmlFor="city">City</Label>
           <Input
+            id="city"
             type="text"
             name="city"
             value={customerDetails.city || ""}
@@ -212,9 +220,10 @@ const CustomerComponent: React.FC<CustomerComponentProps> = ({
           />
         </div>
 
-        <div>
-          <Label>Address</Label>
+        <div className="sm:col-span-2">
+          <Label htmlFor="address">Address</Label>
           <Textarea
+            id="address"
             name="address"
             value={customerDetails.address || ""}
             onChange={handleInputChange}
@@ -222,38 +231,38 @@ const CustomerComponent: React.FC<CustomerComponentProps> = ({
           />
         </div>
 
-        <div className="flex items-center justify-between col-span-2">
-          {/* <div className="flex items-center">
-            <Checkbox
-              checked={customerDetails.apply_loyalty_point}
-              onCheckedChange={(checked) =>
-                setCustomerDetails({
-                  ...customerDetails,
-                  apply_loyalty_point: checked as boolean,
-                })
-              }
-            />
-            <Label>Apply Loyalty Point</Label>
-          </div>
-          <div className="flex items-center">
-            <Checkbox
-              checked={customerDetails.apply_credit_note_point}
-              onCheckedChange={(checked) =>
-                setCustomerDetails({
-                  ...customerDetails,
-                  apply_credit_note_point: checked as boolean,
-                })
-              }
-            />
-            <Label>Apply Credit Note Point</Label>
-          </div> */}
-          {/* <Button
-            onClick={handleAddCustomer}
-            className="px-4 py-2 text-white bg-blue-500 rounded-lg hover:bg-blue-600 focus:outline-none"
-          >
-            Add Customer
-          </Button> */}
-        </div>
+        {/*  <div className="flex items-center justify-between col-span-2">
+      <div className="flex items-center">
+        <Checkbox
+          checked={customerDetails.apply_loyalty_point}
+          onCheckedChange={(checked) =>
+            setCustomerDetails({
+              ...customerDetails,
+              apply_loyalty_point: checked as boolean,
+            })
+          }
+        />
+        <Label>Apply Loyalty Point</Label>
+      </div>
+      <div className="flex items-center">
+        <Checkbox
+          checked={customerDetails.apply_credit_note_point}
+          onCheckedChange={(checked) =>
+            setCustomerDetails({
+              ...customerDetails,
+              apply_credit_note_point: checked as boolean,
+            })
+          }
+        />
+        <Label>Apply Credit Note Point</Label>
+      </div> */}
+        {/* <Button
+        onClick={handleAddCustomer}
+        className="px-4 py-2 text-white bg-blue-500 rounded-lg hover:bg-blue-600 focus:outline-none"
+      >
+        Add Customer
+      </Button> 
+    </div>*/}
       </div>
     </>
   );

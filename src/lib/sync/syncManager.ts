@@ -126,7 +126,7 @@ export class SyncManager {
 
       const transactiontoSync = batch.map((transaction) => {
         return {
-          id: transaction.id,
+          id: transaction.recieptNo,
           country: null,
           state: null,
           city: null,
@@ -197,7 +197,7 @@ export class SyncManager {
         // Mark all transactions as synced regardless of success/failure
         await db.transaction('rw', db.transactions, async () => {
           for (const tx of transactiontoSync) {
-            await LocalApi.markTransactionSynced(tx.id);
+            await LocalApi.markTransactionSynced(tx.id as string);
           }
         });
 

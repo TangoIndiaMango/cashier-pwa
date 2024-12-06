@@ -156,7 +156,7 @@ console.log("Quantiyi", quantity)
                       variant="ghost"
                       size="sm"
                       onClick={() =>
-                        removeItemFromCart(product.product_code as string)
+                        removeItemFromCart(product.ean as string)
                       }
                     >
                       <Trash2 className="w-4 h-4 text-red-600" />

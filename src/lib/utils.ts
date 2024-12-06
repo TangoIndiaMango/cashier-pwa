@@ -20,3 +20,9 @@ export const formatBalance = (balance: number | string) => {
   }).format(Number(balance) || 0);
   return bal.split("NGN")[1];
 };
+
+export const generateUniqueIdUsingStoreIDAsPrefix = (storeID: any) => {
+  const timestamp = Date.now().toString().slice(-5);
+  const randomSuffix = Math.floor(Math.random() * 10000);
+  return `${storeID}/${timestamp}${randomSuffix}`;
+};

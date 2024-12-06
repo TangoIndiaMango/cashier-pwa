@@ -9,6 +9,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useStore } from "@/hooks/useStore";
+import { LocalApi } from "@/lib/api/localApi";
 import { LocalTransactionItem } from "@/lib/db/schema";
 import { formatCurrency } from "@/lib/utils";
 import { useEffect, useState } from "react";
@@ -24,7 +25,7 @@ const ProductSearchModal = ({
   const [selectedProduct, setSelectedProduct] =
     useState<Partial<LocalTransactionItem> | null>(null);
   const [filteredProducts, setFilteredProducts] =
-    useState<Partial<LocalTransactionItem> | null>(fileredProduct);
+    useState<Partial<LocalTransactionItem> | null | any>(fileredProduct);
   // console.log(fileredProduct);
   const [discount, setDiscount] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -32,19 +33,35 @@ const ProductSearchModal = ({
 
   // console.log(discounts)
 
-  const handleEnter = () => {
+  const handleEnter =async () => {
     const searchTermStr = searchTerm.toString().trim();
     console.log(searchTerm)
-    const foundProduct = products.find(
-      (prod) =>
-        prod?.ean?.toString() === searchTermStr ||
-        prod?.product_code?.toString() === searchTermStr
+    const foundProductByEan = products.find(
+      (prod) => prod?.ean?.toString() === searchTermStr
     );
-    if (foundProduct) {
-      setFilteredProducts(foundProduct);
-    } else {
-      toast.error("Product not found");
+
+    if (foundProductByEan) {
+      setFilteredProducts([foundProductByEan]);
+    }else {
+      const foundProductByCode = await LocalApi.getProductByCode(searchTermStr);
+      if (foundProductByCode && foundProductByCode.length) {
+        setFilteredProducts(foundProductByCode)
+      }else{
+        toast.error("Product not found")
+        setSearchTerm("")
+        setFilteredProducts(null)
+      }
     }
+    // const foundProduct = products.find(
+    //   (prod) =>
+    //     prod?.ean?.toString() === searchTermStr ||
+    //     prod?.product_code?.toString() === searchTermStr
+    // );
+    // if (foundProduct) {
+    //   setFilteredProducts(foundProduct);
+    // } else {
+    //   toast.error("Product not found");
+    // }
   };
 
   const handleClose = () => {
@@ -82,6 +99,7 @@ const ProductSearchModal = ({
         ...selectedProduct,
         discount: discountObj
       });
+      updateAvailableQuantity(selectedProduct.id as string, -1);
 
       onClose();
       setSelectedProduct(null);
@@ -137,22 +155,27 @@ const ProductSearchModal = ({
             </div>
           ) : (
             <div className="grid gap-2 overflow-auto max-h-40">
-              {filteredProducts && (
+            {Array.isArray(filteredProducts) && filteredProducts.length > 0 ? (
+              filteredProducts.map((prod) => (
                 <div
-                  key={filteredProducts.id}
+                  key={prod.id}  // Ensure each product has a unique `id` or another unique key
                   className="p-2 border rounded cursor-pointer hover:bg-gray-100"
-                  onClick={() => setSelectedProduct(filteredProducts)}
+                  onClick={() => setSelectedProduct(prod)}
                 >
-                  <p className="font-medium">{filteredProducts.product_name}</p>
-                  <p className="text-sm text-gray-500">
-                    {filteredProducts.brand_name}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    Product code: {filteredProducts.product_code}
-                  </p>
+                  <p className="font-medium">{prod.product_name}</p>
+                  <div className="grid grid-cols-2">
+                  <p className="text-sm text-gray-500">Brand name: {prod.brand_name}</p>
+                  <p className="text-sm text-gray-500">Color: {prod.color}</p>
+                  <p className="text-sm text-gray-500">Size: {prod.size}</p>
+                  <p className="text-sm text-gray-500">Ean: {prod.ean}</p>
+                  </div>
+                  <p className="text-sm text-gray-500">Product code: {prod.product_code}</p>
                 </div>
-              )}
-            </div>
+              ))
+            ) : (
+              <p className="text-gray-500">No products found</p>
+            )}
+          </div>
           )}
 
           {selectedProduct && (

@@ -63,9 +63,9 @@ export function FailedTransactionTable({ failedTrx }) {
             <TableHead className="text-xs font-normal text-right">
               Amount
             </TableHead>
-            <TableHead className="w-[100px] text-xs font-normal text-center">
+            {/* <TableHead className="w-[100px] text-xs font-normal text-center">
               Action
-            </TableHead>
+            </TableHead> */}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -87,7 +87,7 @@ export function FailedTransactionTable({ failedTrx }) {
                 <TableCell className="text-right">
                   ₦{formatBalance(Number(trx?.exact_total_amount))}
                 </TableCell>
-                <TableCell>
+                {/* <TableCell>
                   <div className="flex items-center gap-1 justify-evenly">
                     <Button
                       variant="ghost"
@@ -117,7 +117,7 @@ export function FailedTransactionTable({ failedTrx }) {
                       <span className="sr-only">Delete</span>
                     </Button>
                   </div>
-                </TableCell>
+                </TableCell> */}
               </TableRow>
             );
           })}

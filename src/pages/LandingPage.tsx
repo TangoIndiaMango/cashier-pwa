@@ -24,7 +24,7 @@ import { useCart } from "@/hooks/useCart";
 import { useCustomer } from "@/hooks/useCustomer";
 import { usePayment } from "@/hooks/usePayment";
 import { useTransaction } from "@/hooks/useTransaction";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, generateUniqueIdUsingStoreIDAsPrefix } from "@/lib/utils";
 
 import { Search, ShoppingBag } from "lucide-react";
 import { useState } from "react";
@@ -89,10 +89,12 @@ const POSSystem = () => {
   const { creditNotePoints, setCreditNotePoints } = useApplyPoints(
     (state) => state
   );
+  const userInfo = JSON.parse(localStorage.getItem("user") || "{}")
+  const storeInfo = userInfo.store
 
   // console.log(cartDiscountCode);
   // console.log(cartRecords);
-  // console.log(cartItems)
+  console.log(paymentStatus)
   // Handle input changes
   const handleInputChange = (
     e: React.ChangeEvent<
@@ -111,18 +113,20 @@ const POSSystem = () => {
       return toast.error("No payment method selected");
     }
     const data = {
+      recieptNo: generateUniqueIdUsingStoreIDAsPrefix(storeInfo[0].storeID),
       paymentMethods: paymentMethod,
       totalAmount: cartRecords.total,
       customer: customerDetails as any,
-      status: paymentStatus ? paymentStatus.toUpperCase() : "DRAFT",
+      status: paymentStatus ? paymentStatus : "completed",
       items: cartItems,
       discount: cartDiscountCode ? cartRecords?.discount : null,
-      discountAmount: cartRecords.total -
-      (Number(loyaltyPoints) || 0) -
-      (Number(creditNotePoints) || 0),
+      discountAmount:
+        cartRecords.total -
+        (Number(loyaltyPoints) || 0) -
+        (Number(creditNotePoints) || 0),
       noDiscountAmount: cartRecords?.total
     };
-
+console.log(data)
     await submitTransaction(data as any);
     setReceiptData(data as any);
     setShowReceipt(true);
@@ -421,7 +425,9 @@ const POSSystem = () => {
                 disabled={
                   cartItems.length === 0 ||
                   !paymentMethod.length ||
-                  !selectedCustomer
+                  !customerDetails.firstname ||
+                  !customerDetails.lastname ||
+                  !customerDetails.phoneno
                 }
                 onClick={handleSubmit}
                 className="w-full py-2"

@@ -22,7 +22,6 @@ export const formatBalance = (balance: number | string) => {
 };
 
 export const generateUniqueIdUsingStoreIDAsPrefix = (storeID: any) => {
-  const timestamp = Date.now().toString().slice(-5);
-  const randomSuffix = Math.floor(Math.random() * 10000);
-  return `${storeID}/${timestamp}${randomSuffix}`;
+  const timestamp = Date.now().toString().slice(-4);
+  return `${storeID}/${timestamp}`;
 };

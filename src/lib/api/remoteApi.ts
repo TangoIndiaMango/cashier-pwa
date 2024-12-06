@@ -125,7 +125,19 @@ export class RemoteApi {
     };
   }
 
-  static async fetchPos(storeId:string|number): Promise<any> {
+  static async downloadFailedTransactions(params: any): Promise<any> {
+    const response = await api.get('transactions/un-sync', {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'Content-Type': 'application/json',
+      },
+      params
+    },);
+    return response.data;
+  }
+
+
+  static async fetchPos(storeId: string | number): Promise<any> {
     const response = await api.get(`mop_terminals/${storeId}`);
     // console.log(response?.data?.data);
     return response.data.data;

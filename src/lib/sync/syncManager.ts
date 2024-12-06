@@ -13,7 +13,7 @@ export class SyncManager {
   private paymentMethodsFetched: boolean = false;
   private discountsFetched: boolean = false;
   private failedTrxFetched: boolean = false;
-  private syncWindow: number = 10 * 60 * 1000; // 5 minutes
+  private syncWindow: number = 30 * 60 * 1000; // 30 minutes
   private userInfo = JSON.parse(localStorage.getItem('user') || '{}')
   private storeId = Array.isArray(this.userInfo?.store) && this.userInfo?.store.length > 0
   ? this.userInfo.store[0].id
@@ -126,15 +126,17 @@ export class SyncManager {
 
       const transactiontoSync = batch.map((transaction) => {
         return {
-          id: transaction.recieptNo,
+          id: transaction.id,
           country: null,
           state: null,
           city: null,
           address: null,
           apply_loyalty_point: false,
           apply_credit_note_point: false,
-          payable_amount: transaction.totalAmount,
-          exact_total_amount: transaction.totalAmount,
+          loyalty_point_value: transaction.loyaltyPoints,
+          credit_note_used: transaction.creditNotePoints,
+          payable_amount: transaction.totalAmount, //after discount
+          exact_total_amount: transaction.totalAmount, //total amount before before any discount
           payment_type: 'cash',
           payment_methods: transaction.paymentMethods.map((method) => {
             return {
@@ -145,10 +147,9 @@ export class SyncManager {
           }),
           status: transaction.status,
           payment_status: "Completed",
-          total_price: transaction.totalAmount,
-          receipt_no: transaction.id,
+          total_price: transaction.totalAmount, //after discount
+          receipt_no: transaction.recieptNo,
           created_at: dayjs(transaction.createdAt).format("YYYY-MM-DD HH:mm:ss"),
-          loyalty_point_value: 0,
           discount_id: transaction?.discount?.id || "",
           products: transaction.items.map((item: any) => {
             return {
@@ -219,6 +220,31 @@ export class SyncManager {
     //     console.error("Failed to fetch failed transactions:", error);
     //     toast.error("Failed to retrieve failed transactions.");
     // }
+  }
+
+  async syncSingleTransaction(transaction:any) {
+    // const syncId = `${Math.floor(Date.now() / 1000)}_SYNC`
+    const syncId = `${transaction.sync_session_id}`
+
+    try {
+      const response = await RemoteApi.syncTransactions([transaction], syncId);
+      const { successful_transaction, failed_transaction } = response?.data || {};
+
+      const successfulCount = successful_transaction || 0;
+      const failedCount = failed_transaction || 0;
+
+      if (failedCount > 0) {
+        console.error("Sync failed:", response?.message);
+        toast.error(response?.message); // Show error with failed count
+      } else {
+        console.log("Transactions synced successfully.");
+        toast.success(`Successfully synced ${successfulCount} transactions.`);
+      }
+
+    } catch (error) {
+      console.error("Failed to sync transactions:", error);
+      toast.error("Failed to sync transactions, please try again.");
+    }
   }
 
   private async syncPaymentMethods() {

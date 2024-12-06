@@ -1,21 +1,20 @@
 // src/hooks/useStore.ts
+import { LocalApiMethods } from "@/lib/api/localMethods";
+import { TransactionSync } from "@/types/trxType";
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 import { LocalApi } from "../lib/api/localApi";
 import {
-  LocalProduct,
+  LocalBranch,
   LocalCustomer,
   LocalDiscount,
   LocalPaymentMethod,
+  LocalProduct,
   LocalTransaction,
-  LocalBranch,
   db,
 } from "../lib/db/schema";
 import { SyncManager } from "../lib/sync/syncManager";
 import { useOnlineStatus } from "./useOnlineStatus";
-import { LocalApiMethods } from "@/lib/api/localMethods";
-import { TransactionSync } from "@/types/trxType";
-import toast from "react-hot-toast";
-import { useCustomer } from "./useCustomer";
 
 export function useStore() {
   const [products, setProducts] = useState<LocalProduct[]>([]);
@@ -115,12 +114,7 @@ export function useStore() {
       setLoading(true);
       await syncManager.sync();
       // Load data sequentially to prevent race conditions
-      await loadProducts();
-      await loadCustomers();
-      await loadPaymentMethods();
-      await loadBranches();
-      await loadDiscounts();
-      await loadFailedTrx();
+      await triggerLocalFetch()
       toast.success("Synced successfully");
     } catch (error) {
       console.error("Sync failed:", error);
@@ -137,12 +131,7 @@ export function useStore() {
       setLoading(true);
       await syncManager.refresh()
       // Load data sequentially to prevent race conditions
-      await loadProducts();
-      await loadFailedTrx();
-      await loadCustomers();
-      await loadPaymentMethods();
-      await loadBranches();
-      await loadDiscounts();
+      await triggerLocalFetch()
     } catch (error) {
       console.error("Sync failed:", error);
       setError(error as Error);
@@ -185,28 +174,28 @@ export function useStore() {
   };
 
   // Check if the app is online and trigger sync
-  // useEffect(() => {
-  //   const syncIfNeed = async () => {
-  //     if (isOnline) {
-  //       try {
-  //         const shouldSync = await syncManager.shouldSync()
-  //         if (shouldSync) {
-  //           console.log("Syncing data...");
-  //           await syncManager.sync();
-  //         }
-  //       } catch (error) {
-  //         console.error("Error checking sync status or triggering sync:", error);
-  //       }
-  //     }
-  //   }
-  //   syncIfNeed()
-  // }, [isOnline]);
-
   useEffect(() => {
-    if (isOnline) {
-      triggerFetch();
+    const syncIfNeed = async () => {
+      if (isOnline) {
+        try {
+          const shouldSync = await syncManager.shouldSync()
+          if (shouldSync) {
+            console.log("Syncing data...");
+            await syncManager.sync();
+          }
+        } catch (error) {
+          console.error("Error checking sync status or triggering sync:", error);
+        }
+      }
     }
+    syncIfNeed()
   }, [isOnline]);
+
+  // useEffect(() => {
+  //   if (isOnline) {
+  //     triggerFetch();
+  //   }
+  // }, [isOnline]);
 
   useEffect(() => {
     triggerLocalFetch();

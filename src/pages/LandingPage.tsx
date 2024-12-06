@@ -24,7 +24,10 @@ import { useCart } from "@/hooks/useCart";
 import { useCustomer } from "@/hooks/useCustomer";
 import { usePayment } from "@/hooks/usePayment";
 import { useTransaction } from "@/hooks/useTransaction";
-import { formatCurrency, generateUniqueIdUsingStoreIDAsPrefix } from "@/lib/utils";
+import {
+  formatCurrency,
+  generateUniqueIdUsingStoreIDAsPrefix
+} from "@/lib/utils";
 
 import { Search, ShoppingBag } from "lucide-react";
 import { useState } from "react";
@@ -89,12 +92,12 @@ const POSSystem = () => {
   const { creditNotePoints, setCreditNotePoints } = useApplyPoints(
     (state) => state
   );
-  const userInfo = JSON.parse(localStorage.getItem("user") || "{}")
-  const storeInfo = userInfo.store
+  const userInfo = JSON.parse(localStorage.getItem("user") || "{}");
+  const storeInfo = userInfo.store;
 
   // console.log(cartDiscountCode);
   // console.log(cartRecords);
-  console.log(paymentStatus)
+  console.log(paymentStatus);
   // Handle input changes
   const handleInputChange = (
     e: React.ChangeEvent<
@@ -119,6 +122,8 @@ const POSSystem = () => {
       customer: customerDetails as any,
       status: paymentStatus ? paymentStatus : "completed",
       items: cartItems,
+      loyaltyPoints: Number(loyaltyPoints) || 0,
+      creditNotePoints: Number(creditNotePoints) || 0,
       discount: cartDiscountCode ? cartRecords?.discount : null,
       discountAmount:
         cartRecords.total -
@@ -126,7 +131,7 @@ const POSSystem = () => {
         (Number(creditNotePoints) || 0),
       noDiscountAmount: cartRecords?.total
     };
-console.log(data)
+    console.log(data);
     await submitTransaction(data as any);
     setReceiptData(data as any);
     setShowReceipt(true);
@@ -262,12 +267,12 @@ console.log(data)
 
           {/* Customer Information */}
           <div className="w-full p-6 space-y-5 bg-white border rounded-lg shadow-sm">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-4 gap-5 md:flex-nowrap flex-wrap">
               <div>
                 <h2 className="text-xl font-semibold">Customer Information</h2>
                 <p className="text-sm">Input customer information below</p>
               </div>
-              <div className="relative">
+              <div className="relative w-full">
                 <Search className="absolute text-gray-400 transform -translate-y-1/2 left-3 top-1/2" />
                 <Input
                   type="text"
@@ -340,9 +345,11 @@ console.log(data)
               <div>
                 <div className="flex justify-between">
                   <span className="text-xs text-gray-500">Discount</span>
-                  <span className="text-sm font-medium line-through">
-                    {formatCurrency(cartRecords.prevTotal, "NGN")}
-                  </span>
+                  {cartRecords.prevTotal > 0 && (
+                    <span className="text-sm font-medium line-through">
+                      {formatCurrency(cartRecords.prevTotal, "NGN")}
+                    </span>
+                  )}
                 </div>
                 <div className="flex justify-between mt-2">
                   <span></span>

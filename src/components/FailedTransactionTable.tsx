@@ -11,11 +11,12 @@ import {
 import { useCart } from "@/hooks/useCart";
 import { LocalTransactionItem } from "@/lib/db/schema";
 import { formatBalance } from "@/lib/utils";
-import { Edit, Eye, Loader2, Trash2 } from "lucide-react";
+import { Edit, Eye, Loader2, LucideFolderSync, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { ProductDetailsDialog } from "./Modals/ProductDetailsDialog";
 import ProductSearchModal from "./Modals/ProductSearchModal";
 import { useStore } from "../hooks/useStore";
+import dayjs from 'dayjs';
 
 export function FailedTransactionTable({ failedTrx }) {
   const { updateCartItem } = useCart();
@@ -63,9 +64,12 @@ export function FailedTransactionTable({ failedTrx }) {
             <TableHead className="text-xs font-normal text-right">
               Amount
             </TableHead>
-            {/* <TableHead className="w-[100px] text-xs font-normal text-center">
+            <TableHead className="text-xs font-normal text-right">
+              Created At
+            </TableHead>
+            <TableHead className="w-[100px] text-xs font-normal text-center">
               Action
-            </TableHead> */}
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -87,25 +91,28 @@ export function FailedTransactionTable({ failedTrx }) {
                 <TableCell className="text-right">
                   ₦{formatBalance(Number(trx?.exact_total_amount))}
                 </TableCell>
-                {/* <TableCell>
+                <TableCell className="text-right">
+                {dayjs(trx.created_at).format("MMM D, YYYY hh:mmA")}
+                </TableCell>
+                <TableCell>
                   <div className="flex items-center gap-1 justify-evenly">
                     <Button
-                      variant="ghost"
+                      variant="lightblue"
                       size="sm"
-                      // onClick={() => handleEdit(trx, "edit")}
+                      onClick={() => console.log(trx)}
                     >
-                      <Edit className="w-4 h-4" />
-                      <span className="sr-only">Edit</span>
+                      <LucideFolderSync className="w-4 h-4" />
+                      <span className="sr-only">Sync</span>
                     </Button>
-                    <Button
+                    {/* <Button
                       variant="ghost"
                       size="sm"
                       // onClick={() => handleEdit(trx, "view")}
                     >
                       <Eye className="w-4 h-4" />
                       <span className="sr-only">View</span>
-                    </Button>
-                    <Button
+                    </Button> */}
+                    {/* <Button
                       variant="ghost"
                       size="sm"
                       onClick={() =>
@@ -115,9 +122,9 @@ export function FailedTransactionTable({ failedTrx }) {
                     >
                       <Trash2 className="w-4 h-4 text-red-600" />
                       <span className="sr-only">Delete</span>
-                    </Button>
+                    </Button> */}
                   </div>
-                </TableCell> */}
+                </TableCell>
               </TableRow>
             );
           })}

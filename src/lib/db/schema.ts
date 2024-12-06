@@ -46,12 +46,14 @@ export interface LocalProduct {
 export interface LocalTransaction {
   id: string;
   createdAt?: Date;
-  recieptNo?:string;
+  recieptNo?: string;
   totalAmount: number;
   paymentMethods: PaymentEntry[];
   status: string;
   synced?: "true" | "false";
   customer: LocalCustomer;
+  loyaltyPoints: string;
+  creditNotePoints: string;
   items: LocalTransactionItem[];
   discount: LocalDiscount;
 }

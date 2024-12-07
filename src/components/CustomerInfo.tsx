@@ -61,7 +61,8 @@ const CustomerComponent: React.FC<CustomerComponentProps> = ({
         return (
           customer.firstname?.toLowerCase().includes(debouncedSearchTerm) ||
           customer.lastname?.toLowerCase().includes(debouncedSearchTerm) ||
-          customer.email?.toLowerCase().includes(debouncedSearchTerm)
+          customer.email?.toLowerCase().includes(debouncedSearchTerm) || 
+          customer.phoneno?.toLowerCase().includes(debouncedSearchTerm)
         );
       });
       setFilteredCustomers(filtered);
@@ -183,39 +184,6 @@ const CustomerComponent: React.FC<CustomerComponentProps> = ({
             type="tel"
             name="phoneno"
             value={customerDetails.phoneno || ""}
-            onChange={handleInputChange}
-          />
-        </div>
-
-        <div>
-          <Label htmlFor="country">Country</Label>
-          <Input
-            id="country"
-            type="text"
-            name="country"
-            value={customerDetails.country || ""}
-            onChange={handleInputChange}
-          />
-        </div>
-
-        <div>
-          <Label htmlFor="state">State</Label>
-          <Input
-            id="state"
-            type="text"
-            name="state"
-            value={customerDetails.state || ""}
-            onChange={handleInputChange}
-          />
-        </div>
-
-        <div>
-          <Label htmlFor="city">City</Label>
-          <Input
-            id="city"
-            type="text"
-            name="city"
-            value={customerDetails.city || ""}
             onChange={handleInputChange}
           />
         </div>

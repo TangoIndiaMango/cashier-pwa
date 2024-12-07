@@ -99,8 +99,7 @@ const ProductSearchModal = ({
         ...selectedProduct,
         discount: discountObj
       });
-      updateAvailableQuantity(selectedProduct.id as string, -1);
-
+      updateAvailableQuantity(selectedProduct.ean as string, 1);
       onClose();
       setSelectedProduct(null);
       setDiscount("");

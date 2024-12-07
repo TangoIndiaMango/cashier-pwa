@@ -119,6 +119,8 @@ const POSSystem = () => {
       recieptNo: generateUniqueIdUsingStoreIDAsPrefix(storeInfo[0].storeID),
       paymentMethods: paymentMethod,
       totalAmount: cartRecords.total,
+      originalTotal: cartRecords.actualTotal,
+      store: storeInfo[0].storeID,
       customer: customerDetails as any,
       status: paymentStatus ? paymentStatus : "completed",
       items: cartItems,
@@ -272,7 +274,7 @@ const POSSystem = () => {
                 <h2 className="text-xl font-semibold">Customer Information</h2>
                 <p className="text-sm">Input customer information below</p>
               </div>
-              <div className="relative w-full">
+              <div className="relative w-fit">
                 <Search className="absolute text-gray-400 transform -translate-y-1/2 left-3 top-1/2" />
                 <Input
                   type="text"

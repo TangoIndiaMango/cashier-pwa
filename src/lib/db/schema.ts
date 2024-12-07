@@ -48,6 +48,7 @@ export interface LocalTransaction {
   createdAt?: Date;
   recieptNo?: string;
   totalAmount: number;
+  originalTotal:number;
   paymentMethods: PaymentEntry[];
   status: string;
   synced?: "true" | "false";

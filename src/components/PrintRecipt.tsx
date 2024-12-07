@@ -213,8 +213,8 @@ export const Receipt: React.FC<ReceiptProps> = ({ data, onClose }) => {
 
             <div className="text-left px-3 space-y-1 ">
               <p>Total QTY: {data.items.reduce((acc, item) => acc + item.quantity, 0)}</p>
-              <p>Subtotal: {data?.discountAmount?.toFixed(2)}</p>
-              <p>Total: {data?.totalAmount?.toFixed(2)}</p>
+              <p>Subtotal: {data?.totalAmount?.toFixed(2)}</p>
+              <p>Total: {data?.discountAmount?.toFixed(2)}</p>
               <div>
                 {paymentMethods.map((paymentMethod) => (
                   <div

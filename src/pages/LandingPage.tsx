@@ -120,7 +120,7 @@ const POSSystem = () => {
       paymentMethods: paymentMethod,
       totalAmount: cartRecords.total,
       originalTotal: cartRecords.actualTotal,
-      store: storeInfo[0].storeID,
+      store: storeInfo[0],
       customer: customerDetails as any,
       status: paymentStatus ? paymentStatus : "completed",
       items: cartItems,

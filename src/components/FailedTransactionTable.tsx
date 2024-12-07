@@ -110,14 +110,14 @@ export function FailedTransactionTable({ failedTrx }) {
                       <LucideFolderSync className="w-4 h-4" />
                       <span className="sr-only">Sync</span>
                     </Button>
-                    {/* <Button
+                    <Button
                       variant="ghost"
                       size="sm"
-                      // onClick={() => handleEdit(trx, "view")}
+                      onClick={() => handleEdit(trx, "view")}
                     >
                       <Eye className="w-4 h-4" />
                       <span className="sr-only">View</span>
-                    </Button> */}
+                    </Button>
                     {/* <Button
                       variant="ghost"
                       size="sm"

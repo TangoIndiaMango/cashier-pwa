@@ -3,34 +3,41 @@ import {
   DialogContent,
   DialogDescription,
   DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { LocalTransactionItem } from "@/lib/db/schema"
-  
-  interface ProductDetailsDialogProps {
-    product: LocalTransactionItem | null
-    open: boolean
-    onOpenChange: (open: boolean) => void
-  }
-  
-  export function ProductDetailsDialog({ product, open, onOpenChange }: ProductDetailsDialogProps) {
-    if (!product) return null
-  
-    return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Product Details</DialogTitle>
-            <DialogDescription>View Product details</DialogDescription>
-          </DialogHeader>
-          <ScrollArea className="max-h-[60vh] overflow-auto pr-4">
-            <div className="space-y-4">
-              <div>
-                <h3 className="font-semibold">Product ID</h3>
-                <p>{product.product_code}</p>
-              </div>
-              {/* <div>
+  DialogTitle
+} from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { LocalTransactionItem } from "@/lib/db/schema";
+import DynamicContentRenderer from "../ErrorRender";
+
+interface ProductDetailsDialogProps {
+  product: LocalTransactionItem | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+export function ProductDetailsDialog({
+  product,
+  open,
+  onOpenChange
+}: ProductDetailsDialogProps) {
+  if (!product) return null;
+  // console.log(product);
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Product Details</DialogTitle>
+          <DialogDescription>View Product details</DialogDescription>
+        </DialogHeader>
+        <ScrollArea className="max-h-[60vh] overflow-auto pr-4">
+          <div className="space-y-4">
+            <div>
+              <h3 className="font-semibold">Product ID</h3>
+              {/* <p>{product.product_code}</p> */}
+            </div>
+            <DynamicContentRenderer data={product} />
+            {/* <div>
                 <h3 className="font-semibold">Customer</h3>
                 <p>{Product.customer?.firstname || "N/A"} {Product.customer?.lastname}</p>
               </div>
@@ -66,9 +73,9 @@ import { LocalTransactionItem } from "@/lib/db/schema"
                   <p className={`${Product?.synced === 'true' ? 'bg-purple-400 text-purple-800' : 'bg-yellow-200 text-yellow-900'} px-3 rounded-xl w-fit `}>{Product.synced}</p>
                 </div>
               )} */}
-            </div>
-          </ScrollArea>
-        </DialogContent>
-      </Dialog>
-    )
-  }
+          </div>
+        </ScrollArea>
+      </DialogContent>
+    </Dialog>
+  );
+}

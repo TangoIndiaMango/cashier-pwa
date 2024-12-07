@@ -64,8 +64,13 @@ const PaymentMethodModal = ({ isOpen, onClose, total, onPaymentSubmit }) => {
       (sum, entry) => sum + (Number(entry.amount) || 0),
       0
     );
+    // console.log(total)// 30754.199999999997
+    //console.log(totalPayments); // 30754.2
+    const tolerance = 0.01;
+    const roundedTotal = Math.round(total * 100) / 100; //-> 30754.2
+    const roundedTotalPayments = Math.round(totalPayments * 100) / 100; //->30754.2
 
-    if (totalPayments !== total) {
+    if (Math.abs(roundedTotal - roundedTotalPayments) > tolerance) {
       alert("Total payments must equal transaction total");
       return;
     }

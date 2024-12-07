@@ -16,10 +16,10 @@ export class SyncManager {
   private syncWindow: number = 30 * 60 * 1000; // 30 minutes
   private userInfo = JSON.parse(localStorage.getItem('user') || '{}')
   private storeId = Array.isArray(this.userInfo?.store) && this.userInfo?.store.length > 0
-  ? this.userInfo.store[0].id
-  : 1;
+    ? this.userInfo.store[0].id
+    : 1;
 
-  private constructor() {}
+  private constructor() { }
 
   static getInstance(): SyncManager {
     if (!SyncManager.instance) {
@@ -136,7 +136,7 @@ export class SyncManager {
           loyalty_point_value: transaction.loyaltyPoints,
           credit_note_used: transaction.creditNotePoints,
           payable_amount: transaction.totalAmount, //after discount
-          exact_total_amount: transaction.totalAmount, //total amount before before any discount
+          exact_total_amount: transaction.originalTotal, //total amount before before any discount
           payment_type: 'cash',
           payment_methods: transaction.paymentMethods.map((method) => {
             return {
@@ -222,7 +222,7 @@ export class SyncManager {
     // }
   }
 
-  async syncSingleTransaction(transaction:any) {
+  async syncSingleTransaction(transaction: any) {
     // const syncId = `${Math.floor(Date.now() / 1000)}_SYNC`
     const syncId = `${transaction.sync_session_id}`
 

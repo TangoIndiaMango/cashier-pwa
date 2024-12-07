@@ -108,6 +108,10 @@ export function useStore() {
     }
   };
 
+  const refreshDB = async () => {
+    await db.open();
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
   // Trigger sync when online or manually
   const triggerSync = async () => {
     try {
@@ -129,8 +133,8 @@ export function useStore() {
   const triggerFetch = async () => {
     try {
       setLoading(true);
+      await refreshDB()
       await syncManager.refresh()
-      // Load data sequentially to prevent race conditions
       await triggerLocalFetch()
     } catch (error) {
       console.error("Sync failed:", error);
@@ -143,14 +147,13 @@ export function useStore() {
   const triggerLocalFetch = async () => {
     try {
       setLoading(true);
+      await refreshDB()
       await loadProducts();
       await loadFailedTrx();
       await loadCustomers();
       await loadPaymentMethods();
       await loadBranches();
       await loadDiscounts();
-
-      await db.open();
     } catch (error) {
       console.error("Sync failed:", error);
       setError(error as Error);
@@ -161,6 +164,7 @@ export function useStore() {
 
   // Update product quantity after purchase
   const updateAvailableQuantity = (ean: string, quantity: number) => {
+    console.log(ean, quantity)
     setProducts((prevProducts) =>
       prevProducts.map((product) =>
         product.ean === ean
@@ -174,22 +178,22 @@ export function useStore() {
   };
 
   // Check if the app is online and trigger sync
-  useEffect(() => {
-    const syncIfNeed = async () => {
-      if (isOnline) {
-        try {
-          const shouldSync = await syncManager.shouldSync()
-          if (shouldSync) {
-            console.log("Syncing data...");
-            await syncManager.sync();
-          }
-        } catch (error) {
-          console.error("Error checking sync status or triggering sync:", error);
-        }
-      }
-    }
-    syncIfNeed()
-  }, [isOnline]);
+  // useEffect(() => {
+  //   const syncIfNeed = async () => {
+  //     if (isOnline) {
+  //       try {
+  //         const shouldSync = await syncManager.shouldSync()
+  //         if (shouldSync) {
+  //           console.log("Syncing data...");
+  //           await syncManager.sync();
+  //         }
+  //       } catch (error) {
+  //         console.error("Error checking sync status or triggering sync:", error);
+  //       }
+  //     }
+  //   }
+  //   syncIfNeed()
+  // }, [isOnline]);
 
   // useEffect(() => {
   //   if (isOnline) {

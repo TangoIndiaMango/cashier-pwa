@@ -134,7 +134,7 @@ export const Receipt: React.FC<ReceiptProps> = ({ data, onClose }) => {
 
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const store = user?.store[0];
-  console.log(store);
+  // console.log(store);
 
   const getAccumulatedPoints = () => {
     let acc_points = 0;
@@ -213,8 +213,8 @@ export const Receipt: React.FC<ReceiptProps> = ({ data, onClose }) => {
 
             <div className="text-left px-3 space-y-1 ">
               <p>Total QTY: {data.items.reduce((acc, item) => acc + item.quantity, 0)}</p>
-              <p>Subtotal: {data?.discountAmount?.toFixed(2)}</p>
-              <p>Total: {data?.totalAmount?.toFixed(2)}</p>
+              <p>Subtotal: {data?.totalAmount?.toFixed(2)}</p>
+              <p>Total: {data?.discountAmount?.toFixed(2)}</p>
               <div>
                 {paymentMethods.map((paymentMethod) => (
                   <div
@@ -251,7 +251,7 @@ export const Receipt: React.FC<ReceiptProps> = ({ data, onClose }) => {
               </p>
             </div>
 
-            <p className="mt-4 font-bold">THANK YOU FOR SHOPPING AT LACOSTE</p>
+            <p className="mt-4 font-bold uppercase">THANK YOU FOR SHOPPING AT {store.name}</p>
           </div>
 
           <div className="flex justify-between mt-4">

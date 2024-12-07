@@ -65,10 +65,10 @@ const FailedTransaction = () => {
             Failed Sync Transactions
           </h1>
           <div className="space-x-2">
-            <Button onClick={() => handleDownload('csv')} disabled={loading}>
+            <Button variant="lightblue" onClick={() => handleDownload('csv')} disabled={loading}>
               {loading ? "Downloading..." : "Download CSV"}
             </Button>
-            <Button onClick={() => handleDownload('excel')} disabled={loading}>
+            <Button variant="secondary" onClick={() => handleDownload('excel')} disabled={loading}>
               {loading ? "Downloading..." : "Download Excel"}
             </Button>
           </div>

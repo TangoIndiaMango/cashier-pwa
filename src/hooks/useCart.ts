@@ -21,6 +21,7 @@ interface Actions {
 }
 
 type ICartRecords = {
+  actualTotal: number,
   total: number;
   prevTotal: number;
   discount: LocalDiscount | null;
@@ -117,6 +118,7 @@ export const useZudCart = create<State & Actions>((set) => ({
 }));
 
 const defaultCartRecords = {
+  actualTotal: 0,
   total: 0,
   prevTotal: 0,
   discount: null,
@@ -151,6 +153,11 @@ export const useCart = () => {
       setCartRecords((values) => ({
         ...values,
         discount,
+        actualTotal: cartZudApi.cartItems.reduce(
+          (sum, item: ICartItem) =>
+            sum + Number(item.retail_price) * (item.quantity || 1),
+          0
+        ),
         prevTotal:
           !forceUpdate &&
             cartDiscountCode &&

@@ -131,8 +131,8 @@ export class SyncManager {
           state: null,
           city: null,
           address: null,
-          apply_loyalty_point: false,
-          apply_credit_note_point: false,
+          apply_loyalty_point: Number(transaction.loyaltyPoints) > 0 ? true : false,
+          apply_credit_note_point: Number(transaction.creditNotePoints) > 0 ? true : false,
           loyalty_point_value: transaction.loyaltyPoints,
           credit_note_used: transaction.creditNotePoints,
           payable_amount: transaction.totalAmount, //after discount

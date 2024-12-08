@@ -135,7 +135,6 @@ export function useStore() {
       setLoading(true);
       await refreshDB()
       await syncManager.refresh()
-      await triggerLocalFetch()
     } catch (error) {
       console.error("Sync failed:", error);
       setError(error as Error);
@@ -195,11 +194,11 @@ export function useStore() {
   //   syncIfNeed()
   // }, [isOnline]);
 
-  // useEffect(() => {
-  //   if (isOnline) {
-  //     triggerFetch();
-  //   }
-  // }, [isOnline]);
+  useEffect(() => {
+    if (isOnline) {
+      triggerFetch();
+    }
+  }, []);
 
   useEffect(() => {
     triggerLocalFetch();

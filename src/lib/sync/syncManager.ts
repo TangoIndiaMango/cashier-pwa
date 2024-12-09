@@ -19,7 +19,8 @@ export class SyncManager {
     ? this.userInfo.store[0].id
     : 1;
 
-  private constructor() { }
+  private constructor() { 
+  }
 
   static getInstance(): SyncManager {
     if (!SyncManager.instance) {
@@ -287,11 +288,12 @@ export class SyncManager {
 
   private async syncFailedTrx() {
     if (this.failedTrxFetched) {
-      console.log("Discounts already synced");
+      console.log("Failed trx already synced");
       return;
     }
 
     const remoteTrx = await RemoteApi.fetchFailedTransactions();
+    // console.log(remoteTrx?.data)
     await db.transaction('rw', db.failedSyncTransactions, async () => {
       for (const trx of remoteTrx.data) {
         await db.failedSyncTransactions.put(trx);

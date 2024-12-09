@@ -12,7 +12,8 @@ export class LocalApiMethods {
     }
 
     static async getFailedSyncTrx(): Promise<TransactionSync[]> {
-        return db.failedSyncTransactions.toArray();
+        const transactions = await db.failedSyncTransactions.toArray();
+        return [...transactions].reverse();
     }
 
     static async getBranches(): Promise<LocalBranch[]> {

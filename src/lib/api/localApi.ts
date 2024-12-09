@@ -1,8 +1,8 @@
 // src/lib/api/localApi.ts
-import toast from 'react-hot-toast';
-import { db } from '../db/schema';
-import type { LocalCustomer, LocalProduct, LocalTransaction } from '../db/schema';
 import { useApplyPoints } from '@/hooks/useApplyPoints';
+import toast from 'react-hot-toast';
+import type { LocalCustomer, LocalProduct, LocalTransaction } from '../db/schema';
+import { db } from '../db/schema';
 export class LocalApi {
   // Product Operations
   static async getAllProducts(): Promise<LocalProduct[]> {
@@ -59,9 +59,9 @@ export class LocalApi {
   static async createTransaction(transaction: Omit<LocalTransaction, 'id' | 'createdAt' | 'synced'>): Promise<string> {
     const id = crypto.randomUUID();
     console.log(transaction)
-    console.log(transaction?.customer?.email, "Here's the customertrans")
-    await this.updateCustomerCreditNote(transaction?.customer?.email)
-    await this.updateCustomerLoyaltyPoints(transaction?.customer?.email)
+    console.log(transaction?.customer?.phoneno, "Here's the customertrans")
+    await this.updateCustomerCreditNote(transaction?.customer?.phoneno)
+    await this.updateCustomerLoyaltyPoints(transaction?.customer?.phoneno)
 
     try {
       await db.transaction('rw', [db.transactions, db.products], async () => {
@@ -107,10 +107,10 @@ export class LocalApi {
     return await db.customers.toArray();
   }
 
-  static async updateCustomerLoyaltyPoints(customerEmail: string): Promise<void> {
+  static async updateCustomerLoyaltyPoints(customerPhoneno: string): Promise<void> {
     const { newLoyaltyPoints } = useApplyPoints.getState();
     await db.transaction('rw', db.customers, async () => {
-      const customer = await db.customers.where("email").equals(customerEmail).first();
+      const customer = await db.customers.where("phoneno").equals(customerPhoneno).first();
 
       if (!customer) throw new Error('Customer not found');
 
@@ -120,10 +120,10 @@ export class LocalApi {
     });
   }
 
-  static async updateCustomerCreditNote(customerEmail: string): Promise<void> {
+  static async updateCustomerCreditNote(customerPhoneno: string): Promise<void> {
     const { newCreditNotePoints } = useApplyPoints.getState();
     await db.transaction('rw', db.customers, async () => {
-      const customer = await db.customers.where("email").equals(customerEmail).first();
+      const customer = await db.customers.where("phoneno").equals(customerPhoneno).first();
 
       if (!customer) throw new Error('Customer not found');
 

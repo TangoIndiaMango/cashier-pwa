@@ -14,12 +14,14 @@ const Layout: React.FC = () => {
   //check if no token in localstorage send to /login
   const { needRefresh, offlineReady, updateServiceWorker } = usePWA();
   const { isOnline, networkType, rtt } = useOnlineStatus();
-  const { triggerSync, triggerFetch, loading } = useStore();
+  const { triggerSync, triggerFetch, triggerLocalFetch, loading } = useStore();
   const [usnynceTransLength, setUnsyncedTransLength] = useState(0);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchUnsyncedTrans = async () => {
+      await triggerLocalFetch();
+      await db.open()
       const trnx = await LocalApi.getUnsynedTransactions();
       setUnsyncedTransLength(trnx.length);
     };
@@ -42,6 +44,7 @@ const Layout: React.FC = () => {
 
   const handleLogOut = async () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("user");
     await db.delete();
     db.close();
     navigate("/login");
@@ -95,6 +98,7 @@ const Layout: React.FC = () => {
                 App is offline ready!
               </span>
             )}
+             
             <Button
               onClick={triggerFetch}
               variant={"lightblue"}
@@ -142,6 +146,7 @@ const Layout: React.FC = () => {
         onClose={handleCloseModal}
         onLogout={handleLogOut}
         onSync={handleSync}
+        isLoading={loading}
         unsyncedTransactions={usnynceTransLength}
       />
     </div>

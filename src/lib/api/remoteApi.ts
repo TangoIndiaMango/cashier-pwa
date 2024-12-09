@@ -10,7 +10,8 @@ import toast from 'react-hot-toast';
 const api = axios.create({
   baseURL: 'https://peresiana-ecomm-backend.nigeriasbsc.com/public/api/v3',
   headers: {
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${localStorage.getItem('token')}`,
   }
 });
 
@@ -111,18 +112,14 @@ export class RemoteApi {
 
   static async fetchFailedTransactions(page?: string | number): Promise<any> {
     const pageNumber = page ? page : 1;
-    const response = await api.get(`transactions/un-sync?page=${pageNumber}`, {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        'Content-Type': 'application/json'
-      }
-    });
-    return {
-      data: response.data.data.data,
-      current_page: response.data.current_page,
-      per_page: response.data.per_page,
-      total: response.data.total
-    };
+    const response = await api.get(`transactions/un-sync`);
+    return response.data;
+    // return {
+    //   data: response.data.data.data,
+    //   current_page: response.data.current_page,
+    //   per_page: response.data.per_page,
+    //   total: response.data.total
+    // };
   }
 
   static async downloadFailedTransactions(params: any): Promise<any> {

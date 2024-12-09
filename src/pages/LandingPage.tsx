@@ -46,7 +46,8 @@ const initCustomer = {
   city: null,
   address: null,
   loyalty_points: null,
-  credit_note_balance: null
+  credit_note_balance: null,
+  id:null,
 };
 
 const POSSystem = () => {
@@ -94,6 +95,7 @@ const POSSystem = () => {
   );
   const userInfo = JSON.parse(localStorage.getItem("user") || "{}");
   const storeInfo = userInfo.store;
+  
 
   // console.log(cartDiscountCode);
   // console.log(cartRecords);

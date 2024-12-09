@@ -9,12 +9,13 @@ import {
   DialogHeader,
   DialogTitle
 } from "@/components/ui/dialog";
-import { AlertTriangle, LogOut } from "lucide-react";
+import { AlertTriangle, Loader2, LogOut } from "lucide-react";
 interface LogoutModalProps {
   isOpen: boolean;
   onClose: () => void;
   onLogout: () => void;
   onSync: () => void;
+  isLoading: boolean;
   unsyncedTransactions: number;
 }
 export function LogoutModal({
@@ -22,6 +23,7 @@ export function LogoutModal({
   onClose,
   onLogout,
   onSync,
+  isLoading,
   unsyncedTransactions
 }: LogoutModalProps) {
   return (
@@ -54,11 +56,15 @@ export function LogoutModal({
         </div>
         <DialogFooter className="gap-2 sm:gap-0">
           {unsyncedTransactions > 0 && (
-            <Button variant="outline" onClick={onSync}>
-              Sync Transactions
+            <Button variant="outline" onClick={onSync} disabled={isLoading}>
+              {isLoading ? (
+                <Loader2 className="animate-spin" />
+              ) : (
+                " Sync Transactions"
+              )}
             </Button>
           )}
-          <Button variant="destructive" className="gap-2" onClick={onLogout}>
+          <Button variant="destructive" className="gap-2" onClick={onLogout} disabled={isLoading}>
             <LogOut className="h-4 w-4" />
             Logout
           </Button>

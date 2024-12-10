@@ -99,14 +99,11 @@ export function useStore() {
     }
   }
 
-  useEffect(() => {
-    if (isOnline) {
-      const now = Date.now();
-      if (!lastSyncTime || now - lastSyncTime >= SHOULD_FETCH) {
-        triggerFetch();
-      }
-    }
-  }, [lastSyncTime, SHOULD_FETCH])
+  // useEffect(() => {
+  //   if (isOnline) {
+  //     triggerFetch();
+  //   }
+  // }, [])
 
   useEffect(() => {
     triggerLocalFetch();

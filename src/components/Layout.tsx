@@ -29,6 +29,12 @@ const Layout: React.FC = () => {
     fetchUnsyncedTrans();
   }, []);
 
+  const handleModalOpen = async () => {
+    await triggerLocalFetch();
+    await db.open()
+    setIsLogoutModalOpen(true);
+  };
+
   const handleSync = () => {
     triggerSync();
   };
@@ -128,7 +134,7 @@ const Layout: React.FC = () => {
 
             <Button
               variant="lightblue"
-              onClick={() => setIsLogoutModalOpen(true)}
+              onClick={handleModalOpen}
             >
               <LogOut />
             </Button>

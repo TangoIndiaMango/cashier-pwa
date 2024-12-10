@@ -19,7 +19,7 @@ export class SyncManager {
     ? this.userInfo.store[0].id
     : 1;
 
-  private constructor() { 
+  private constructor() {
   }
 
   static getInstance(): SyncManager {
@@ -57,15 +57,17 @@ export class SyncManager {
 
   async refresh() {
     try {
-      await this.syncProducts();
-      await this.syncCustomers();
-      await this.syncPaymentMethods();
-      await this.syncDiscounts();
-      await this.syncFailedTrx();
-      await this.syncBranches(this.storeId);
+      await Promise.all([
+        this.syncProducts().catch((error) => console.error('Error syncing products:', error)),
+        this.syncCustomers().catch((error) => console.error('Error syncing customers:', error)),
+        this.syncPaymentMethods().catch((error) => console.error('Error syncing payment methods:', error)),
+        this.syncDiscounts().catch((error) => console.error('Error syncing discounts:', error)),
+        this.syncFailedTrx().catch((error) => console.error('Error syncing failed transactions:', error)),
+        this.syncBranches(this.storeId).catch((error) => console.error('Error syncing branches:', error))
+      ]);
     } catch (error) {
-      console.error("Error refreshing data:", error);
-      throw error;
+      console.error('Error refreshing data:', error);
+      throw error; // Or handle accordingly
     }
   }
 
@@ -97,6 +99,7 @@ export class SyncManager {
 
   private async syncProducts() {
     const remoteProducts = await RemoteApi.fetchStoreProducts();
+    // console.log("Products to Sync", remoteProducts);
     await db.transaction('rw', db.products, async () => {
       for (const product of remoteProducts) {
         await db.products.put({

@@ -6,9 +6,11 @@ import { Input } from "@/components/ui/input";
 import { RemoteApi } from "@/lib/api/remoteApi";
 import { db } from "@/lib/db/schema";
 import toast from "react-hot-toast";
+import { useStore } from "@/hooks/useStore";
 
 const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
+  const { triggerFetch } = useStore();
   const [formData, setFormData] = useState({
     email: "",
     password: ""
@@ -19,12 +21,11 @@ const LoginPage = () => {
     e.preventDefault();
     setLoading(true);
     if (!formData.email || !formData.password) {
-      toast.error("Fill in email or password")
+      toast.error("Fill in email or password");
       setLoading(false);
-      return
+      return;
     }
     try {
-     
       const res = await RemoteApi.login(formData?.email, formData?.password);
       console.log(res?.data);
       // set item to local storage
@@ -34,12 +35,10 @@ const LoginPage = () => {
         email: "",
         password: ""
       });
-      await db.open().catch((err) => {
-        console.log(err);
-      });
+      await db.open();
+      await triggerFetch();
       window.location.href = "/";
       setLoading(false);
-      
     } catch (error) {
       console.log("An error occured", error);
       setLoading(false);

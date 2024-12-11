@@ -50,6 +50,7 @@ export interface LocalTransaction {
   totalAmount: number;
   originalTotal:number;
   paymentMethods: PaymentEntry[];
+  payableAmount: number;
   status: string;
   synced?: "true" | "false";
   customer: LocalCustomer;

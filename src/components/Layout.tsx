@@ -20,8 +20,8 @@ const Layout: React.FC = () => {
 
   useEffect(() => {
     const fetchUnsyncedTrans = async () => {
-      await triggerLocalFetch();
       await db.open()
+      await triggerLocalFetch();
       const trnx = await LocalApi.getUnsynedTransactions();
       setUnsyncedTransLength(trnx.length);
     };
@@ -30,8 +30,8 @@ const Layout: React.FC = () => {
   }, []);
 
   const handleModalOpen = async () => {
-    await triggerLocalFetch();
     await db.open()
+    await triggerLocalFetch();
     setIsLogoutModalOpen(true);
   };
 

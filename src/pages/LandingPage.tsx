@@ -67,7 +67,7 @@ const POSSystem = () => {
 
   const [showCartDiscount, setShowCartDiscount] = useState(false);
 
-  const { submitTransaction, deleteTransaction } = useTransaction();
+  const { submitTransaction } = useTransaction();
   // console.log(transactions);
   const {
     paymentStatus,
@@ -89,17 +89,13 @@ const POSSystem = () => {
   const [withLoyaltyModal, setWithLoyaltyModal] = useState(false);
   const [showReceipt, setShowReceipt] = useState(false);
   const [receiptData, setReceiptData] = useState(null);
-  const { loyaltyPoints, setLoyaltyPoints } = useApplyPoints((state) => state);
-  const { creditNotePoints, setCreditNotePoints } = useApplyPoints(
-    (state) => state
-  );
+  const { loyaltyPoints, setLoyaltyPoints, setNewLoyaltyPoints } =
+    useApplyPoints((state) => state);
+  const { creditNotePoints, setCreditNotePoints, setNewCreditNotePoints } =
+    useApplyPoints((state) => state);
   const userInfo = JSON.parse(localStorage.getItem("user") || "{}");
   const storeInfo = userInfo.store;
-
-  // console.log(cartDiscountCode);
-  // console.log(cartRecords);
-  console.log(paymentStatus);
-  // Handle input changes
+  
   const handleInputChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
@@ -123,7 +119,9 @@ const POSSystem = () => {
         (sum, entry) => sum + (Number(entry.amount) || 0),
         0
       ),
-      totalAmount: cartRecords.total,
+      totalAmount: cartRecords.total -
+      (Number(loyaltyPoints) || 0) -
+      (Number(creditNotePoints) || 0),
       originalTotal: cartRecords.actualTotal,
       store: storeInfo[0],
       customer: customerDetails as any,
@@ -131,7 +129,7 @@ const POSSystem = () => {
       items: cartItems,
       loyaltyPoints: Number(loyaltyPoints) || 0,
       creditNotePoints: Number(creditNotePoints) || 0,
-      discount: cartDiscountCode ? cartRecords?.discount : null,
+      discount: cartRecords?.discount,
       discountAmount:
         cartRecords.total -
         (Number(loyaltyPoints) || 0) -
@@ -150,7 +148,9 @@ const POSSystem = () => {
     setSearchQuery("");
     setCartDiscountCode("");
     setLoyaltyPoints(0);
+    setNewLoyaltyPoints(0);
     setCreditNotePoints(0);
+    setNewCreditNotePoints(0);
 
     toast.success("Transaction completed successfully!");
     setWithLoyalty(false);
@@ -226,9 +226,6 @@ const POSSystem = () => {
         {/* Header Section */}
         <header className="flex items-center justify-between w-full gap-5 p-5">
           <h1 className="flex-1 text-2xl font-bold">Orders</h1>
-          <Button onClick={() => deleteTransaction()} variant={"destructive"}>
-            Clear Tranactions
-          </Button>
           <Button onClick={() => navigate("/failed-sync")}>Failed Sync</Button>
         </header>
       </div>
@@ -285,7 +282,15 @@ const POSSystem = () => {
                   type="text"
                   name="searchQuery"
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setCustomer(null);
+                    setCustomerDetails(initCustomer);
+                    setLoyaltyPoints(0);
+                    setCreditNotePoints(0);
+                    setNewCreditNotePoints(0);
+                    setNewLoyaltyPoints(0);
+                  }}
                   placeholder="Search for customer..."
                   className="w-full py-2 !pl-10 pr-4 border rounded-lg md:w-64"
                 />
@@ -359,7 +364,6 @@ const POSSystem = () => {
                   )}
                 </div>
                 <div className="flex justify-between mt-2">
-                  <span></span>
                   <span className="text-sm font-medium">
                     {formatCurrency(cartRecords.total || "", "NGN")}
                   </span>
@@ -375,7 +379,7 @@ const POSSystem = () => {
               <div className="flex justify-between">
                 <span className="text-xs text-gray-500">Subtotal</span>
                 <span className="text-sm font-medium">
-                  {formatCurrency(cartRecords.total, "NGN")}
+                  {formatCurrency(cartRecords.actualTotal, "NGN")}
                 </span>
               </div>
               <div className="flex justify-between font-bold">

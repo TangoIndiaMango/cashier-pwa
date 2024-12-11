@@ -96,3 +96,43 @@ export const Receipt: React.FC<ReceiptProps> = ({ data, onClose }) => {
     </div>
   );
 };
+
+/*
+  static async updateCustomerLoyaltyPoints(customerPhoneno: string): Promise<void> {
+    const { newLoyaltyPoints } = useApplyPoints.getState();
+    
+    const pointsToAdd = Number(newLoyaltyPoints);
+    if (isNaN(pointsToAdd)) throw new Error('Invalid loyalty points value');
+
+    await db.transaction('rw', db.customers, async () => {
+      const customer = await db.customers.where("phoneno").equals(customerPhoneno).first();
+
+      if (!customer) throw new Error('Customer not found');
+
+      const updatedPoints = (Number(customer.loyalty_points) || 0) + pointsToAdd;
+
+      await db.customers.update(customer.id, {
+        loyalty_points: updatedPoints,
+      });
+    });
+  }
+
+  static async updateCustomerCreditNote(customerPhoneno: string): Promise<void> {
+    const { newCreditNotePoints } = useApplyPoints.getState();
+
+    const pointsToAdd = Number(newCreditNotePoints);
+    if (isNaN(pointsToAdd)) throw new Error('Invalid credit note points value');
+
+    await db.transaction('rw', db.customers, async () => {
+      const customer = await db.customers.where("phoneno").equals(customerPhoneno).first();
+
+      if (!customer) throw new Error('Customer not found');
+
+      const updatedCreditNoteBalance = (Number(customer.credit_note_balance) || 0) + pointsToAdd;
+
+      await db.customers.update(customer.id, {
+        credit_note_balance: updatedCreditNoteBalance,
+      });
+    });
+  }
+*/

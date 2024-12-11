@@ -51,8 +51,8 @@ const Layout: React.FC = () => {
   const handleLogOut = async () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-    await db.delete();
     db.close();
+    await db.delete();
     navigate("/login");
   };
 

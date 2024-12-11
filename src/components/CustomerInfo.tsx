@@ -78,6 +78,7 @@ const CustomerComponent: React.FC<CustomerComponentProps> = ({
 
   // Handle selecting a customer
   const handleSelectCustomer = (customer: LocalCustomer) => {
+    console.log(customer)
     onAddCustomer(customer as any);
     setFilteredCustomers([]);
     setSelectedCustomer(true);
@@ -116,7 +117,7 @@ const CustomerComponent: React.FC<CustomerComponentProps> = ({
           </ul>
         </div>
       )}
-      <div className="grid w-full grid-cols-1 sm:grid-cols-2 gap-6 mt-4">
+      <div className="grid w-full grid-cols-1 gap-6 mt-4 sm:grid-cols-2">
         <div>
           <Label htmlFor="firstname">Recipient's First Name</Label>
           <Input

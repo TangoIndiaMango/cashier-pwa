@@ -9,20 +9,28 @@ const CustomerProfileCard = ({ customer, handleRemove }) => {
   // const creditNotePoints = useApplyPoints((state) => state.creditNotePoints);
 
   const points = useApplyPoints((state) => state);
-  const {creditNotePoints, loyaltyPoints,newLoyaltyPoints, newCreditNotePoints, setNewCreditNotePoints, setNewLoyaltyPoints} = useApplyPoints((state) => state)
+  const {
+    creditNotePoints,
+    loyaltyPoints,
+    newLoyaltyPoints,
+    newCreditNotePoints,
+    setNewCreditNotePoints,
+    setNewLoyaltyPoints
+  } = useApplyPoints((state) => state);
 
-    // Handle updating the points after subtraction
-    const updatePoints = () => {
-      const newLoyaltyPoints = Number(customer?.loyalty_points) - loyaltyPoints;
-      const newCreditNotePoints = Number(customer?.credit_note_balance) - creditNotePoints;
-      setNewLoyaltyPoints(newLoyaltyPoints);
-      setNewCreditNotePoints(newCreditNotePoints);
-    };
-  
-    // Call updatePoints to ensure the points are set after rendering
-    useEffect(() => {
-      updatePoints();
-    }, [loyaltyPoints, creditNotePoints]);
+  // Handle updating the points after subtraction
+  const updatePoints = () => {
+    const newLoyaltyPoints = Number(customer?.loyalty_points) - loyaltyPoints;
+    const newCreditNotePoints =
+      Number(customer?.credit_note_balance) - creditNotePoints;
+    setNewLoyaltyPoints(newLoyaltyPoints);
+    setNewCreditNotePoints(newCreditNotePoints);
+  };
+
+  // Call updatePoints to ensure the points are set after rendering
+  useEffect(() => {
+    updatePoints();
+  }, [loyaltyPoints, creditNotePoints, newLoyaltyPoints, newCreditNotePoints]);
 
   return (
     <Card className="w-full p-6">
@@ -79,11 +87,10 @@ const CustomerProfileCard = ({ customer, handleRemove }) => {
         <div>
           <div className="mb-1 text-sm text-gray-600">Loyalty Points</div>
           <div className="text-xs font-medium">
-            {formatBalance(newLoyaltyPoints) ||
-              "--"}{" "}
+            {formatBalance(newLoyaltyPoints) || "--"}{" "}
             {loyaltyPoints > 0 && (
               <span className="text-[11px] line-through text-gray-500">
-                {customer?.loyalty_points}
+                {Number(customer?.loyalty_points)}
               </span>
             )}
           </div>
@@ -92,12 +99,10 @@ const CustomerProfileCard = ({ customer, handleRemove }) => {
         <div>
           <div className="mb-1 text-sm text-gray-600">Credit Note Balance</div>
           <div className="text-xs font-medium">
-            {formatBalance(
-              newCreditNotePoints
-            ) || "--"}{" "}
+            {formatBalance(newCreditNotePoints) || "--"}{" "}
             {creditNotePoints > 0 && (
               <span className="text-[11px] line-through text-gray-500">
-                {customer?.credit_note_balance}
+                {Number(customer?.credit_note_balance)}
               </span>
             )}
           </div>

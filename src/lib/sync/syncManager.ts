@@ -100,7 +100,6 @@ export class SyncManager {
   private async syncProducts() {
     const remoteProducts = await RemoteApi.fetchStoreProducts();
     // console.log("Products to Sync", remoteProducts);
-    console.log(remoteProducts.filter((product) => product.ean === "4099683136096"))
     await db.transaction('rw', db.products, async () => {
       for (const product of remoteProducts) {
         await db.products.put({

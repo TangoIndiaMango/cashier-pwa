@@ -115,7 +115,7 @@ export class LocalApi {
       if (!customer) throw new Error('Customer not found');
 
       await db.customers.update(customer?.id, {
-        loyalty_points: String(newLoyaltyPoints),
+        loyalty_points: newLoyaltyPoints,
       });
     });
   }

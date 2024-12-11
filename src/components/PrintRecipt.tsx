@@ -1,4 +1,5 @@
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useApplyPoints } from "@/hooks/useApplyPoints";
 import { useStore } from "@/hooks/useStore";
 import React, { useRef, useEffect, useState } from "react";
 
@@ -12,16 +13,19 @@ interface ReceiptProps {
     items: any[];
     loyaltyPoints: any;
     creditNotePoints: any;
-    discount: number | null;
+    discount: any;
     discountAmount: number;
     noDiscountAmount: number;
+    originalTotal: number;
+    prodDiscountTotal: number;
   };
   onClose: () => void;
 }
 
 export const Receipt: React.FC<ReceiptProps> = ({ data, onClose }) => {
   const printFrameRef = useRef<HTMLIFrameElement>(null);
-  const { paymentMethod } = useStore();
+  const { paymentMethod, customers } = useStore();
+
   // console.log(data);
 
   const printReceipt = () => {
@@ -138,16 +142,26 @@ export const Receipt: React.FC<ReceiptProps> = ({ data, onClose }) => {
 
   const getAccumulatedPoints = () => {
     let acc_points = 0;
-    if (data.customer.loyalty_points > 0) {
-      acc_points =
-        Number(data.customer.loyalty_points) + Number(data.totalAmount * 0.02);
+
+    const currentLoyaltyPoints = Number(data.customer.loyalty_points) || 0;
+  
+    if (currentLoyaltyPoints > 0) {
+      acc_points = currentLoyaltyPoints + Number(data.totalAmount * 0.02);
+    } else {
+      acc_points = Number(data.totalAmount * 0.02);
     }
-    acc_points = Number(data.totalAmount * 0.02);
+    acc_points = Number(acc_points);
+    customers.find((customer) => {
+      if (customer.id === data.customer.id) {
+        customer.loyalty_points = (Number(customer.loyalty_points) + acc_points);
+      }
+    });
     return acc_points.toFixed(2);
   };
+  
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 space-y-1">
+    <div className="fixed inset-0 flex items-center justify-center space-y-1 bg-black bg-opacity-50">
       <ScrollArea className="w-full md:h-[600px] max-w-lg p-4 bg-white rounded-lg">
         <div className="w-full p-4 ">
           <div
@@ -192,6 +206,10 @@ export const Receipt: React.FC<ReceiptProps> = ({ data, onClose }) => {
                   <th>DESC</th>
                   <th className="price">PRICE</th>
                   <th className="amount">AMOUNT</th>
+
+                  {data.items.some(
+                    (item) => item.discount && item.discount.value > 0
+                  ) && <th className="discount">DISCOUNT</th>}
                 </tr>
               </thead>
               <tbody>
@@ -204,6 +222,10 @@ export const Receipt: React.FC<ReceiptProps> = ({ data, onClose }) => {
                     <td className="amount">
                       {(item.retail_price * item.quantity)?.toFixed(2)}
                     </td>
+
+                    {item.discount && item.discount.value > 0 && (
+                      <td>{Number(item.discount.value).toFixed(1)}%</td>
+                    )}
                   </tr>
                 ))}
               </tbody>
@@ -211,28 +233,38 @@ export const Receipt: React.FC<ReceiptProps> = ({ data, onClose }) => {
 
             <hr className="my-2 border-t border-dashed" />
 
-            <div className="text-left px-3 space-y-1 ">
-              <p>Total QTY: {data.items.reduce((acc, item) => acc + item.quantity, 0)}</p>
-              <p>Subtotal: {data?.totalAmount?.toFixed(2)}</p>
-              <p>Total: {data?.discountAmount?.toFixed(2)}</p>
+            <div className="px-3 space-y-1 text-left ">
+              <p>
+                Total QTY:{" "}
+                {data.items.reduce((acc, item) => acc + item.quantity, 0)}
+              </p>
+              <p>Subtotal: {data?.originalTotal?.toFixed(2)}</p>
+              <p>Total: {data?.totalAmount?.toFixed(2)}</p>
               <div>
                 {paymentMethods.map((paymentMethod) => (
-                  <div
-                    key={paymentMethod.mode_of_payment_id}
-                    className=""
-                  >
-                    <p>{paymentMethod.name}: <span>{paymentMethod.amount}</span></p>
-                    
+                  <div key={paymentMethod.mode_of_payment_id} className="">
+                    <p>
+                      {paymentMethod.name}: <span>{paymentMethod.amount}</span>
+                    </p>
                   </div>
                 ))}
               </div>
             </div>
+
+            {data.discount && data.discount.value > 0 && (
+              <p>
+                Overall Discount: {Number(data?.discount?.value).toFixed(1)}%
+              </p>
+            )}
             <p>VAT(5%) Included</p>
 
             <hr className="my-2 border-t border-dashed" />
 
             <div>
-              <p>Points Gained in Purchase: {Number(data.totalAmount * 0.02) || 0}</p>
+              <p>
+                Points Gained in Purchase:{" "}
+                {Number(data.totalAmount * 0.02) || 0}
+              </p>
               <p>Points Used in Purchase: {data?.loyaltyPoints || 0}</p>
               <p>New Accumulated Points: {getAccumulatedPoints()}</p>
             </div>
@@ -251,7 +283,9 @@ export const Receipt: React.FC<ReceiptProps> = ({ data, onClose }) => {
               </p>
             </div>
 
-            <p className="mt-4 font-bold uppercase">THANK YOU FOR SHOPPING AT {store.name}</p>
+            <p className="mt-4 font-bold uppercase">
+              THANK YOU FOR SHOPPING AT {store.name}
+            </p>
           </div>
 
           <div className="flex justify-between mt-4">

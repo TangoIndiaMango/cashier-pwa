@@ -39,10 +39,8 @@ export const useZudCart = create<State & Actions>((set) => ({
     const value = Number(product.discount.value) || 0;
 
     if (valueType === "percentage") {
-      console.log(price! - (price! * value) / 100);
       return price - (value / 100) * price;
     } else if (valueType === "naira") {
-      console.log(price! - value);
       return price! - value;
     } else {
       return price!;

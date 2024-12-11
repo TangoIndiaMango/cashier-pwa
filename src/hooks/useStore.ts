@@ -40,7 +40,7 @@ export function useStore() {
       setLoading(true);
       await refreshDB();
       await syncManager.refresh();
-      setLastSyncTime(Date.now());
+      await triggerLocalFetch();
     } catch (error) {
       console.error("Fetch failed:", error);
       setError(error as Error);

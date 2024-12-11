@@ -94,7 +94,7 @@ export interface LocalCustomer {
   firstname: string;
   id: number;
   lastname: string;
-  loyalty_points: string;
+  loyalty_points: number;
   phoneno: string;
   gender: string;
   country: string;

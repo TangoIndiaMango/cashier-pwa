@@ -31,18 +31,26 @@ const LoginPage = () => {
       // set item to local storage
       localStorage.setItem("token", res?.data?.accessToken);
       localStorage.setItem("user", JSON.stringify(res?.data?.user));
+      await db.open();
+      await triggerFetch();
       setFormData({
         email: "",
         password: ""
       });
-      await db.open();
-      await triggerFetch();
       window.location.href = "/";
       setLoading(false);
     } catch (error) {
       console.log("An error occured", error);
+      setFormData({
+        email: "",
+        password: ""
+      });
       setLoading(false);
     }
+    setFormData({
+      email: "",
+      password: ""
+    });
     setLoading(false);
   };
 

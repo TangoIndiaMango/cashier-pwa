@@ -6,13 +6,14 @@ import useGoBack from "@/hooks/useGoBack";
 import { RemoteApi } from '../lib/api/remoteApi';
 import { saveAs } from 'file-saver';
 import * as XLSX from 'xlsx';
+import toast from "react-hot-toast";
 
 const FailedTransaction = () => {
   const { failedTrx } = useStore();
   const { goBackButton } = useGoBack();
 
   const [loading, setLoading] = useState(false);
-  const [downloadError, setDownloadError] = useState<string | null>(null);
+  // const [downloadError, setDownloadError] = useState<string | null>(null);
 
   const params = {
     export: true,
@@ -35,7 +36,7 @@ const FailedTransaction = () => {
 
   const handleDownload = async (fileType: 'csv' | 'excel') => {
     setLoading(true);
-    setDownloadError(null);
+    // setDownloadError(null);
     try {
       const result = await RemoteApi.downloadFailedTransactions(params);
       const data = result?.data?.data;
@@ -50,7 +51,8 @@ const FailedTransaction = () => {
       }
     } catch (error: any) {
       console.error(error);
-      setDownloadError("Failed to download transactions.");
+      // setDownloadError("Failed to download transactions.");
+      toast.error("Failed to download transactions");
     } finally {
       setLoading(false);
     }
@@ -75,11 +77,11 @@ const FailedTransaction = () => {
         </header>
       </div>
 
-      {downloadError && (
+      {/* {downloadError && (
         <div className="text-red-500 mt-4">
           {downloadError}
         </div>
-      )}
+      )} */}
 
       <FailedTransactionTable failedTrx={failedTrx} />
     </div>

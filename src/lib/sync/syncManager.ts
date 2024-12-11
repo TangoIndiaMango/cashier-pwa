@@ -19,7 +19,8 @@ export class SyncManager {
     ? this.userInfo.store[0].id
     : 1;
 
-  private constructor() { }
+  private constructor() {
+  }
 
   static getInstance(): SyncManager {
     if (!SyncManager.instance) {
@@ -56,15 +57,17 @@ export class SyncManager {
 
   async refresh() {
     try {
-      await this.syncProducts();
-      await this.syncCustomers();
-      await this.syncPaymentMethods();
-      await this.syncDiscounts();
-      await this.syncFailedTrx();
-      await this.syncBranches(this.storeId);
+      await Promise.all([
+        this.syncProducts().catch((error) => console.error('Error syncing products:', error)),
+        this.syncCustomers().catch((error) => console.error('Error syncing customers:', error)),
+        this.syncPaymentMethods().catch((error) => console.error('Error syncing payment methods:', error)),
+        this.syncDiscounts().catch((error) => console.error('Error syncing discounts:', error)),
+        this.syncFailedTrx().catch((error) => console.error('Error syncing failed transactions:', error)),
+        this.syncBranches(this.storeId).catch((error) => console.error('Error syncing branches:', error))
+      ]);
     } catch (error) {
-      console.error("Error refreshing data:", error);
-      throw error;
+      console.error('Error refreshing data:', error);
+      throw error; // Or handle accordingly
     }
   }
 
@@ -96,6 +99,8 @@ export class SyncManager {
 
   private async syncProducts() {
     const remoteProducts = await RemoteApi.fetchStoreProducts();
+    // console.log("Products to Sync", remoteProducts);
+    console.log(remoteProducts.filter((product) => product.ean === "4099683136096"))
     await db.transaction('rw', db.products, async () => {
       for (const product of remoteProducts) {
         await db.products.put({
@@ -107,7 +112,7 @@ export class SyncManager {
   }
 
   private async syncCustomers() {
-    const remoteCustomers = await RemoteApi.fetchCustomer();
+    const remoteCustomers = await RemoteApi.fetchCustomer()
     await db.transaction('rw', db.customers, async () => {
       for (const customer of remoteCustomers) {
         await db.customers.put(customer);
@@ -127,17 +132,25 @@ export class SyncManager {
       const transactiontoSync = batch.map((transaction) => {
         return {
           id: transaction.id,
+          firstname: transaction?.customer?.firstname || null,
+          lastname: transaction?.customer?.lastname || null,
+          gender: transaction?.customer?.gender || null,
+          age: transaction?.customer?.age || null,
+          phoneno: transaction?.customer?.phoneno || null,
+          email: transaction?.customer?.email || null,
           country: null,
           state: null,
           city: null,
           address: null,
-          apply_loyalty_point: false,
-          apply_credit_note_point: false,
-          loyalty_point_value: transaction.loyaltyPoints,
-          credit_note_used: transaction.creditNotePoints,
-          payable_amount: transaction.totalAmount, //after discount
+          apply_loyalty_point: Number(transaction.loyaltyPoints) > 0 ? true : false,
+          apply_credit_note_point: Number(transaction.creditNotePoints) > 0 ? true : false,
+          payable_amount: transaction.payableAmount, //after discount
           exact_total_amount: transaction.originalTotal, //total amount before before any discount
           payment_type: 'cash',
+          discount_id: transaction?.discount?.id || null,
+          created_at: dayjs(transaction.createdAt).format("YYYY-MM-DD HH:mm:ss"),
+          loyalty_point_value: transaction.loyaltyPoints,
+          credit_note_used: transaction.creditNotePoints,
           payment_methods: transaction.paymentMethods.map((method) => {
             return {
               mode_of_payment_id: method.mode_of_payment_id,
@@ -147,28 +160,20 @@ export class SyncManager {
           }),
           status: transaction.status,
           payment_status: "Completed",
-          total_price: transaction.totalAmount, //after discount
+          total_price: transaction.payableAmount, //after discount
           receipt_no: transaction.recieptNo,
-          created_at: dayjs(transaction.createdAt).format("YYYY-MM-DD HH:mm:ss"),
-          discount_id: transaction?.discount?.id || "",
           products: transaction.items.map((item: any) => {
             return {
               id: item.id,
-              new_price: item.discountPrice,
+              new_price: item.discountPrice.toFixed(2),
               ean: item.ean,
               quantity_ordered: item.quantity,
               color: item.color || "red",
               size: item.size || "XL",
               total: item.retail_price,
-              discount_id: item?.discount?.id || "",
+              discount_id: item?.discount?.id || null,
             };
           }),
-          firstname: transaction?.customer?.firstname || null,
-          lastname: transaction?.customer?.lastname || null,
-          gender: transaction?.customer?.gender || null,
-          age: transaction?.customer?.age || null,
-          phoneno: transaction?.customer?.phoneno || null,
-          email: transaction?.customer?.email || null,
         };
       });
 
@@ -176,7 +181,6 @@ export class SyncManager {
 
       // Generate random syncId
       const syncId = `${Math.floor(Date.now() / 1000)}_SYNC`
-
       try {
         // Send to remote API for syncing
         const response = await RemoteApi.syncTransactions(transactiontoSync as any, syncId);
@@ -227,7 +231,7 @@ export class SyncManager {
     const syncId = `${transaction.sync_session_id}`
 
     try {
-      const response = await RemoteApi.syncTransactions([transaction], syncId);
+      const response = await RemoteApi.syncTransactions([transaction?.transaction_data], syncId);
       const { successful_transaction, failed_transaction } = response?.data || {};
 
       const successfulCount = successful_transaction || 0;
@@ -287,11 +291,12 @@ export class SyncManager {
 
   private async syncFailedTrx() {
     if (this.failedTrxFetched) {
-      console.log("Discounts already synced");
+      console.log("Failed trx already synced");
       return;
     }
 
     const remoteTrx = await RemoteApi.fetchFailedTransactions();
+    // console.log(remoteTrx?.data)
     await db.transaction('rw', db.failedSyncTransactions, async () => {
       for (const trx of remoteTrx.data) {
         await db.failedSyncTransactions.put(trx);

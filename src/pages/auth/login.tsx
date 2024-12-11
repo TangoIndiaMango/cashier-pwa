@@ -5,9 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { RemoteApi } from "@/lib/api/remoteApi";
 import { db } from "@/lib/db/schema";
+import toast from "react-hot-toast";
+import { useStore } from "@/hooks/useStore";
 
 const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
+  const { triggerFetch } = useStore();
   const [formData, setFormData] = useState({
     email: "",
     password: ""
@@ -17,6 +20,11 @@ const LoginPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    if (!formData.email || !formData.password) {
+      toast.error("Fill in email or password");
+      setLoading(false);
+      return;
+    }
     try {
       const res = await RemoteApi.login(formData?.email, formData?.password);
       console.log(res?.data);
@@ -27,11 +35,10 @@ const LoginPage = () => {
         email: "",
         password: ""
       });
+      await db.open();
+      await triggerFetch();
       window.location.href = "/";
       setLoading(false);
-      await db.open().catch((err) => {
-        console.log(err);
-      });
     } catch (error) {
       console.log("An error occured", error);
       setLoading(false);
@@ -59,6 +66,7 @@ const LoginPage = () => {
                   type="email"
                   id="email"
                   className="!px-10 auth-input"
+                  required
                   value={formData.email}
                   onChange={(e) =>
                     setFormData({ ...formData, email: e.target.value })
@@ -80,6 +88,7 @@ const LoginPage = () => {
                   type={showPassword ? "text" : "password"}
                   id="password"
                   className="auth-input"
+                  required
                   value={formData.password}
                   onChange={(e) =>
                     setFormData({ ...formData, password: e.target.value })

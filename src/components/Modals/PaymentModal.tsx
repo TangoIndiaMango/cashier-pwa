@@ -19,26 +19,13 @@ import { formatCurrency } from "@/lib/utils";
 import { DialogDescription } from "@radix-ui/react-dialog";
 import { useState } from "react";
 import { ScrollArea } from "../ui/scroll-area";
+import toast from "react-hot-toast";
 
 const PaymentMethodModal = ({ isOpen, onClose, total, onPaymentSubmit }) => {
   const [paymentEntries, setPaymentEntries] = useState([
     { mode_of_payment_id: "", amount: "", mode_of_payment_pos_id: "" }
   ]);
-  // const [paymentMethods, setPaymentMethods] = useState<LocalPaymentMethod[]>(
-  //   []
-  // );
-  // const getpaymentMethods = async () => {
-  //   try {
-  //     const methods = await LocalApiMethods.getAllPaymentMethods();
-  //     setPaymentMethods(methods);
-  //   } catch (err) {
-  //     console.error("Error fetching transactions:", err);
-  //   }
-  // };
 
-  // useEffect(() => {
-  //   getpaymentMethods();
-  // }, []);
   const { paymentMethod: paymentMethods, branches } = useStore();
 
   const addPaymentEntry = () => {
@@ -72,6 +59,14 @@ const PaymentMethodModal = ({ isOpen, onClose, total, onPaymentSubmit }) => {
 
     if (Math.abs(roundedTotal - roundedTotalPayments) > tolerance) {
       alert("Total payments must equal transaction total");
+      return;
+    }
+    const allEntriesValid = paymentEntries.every(
+      (method) =>
+        method.mode_of_payment_id && method.amount && Number(method.amount) > 0
+    );
+    if (!allEntriesValid) {
+      toast.error("Please fill in all payment details");
       return;
     }
 

@@ -26,12 +26,12 @@ export default defineConfig({
     },
     manifest: {
       id: '/pos-app',
-      name: 'My POS App',
-      short_name: 'POS',
+      name: 'Persianas Cashier',
+      short_name: 'Persianas',
       start_url: '.',
       display: 'standalone',
       background_color: '#ffffff',
-      description: 'A point-of-sale app with offline support.',
+      description: 'A persianas retail app with offline support.',
       icons: [
         {
           src: '/icons/settings.png',
@@ -39,7 +39,7 @@ export default defineConfig({
           type: 'image/png',
         },
         {
-          src: '/icons/computer.png',
+          src: '/pers-logo.svg',
           sizes: '512x512',
           type: 'image/png',
         },
@@ -55,7 +55,7 @@ export default defineConfig({
         form_factor: 'narrow',
       },
       {
-        src: "/screenshots/pos.jpg",
+        src: "/screenshots/auth-bg.svg",
         sizes: "1080x1920",
         type: "image/png",
         form_factor: 'wide',

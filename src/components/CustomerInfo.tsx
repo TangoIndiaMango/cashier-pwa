@@ -27,6 +27,7 @@ export interface CustomerDetails {
   address: string | null;
   loyalty_points: number | string | null;
   credit_note_balance: number | string | null;
+  id?: number | string | null;
 }
 
 interface CustomerComponentProps {
@@ -92,7 +93,8 @@ const CustomerComponent: React.FC<CustomerComponentProps> = ({
       city: customer.city || "",
       address: customer.address || "",
       loyalty_points: customer?.loyalty_points,
-      credit_note_balance: customer?.credit_note_balance
+      credit_note_balance: customer?.credit_note_balance,
+      id: customer?.id
     });
   };
 

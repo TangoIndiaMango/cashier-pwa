@@ -46,7 +46,8 @@ const initCustomer = {
   city: null,
   address: null,
   loyalty_points: null,
-  credit_note_balance: null
+  credit_note_balance: null,
+  id: null
 };
 
 const POSSystem = () => {
@@ -118,11 +119,15 @@ const POSSystem = () => {
     const data = {
       recieptNo: generateUniqueIdUsingStoreIDAsPrefix(storeInfo[0].storeID),
       paymentMethods: paymentMethod,
+      payableAmount: paymentMethod.reduce(
+        (sum, entry) => sum + (Number(entry.amount) || 0),
+        0
+      ),
       totalAmount: cartRecords.total,
       originalTotal: cartRecords.actualTotal,
       store: storeInfo[0],
       customer: customerDetails as any,
-      status: paymentStatus ? paymentStatus : "completed",
+      status: paymentStatus ? paymentStatus : "Completed",
       items: cartItems,
       loyaltyPoints: Number(loyaltyPoints) || 0,
       creditNotePoints: Number(creditNotePoints) || 0,
@@ -269,7 +274,7 @@ const POSSystem = () => {
 
           {/* Customer Information */}
           <div className="w-full p-6 space-y-5 bg-white border rounded-lg shadow-sm">
-            <div className="flex items-center justify-between mb-4 gap-5 md:flex-nowrap flex-wrap">
+            <div className="flex flex-wrap items-center justify-between gap-5 mb-4 md:flex-nowrap">
               <div>
                 <h2 className="text-xl font-semibold">Customer Information</h2>
                 <p className="text-sm">Input customer information below</p>
@@ -415,7 +420,7 @@ const POSSystem = () => {
                 <Label>Select Order Status</Label>
                 <Select
                   name="status"
-                  value={paymentStatus || "completed"}
+                  value={paymentStatus || "Completed"}
                   onValueChange={(value) => setPaymentStatus(value)}
                 >
                   <SelectTrigger className="w-full">
@@ -425,8 +430,8 @@ const POSSystem = () => {
                     <SelectItem disabled value="default">
                       Select order status
                     </SelectItem>
-                    <SelectItem value="completed">Completed</SelectItem>
-                    <SelectItem value="draft">Draft</SelectItem>
+                    <SelectItem value="Completed">Completed</SelectItem>
+                    <SelectItem value="Draft">Draft</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

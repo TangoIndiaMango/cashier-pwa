@@ -14,18 +14,26 @@ const Layout: React.FC = () => {
   //check if no token in localstorage send to /login
   const { needRefresh, offlineReady, updateServiceWorker } = usePWA();
   const { isOnline, networkType, rtt } = useOnlineStatus();
-  const { triggerSync, triggerFetch, loading } = useStore();
+  const { triggerSync, triggerFetch, triggerLocalFetch, loading } = useStore();
   const [usnynceTransLength, setUnsyncedTransLength] = useState(0);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchUnsyncedTrans = async () => {
+      await db.open()
+      await triggerLocalFetch();
       const trnx = await LocalApi.getUnsynedTransactions();
       setUnsyncedTransLength(trnx.length);
     };
 
     fetchUnsyncedTrans();
   }, []);
+
+  const handleModalOpen = async () => {
+    await db.open()
+    await triggerLocalFetch();
+    setIsLogoutModalOpen(true);
+  };
 
   const handleSync = () => {
     triggerSync();
@@ -42,6 +50,7 @@ const Layout: React.FC = () => {
 
   const handleLogOut = async () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("user");
     await db.delete();
     db.close();
     navigate("/login");
@@ -95,6 +104,7 @@ const Layout: React.FC = () => {
                 App is offline ready!
               </span>
             )}
+             
             <Button
               onClick={triggerFetch}
               variant={"lightblue"}
@@ -124,7 +134,7 @@ const Layout: React.FC = () => {
 
             <Button
               variant="lightblue"
-              onClick={() => setIsLogoutModalOpen(true)}
+              onClick={handleModalOpen}
             >
               <LogOut />
             </Button>
@@ -142,6 +152,7 @@ const Layout: React.FC = () => {
         onClose={handleCloseModal}
         onLogout={handleLogOut}
         onSync={handleSync}
+        isLoading={loading}
         unsyncedTransactions={usnynceTransLength}
       />
     </div>

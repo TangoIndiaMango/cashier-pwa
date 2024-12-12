@@ -364,6 +364,7 @@ const POSSystem = () => {
                   )}
                 </div>
                 <div className="flex justify-between mt-2">
+                  <span></span>
                   <span className="text-sm font-medium">
                     {formatCurrency(cartRecords.total || "", "NGN")}
                   </span>

@@ -140,4 +140,9 @@ export class RemoteApi {
     return response.data.data;
   }
 
+  static async getUserByToken(token: string): Promise<any> {
+    const response = await api.get(`user-by-token/${token}`);
+    return response.data.data;
+  }
+
 }

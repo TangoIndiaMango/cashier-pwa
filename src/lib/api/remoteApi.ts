@@ -1,24 +1,28 @@
 // src/lib/api/remoteApi.ts
-import { Transaction } from '@/types/type';
-import axios from 'axios';
-import { LocalCustomer, LocalDiscount, LocalPaymentMethod, LocalProduct } from '../db/schema';
-import toast from 'react-hot-toast';
+import { Transaction } from "@/types/type";
+import axios from "axios";
+import {
+  LocalCustomer,
+  LocalDiscount,
+  LocalPaymentMethod,
+  LocalProduct,
+} from "../db/schema";
+import toast from "react-hot-toast";
 
 // type AnyData = any
 
-
 const api = axios.create({
-  baseURL: 'https://peresiana-ecomm-backend.nigeriasbsc.com/public/api/v3',
+  baseURL: "https://peresiana-ecomm-backend.nigeriasbsc.com/public/api/v3",
   headers: {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${localStorage.getItem('token')}`,
-  }
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${localStorage.getItem("token")}`,
+  },
 });
 
 export class RemoteApi {
   static async fetchStoreProducts(): Promise<LocalProduct[]> {
-    const response = await api.post('/products/all');
-    // console.log(response?.data?.data);
+    const response = await api.post("/products/all");
+
     return response.data?.data.map((item) => ({
       id: item.id,
       product_name: item.product_name,
@@ -29,12 +33,12 @@ export class RemoteApi {
       brand_id: item.brand_id,
       ean: item.ean,
       size: item.size,
-      color: item.color
+      color: item.color,
     }));
   }
 
   static async fetchCustomer(): Promise<LocalCustomer[]> {
-    const response = await api.post('/customers/all');
+    const response = await api.post("/customers/all");
     // console.log(response?.data?.data);
     return response.data?.data.map((item) => ({
       age: item.age,
@@ -44,11 +48,11 @@ export class RemoteApi {
       id: item.id,
       lastname: item.lastname,
       loyalty_points: item.loyalty_points,
-      phoneno: item.phoneno
+      phoneno: item.phoneno,
     }));
   }
   static async fetchPaymentMethod(): Promise<LocalPaymentMethod[]> {
-    const response = await api.get('/mop_customers/all');
+    const response = await api.get("/mop_customers/all");
     // console.log(response?.data?.data);
     return response.data?.data.map((item) => ({
       id: item.id,
@@ -57,13 +61,13 @@ export class RemoteApi {
       mopID: item.mopID,
       name: item.name,
       slug: item.slug,
-      is_active: item.is_active
+      is_active: item.is_active,
     }));
   }
 
   static async fetchDiscounts(): Promise<LocalDiscount[]> {
-    const response = await api.get('/discounts/all');
-    // console.log(response?.data?.data);
+    const response = await api.get("/discounts/all");
+
     return response.data?.data.map((item) => ({
       id: item.id,
       createdAt: item.createdAt,
@@ -86,27 +90,37 @@ export class RemoteApi {
     }));
   }
 
-  static async syncTransactions(transactions: Transaction[], syncId: string): Promise<any> {
+  static async syncTransactions(
+    transactions: Transaction[],
+    syncId: string
+  ): Promise<any> {
     try {
-      const response = await api.post('/transactions/sync', {
-        sync_session_id: syncId,
-        transactions
-      }, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json'
+      const response = await api.post(
+        "/transactions/sync",
+        {
+          sync_session_id: syncId,
+          transactions,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            "Content-Type": "application/json",
+          },
         }
-      });
+      );
       return response.data;
     } catch (error) {
-      console.error('Sync failed:', error);
-      toast.error('Sync failed:' + error)
+      console.error("Sync failed:", error);
+      toast.error("Sync failed:" + error);
       throw error;
     }
   }
 
   static async login(email: string, password: string): Promise<any> {
-    const response = await axios.post('https://www.peresiana-ecomm-backend.nigeriasbsc.com/public/api/v1/auth/login', { email, password });
+    const response = await axios.post(
+      "https://www.peresiana-ecomm-backend.nigeriasbsc.com/public/api/v1/auth/login",
+      { email, password }
+    );
     return response.data;
   }
 
@@ -123,16 +137,15 @@ export class RemoteApi {
   }
 
   static async downloadFailedTransactions(params: any): Promise<any> {
-    const response = await api.get('transactions/un-sync', {
+    const response = await api.get("transactions/un-sync", {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        'Content-Type': 'application/json',
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+        "Content-Type": "application/json",
       },
-      params
-    },);
+      params,
+    });
     return response.data;
   }
-
 
   static async fetchPos(storeId: string | number): Promise<any> {
     const response = await api.get(`mop_terminals/${storeId}`);
@@ -144,5 +157,4 @@ export class RemoteApi {
     const response = await api.get(`user-by-token/${token}`);
     return response.data.data;
   }
-
 }

@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
 import { RemoteApi } from '@/lib/api/remoteApi';
 import { db } from '@/lib/db/schema';
+import { useEffect, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useStore } from './useStore';
 
 export function useAuth() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -9,11 +10,14 @@ export function useAuth() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token');
+  const { triggerLocalFetch } = useStore()
 
   useEffect(() => {
     const checkAuth = async () => {
       const storedToken = localStorage.getItem('token');
       if (storedToken) {
+        db.open()
+        triggerLocalFetch()
         setIsAuthenticated(true);
       } else if (token) {
         try {
@@ -21,6 +25,8 @@ export function useAuth() {
           if (user) {
             localStorage.setItem('user', JSON.stringify(user));
             localStorage.setItem('token', token);
+            db.open()
+            triggerLocalFetch()
             setIsAuthenticated(true);
             window.location.href = '/';
           }
@@ -42,6 +48,8 @@ export function useAuth() {
     localStorage.removeItem('user');
     db.close();
     await db.delete();
+
+    console.log("Dexie Database deleted successfully!");
     setIsAuthenticated(false);
     navigate('/login');
   };

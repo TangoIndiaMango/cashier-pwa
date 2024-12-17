@@ -1,20 +1,42 @@
-import React, { useEffect, useState } from 'react';
-import { Outlet } from 'react-router-dom';
-import { Button } from './ui/button';
-import { useStore } from '@/hooks/useStore';
-import { FeatherIcon, FolderSync, Loader2, LogOut } from 'lucide-react';
-import { LogoutModal } from './Modals/LogOutModal';
-import { LocalApi } from '@/lib/api/localApi';
-import { useAuth } from '@/hooks/useAuth';
-import { ErrorBoundary } from 'react-error-boundary';
-import { NetworkInfo } from './auth/NetworkInfo';
-import { AppUpdateButton } from './auth/UpdateBtn';
+import React, { useEffect, useState } from "react";
+import { Outlet } from "react-router-dom";
+import { Button } from "./ui/button";
+import { useStore } from "@/hooks/useStore";
+import {
+  FeatherIcon,
+  FolderSync,
+  Loader2,
+  LogOut,
+  RefreshCcw,
+} from "lucide-react";
+import { LogoutModal } from "./Modals/LogOutModal";
+import { LocalApi } from "@/lib/api/localApi";
+import { useAuth } from "@/hooks/useAuth";
+import { ErrorBoundary } from "react-error-boundary";
+import { NetworkInfo } from "./auth/NetworkInfo";
+import { AppUpdateButton } from "./auth/UpdateBtn";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "./ui/tooltip";
+
+function getAbbreviation(firstName, lastName) {
+  if (!firstName || !lastName) {
+    throw new Error("Both first name and last name are required.");
+  }
+
+  return `${firstName[0].toUpperCase()}${lastName[0].toUpperCase()}`;
+}
 
 const Layout = () => {
   const { triggerSync, triggerFetch, triggerLocalFetch, loading } = useStore();
   const [unsyncedTransLength, setUnsyncedTransLength] = useState(0);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const { isAuthenticated, isLoading, logout } = useAuth();
+  const userInfo = JSON?.parse(localStorage?.getItem("user") || "{}");
 
   useEffect(() => {
     const fetchUnsyncedTrans = async () => {
@@ -44,49 +66,75 @@ const Layout = () => {
   }
 
   return (
-    <ErrorBoundary fallback={<div>Something went wrong. Please try again.</div>}>
+    <ErrorBoundary
+      fallback={<div>Something went wrong. Please try again.</div>}
+    >
       <div className="w-screen min-h-screen bg-white">
         <nav className="flex items-center justify-between w-full px-6 py-4 border-b shadow-sm">
           <div className="flex items-center gap-4">
             <img
               src="/persianas-logo-2.svg"
               alt="logo"
-              className="h-10 md:h-10 lg:h-10 xl:h-12"
+              className="h-6 md:h-10 lg:h-10 xl:h-12"
             />
             <NetworkInfo />
           </div>
 
-          <div className="flex items-center space-x-4 text-sm text-gray-600 w-fit">
+          <div className="flex items-center space-x-2 text-sm text-gray-600 w-fit">
             <AppUpdateButton />
-            
-            <Button
-              onClick={triggerFetch}
-              variant="lightblue"
-              disabled={loading}
-              aria-label="Refresh data"
-            >
-              {loading ? (
-                <FeatherIcon className="w-4 h-4 animate-pulse" />
-              ) : (
-                <FeatherIcon className="w-4 h-4" />
-              )}
-              <span>Refresh Now</span>
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={triggerFetch}
+                    variant="lightblue"
+                    disabled={loading}
+                    aria-label="Refresh data"
+                  >
+                    {loading ? (
+                      <RefreshCcw className="w-4 h-4 animate-pulse" />
+                    ) : (
+                      <RefreshCcw className="w-4 h-4" />
+                    )}
+                    <span className="hidden lg:block">Refresh Now</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Refresh App</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
 
-            <Button
-              onClick={triggerSync}
-              disabled={loading}
-              className="flex items-center px-3 py-2 space-x-2 text-white bg-blue-500 rounded-lg hover:bg-blue-600"
-              aria-label="Sync data"
-            >
-              {loading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <FolderSync className="w-4 h-4" />
-              )}
-              <span>Sync Now</span>
-            </Button>
-
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={triggerSync}
+                    disabled={loading}
+                    className="flex items-center px-3 py-2 space-x-2 text-white bg-blue-500 rounded-lg hover:bg-blue-600"
+                    aria-label="Sync data"
+                  >
+                    {loading ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <FolderSync className="w-4 h-4" />
+                    )}
+                    <span className="hidden lg:block">Sync Now</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Sync App</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+          <div className="flex items-center gap-2">
+            <Avatar className="hidden lg:block">
+              <AvatarImage src={userInfo?.image} />
+              <AvatarFallback>
+                {getAbbreviation(userInfo?.firstname, userInfo?.lastname)}
+              </AvatarFallback>
+            </Avatar>
             <Button
               variant="lightblue"
               onClick={handleModalOpen}
@@ -115,4 +163,3 @@ const Layout = () => {
 };
 
 export default Layout;
-

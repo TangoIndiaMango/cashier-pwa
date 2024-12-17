@@ -16,7 +16,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
+  SelectValue,
 } from "@/components/ui/select";
 import { CustomSwitch } from "@/components/ui/switch";
 import { useApplyPoints } from "@/hooks/useApplyPoints";
@@ -26,7 +26,7 @@ import { usePayment } from "@/hooks/usePayment";
 import { useTransaction } from "@/hooks/useTransaction";
 import {
   formatCurrency,
-  generateUniqueIdUsingStoreIDAsPrefix
+  generateUniqueIdUsingStoreIDAsPrefix,
 } from "@/lib/utils";
 
 import { Search, ShoppingBag } from "lucide-react";
@@ -47,7 +47,7 @@ const initCustomer = {
   address: null,
   loyalty_points: null,
   credit_note_balance: null,
-  id: null
+  id: null,
 };
 
 const POSSystem = () => {
@@ -62,7 +62,6 @@ const POSSystem = () => {
     handleCartTotalDiscount,
     cartDiscountCode,
     setCartDiscountCode,
-    setCartRecords
   } = useCart();
 
   const [showCartDiscount, setShowCartDiscount] = useState(false);
@@ -74,7 +73,7 @@ const POSSystem = () => {
     setPaymentStatus,
     paymentMethod,
     handlePaymentSubmit,
-    setPaymentMethod
+    setPaymentMethod,
   } = usePayment();
 
   const { customer, handleAddCustomer, setCustomer } = useCustomer();
@@ -93,9 +92,9 @@ const POSSystem = () => {
     useApplyPoints((state) => state);
   const { creditNotePoints, setCreditNotePoints, setNewCreditNotePoints } =
     useApplyPoints((state) => state);
-  const userInfo = JSON.parse(localStorage.getItem("user") || "{}");
+  const userInfo = JSON?.parse(localStorage?.getItem("user") || "{}");
   const storeInfo = userInfo.store;
-  
+
   const handleInputChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
@@ -104,7 +103,7 @@ const POSSystem = () => {
     const { name, value } = e.target;
     setCustomerDetails((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -119,9 +118,10 @@ const POSSystem = () => {
         (sum, entry) => sum + (Number(entry.amount) || 0),
         0
       ),
-      totalAmount: cartRecords.total -
-      (Number(loyaltyPoints) || 0) -
-      (Number(creditNotePoints) || 0),
+      totalAmount:
+        cartRecords.total -
+        (Number(loyaltyPoints) || 0) -
+        (Number(creditNotePoints) || 0),
       originalTotal: cartRecords.actualTotal,
       store: storeInfo[0],
       customer: customerDetails as any,
@@ -134,9 +134,9 @@ const POSSystem = () => {
         cartRecords.total -
         (Number(loyaltyPoints) || 0) -
         (Number(creditNotePoints) || 0),
-      noDiscountAmount: cartRecords?.total
+      noDiscountAmount: cartRecords?.total,
     };
-    console.log(data);
+
     await submitTransaction(data as any);
     setReceiptData(data as any);
     setShowReceipt(true);
@@ -160,13 +160,13 @@ const POSSystem = () => {
   const checkCustomerAndCart = () => {
     if (!selectedCustomer) {
       toast.error("No customer selected", {
-        className: "bg-red-500 text-white"
+        className: "bg-red-500 text-white",
       });
       return false;
     }
     if (cartItems?.length < 1) {
       toast.error("No products selected", {
-        className: "bg-red-500 text-white"
+        className: "bg-red-500 text-white",
       });
       return false;
     }
@@ -180,7 +180,7 @@ const POSSystem = () => {
     if (checked) {
       if (!customer?.loyalty_points) {
         return toast.error("Sorry, No loyalty points", {
-          className: "bg-red-500 text-white"
+          className: "bg-red-500 text-white",
         });
       }
 
@@ -192,7 +192,7 @@ const POSSystem = () => {
       setWithCreditNote(false);
       // handleApplyLoyaltyPoints(Number(loyaltyPoints), true);
       toast.error("Credit Note points removed.", {
-        className: "bg-red-500 text-white"
+        className: "bg-red-500 text-white",
       });
     }
   };
@@ -203,7 +203,7 @@ const POSSystem = () => {
     if (checked) {
       if (!customer?.loyalty_points) {
         return toast.error("Sorry, No loyalty points", {
-          className: "bg-red-500 text-white"
+          className: "bg-red-500 text-white",
         });
       }
 
@@ -215,7 +215,7 @@ const POSSystem = () => {
       setWithLoyalty(false);
       // handleApplyLoyaltyPoints(Number(loyaltyPoints), true);
       toast.error("Loyalty points removed.", {
-        className: "bg-red-500 text-white"
+        className: "bg-red-500 text-white",
       });
     }
   };
@@ -226,7 +226,12 @@ const POSSystem = () => {
         {/* Header Section */}
         <header className="flex items-center justify-between w-full gap-5 p-5">
           <h1 className="flex-1 text-2xl font-bold">Orders</h1>
-          <Button onClick={() => navigate("/failed-sync")}>Failed Sync</Button>
+          <Button
+            onClick={() => navigate("/failed-sync")}
+            className="!bg-red-500"
+          >
+            Failed Sync
+          </Button>
         </header>
       </div>
 
@@ -234,37 +239,41 @@ const POSSystem = () => {
         {/* Main Content */}
         <div className="w-full p-3 space-y-6 md:col-span-2">
           {/* Product Table */}
-          <div className="flex-1 w-full p-3 space-y-10 bg-white border rounded-lg shadow-sm h-fit">
-            <div className="flex items-center justify-between w-full gap-5 h-fit">
+          <div className="flex-1 w-full p-5 space-y-10 bg-white border rounded-lg shadow-sm h-fit">
+            <div className="md:flex items-center justify-between w-full gap-5 h-fit ">
               <div>
-                <h1 className="text-xl font-bold">Current Transaction</h1>
-                <p className="text-gray-600">
-                  You're viewing the current transaction below
+                <h1 className="text-xl font-bold text-nowrap">
+                  Current Transaction
+                </h1>
+                <p className="text-sm text-gray-500">
+                  Viewing current transaction
                 </p>
               </div>
 
-              <div className="flex flex-wrap justify-end w-full gap-4">
-                <div className="relative">
-                  <Search className="absolute text-gray-400 transform -translate-y-1/2 left-3 top-1/2" />
-                  <input
-                    type="text"
-                    placeholder="Search for a product..."
-                    className="w-full py-2 pl-10 pr-4 border rounded-lg md:w-64"
-                    onClick={() => setShowAddProduct(true)}
-                  />
-                </div>
-
+              <div className="md:flex flex-wrap justify-end w-full gap-4 mt-2 md:mt-0">
                 <BarcodeScanner />
               </div>
+            </div>
+            <div className="relative w-full">
+              <Search
+                size={20}
+                className="absolute text-gray-400 transform -translate-y-1/2 left-3 top-1/2"
+              />
+              <input
+                type="text"
+                placeholder="Search for a product..."
+                className="w-full py-[7px] pl-10 pr-4 border rounded-sm"
+                onClick={() => setShowAddProduct(true)}
+              />
             </div>
             {cartItems.length > 0 ? (
               <div className="w-full">
                 <CurrentProductTable />
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center gap-5 text-gray-500">
+              <div className="flex flex-col items-center justify-center  text-gray-500">
                 <ShoppingBag size={48} />
-                <p className="mt-2 text-[#303f9e]">No data available</p>
+                <p className="mt-2 text-gray-500 text-sm">No data available</p>
               </div>
             )}
           </div>
@@ -272,29 +281,34 @@ const POSSystem = () => {
           {/* Customer Information */}
           <div className="w-full p-6 space-y-5 bg-white border rounded-lg shadow-sm">
             <div className="flex flex-wrap items-center justify-between gap-5 mb-4 md:flex-nowrap">
-              <div>
+              <div className="w-full">
                 <h2 className="text-xl font-semibold">Customer Information</h2>
-                <p className="text-sm">Input customer information below</p>
+                <p className="text-sm text-gray-500">
+                  Input customer information below
+                </p>
               </div>
-              <div className="relative w-fit">
-                <Search className="absolute text-gray-400 transform -translate-y-1/2 left-3 top-1/2" />
-                <Input
-                  type="text"
-                  name="searchQuery"
-                  value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value);
-                    setCustomer(null);
-                    setCustomerDetails(initCustomer);
-                    setLoyaltyPoints(0);
-                    setCreditNotePoints(0);
-                    setNewCreditNotePoints(0);
-                    setNewLoyaltyPoints(0);
-                  }}
-                  placeholder="Search for customer..."
-                  className="w-full py-2 !pl-10 pr-4 border rounded-lg md:w-64"
-                />
-              </div>
+            </div>
+            <div className="relative w-full">
+              <Search
+                size={20}
+                className="absolute text-gray-400 transform -translate-y-1/2 left-3 top-1/2"
+              />
+              <Input
+                type="text"
+                name="searchQuery"
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setCustomer(null);
+                  setCustomerDetails(initCustomer);
+                  setLoyaltyPoints(0);
+                  setCreditNotePoints(0);
+                  setNewCreditNotePoints(0);
+                  setNewLoyaltyPoints(0);
+                }}
+                placeholder="Search for customer..."
+                className="w-full py-[10px] !pl-10 pr-4 border rounded-sm "
+              />
             </div>
             {selectedCustomer && customer !== null ? (
               <CustomerProfileCard
@@ -323,35 +337,60 @@ const POSSystem = () => {
         <div className="w-full p-6 space-y-12">
           <div className="space-y-6">
             <div>
-              <h1 className="text-lg font-semibold ">
+              <h1 className="text-2xl font-semibold ">
                 Discount or Promotion Code
               </h1>
-              <p>
+              <p className="text-sm text-gray-500">
                 Enter a coupon code to apply, discounts are applied to line
                 totals, before taxes.
               </p>
             </div>
-            <div className="space-y-3">
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-500">Total Items</span>
+                <span>{cartItems.length}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-500">Subtotal</span>
+                <span className="text-sm font-medium">
+                  {formatCurrency(cartRecords.actualTotal, "NGN")}
+                </span>
+              </div>
+              <div className="h-[1px] bg-gray-200"></div>
+              <div className="flex justify-between font-bold">
+                <span className="text-[18px]">TOTAL</span>
+                <span className="text-[18px] font-medium">
+                  {formatCurrency(
+                    cartRecords.total -
+                      (Number(loyaltyPoints) || 0) -
+                      (Number(creditNotePoints) || 0),
+                    "NGN"
+                  )}
+                </span>
+              </div>
+            </div>
+            <div className="space-y-3 ">
               <Label className="mb-2">Discount or Promotion Code</Label>
-              <Input
-                type="text"
-                placeholder="Enter code"
-                className="w-full p-2 border rounded-lg"
-                value={cartDiscountCode}
-                onChange={(e) => setCartDiscountCode(e.target.value)}
-              />
-              <Button
-                variant="lightblue"
-                disabled={!cartDiscountCode || cartItems.length === 0}
-                onClick={() => {
-                  handleCartTotalDiscount(cartDiscountCode);
-                  setShowCartDiscount(true);
-                  setCartDiscountCode("");
-                }}
-                className="w-full py-2 rounded-lg"
-              >
-                Apply Code
-              </Button>
+              <div className="flex items-center justify-between gap-2">
+                <Input
+                  type="text"
+                  placeholder="Enter code"
+                  className="w-full p-2 border rounded-lg"
+                  value={cartDiscountCode}
+                  onChange={(e) => setCartDiscountCode(e.target.value)}
+                />
+                <Button
+                  disabled={!cartDiscountCode || cartItems.length === 0}
+                  onClick={() => {
+                    handleCartTotalDiscount(cartDiscountCode);
+                    setShowCartDiscount(true);
+                    setCartDiscountCode("");
+                  }}
+                  className="w-fit py-2 rounded-lg text-black"
+                >
+                  Apply
+                </Button>
+              </div>
             </div>
             {showCartDiscount ? (
               <div>
@@ -371,30 +410,6 @@ const POSSystem = () => {
                 </div>
               </div>
             ) : null}
-
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-xs text-gray-500">Total Items</span>
-                <span>{cartItems.length}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-xs text-gray-500">Subtotal</span>
-                <span className="text-sm font-medium">
-                  {formatCurrency(cartRecords.actualTotal, "NGN")}
-                </span>
-              </div>
-              <div className="flex justify-between font-bold">
-                <span className="text-sm">TOTAL</span>
-                <span className="text-sm font-medium">
-                  {formatCurrency(
-                    cartRecords.total -
-                      (Number(loyaltyPoints) || 0) -
-                      (Number(creditNotePoints) || 0),
-                    "NGN"
-                  )}
-                </span>
-              </div>
-            </div>
 
             <div className="flex flex-col gap-4">
               <CustomSwitch
@@ -453,13 +468,13 @@ const POSSystem = () => {
               >
                 Submit & Print Receipt
               </Button>
-              <Button
+              {/* <Button
                 disabled={cartItems.length === 0}
                 variant="lightblue"
                 className="w-full py-2 rounded-lg"
               >
                 Submit & Print Gift Receipt
-              </Button>
+              </Button> */}
             </div>
           </div>
 

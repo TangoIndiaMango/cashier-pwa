@@ -14,7 +14,7 @@ const CustomerDisplay = ({ customer }) => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-center h-20 text-sm text-gray-500">
+          <div className="flex items-center justify-center h-10 text-sm text-gray-500">
             No customer added yet
           </div>
         </CardContent>
@@ -33,13 +33,13 @@ const CustomerDisplay = ({ customer }) => {
       <CardContent>
         <div className="space-y-4">
           <div className="flex items-center gap-3">
-          <Avatar className="bg-green-200 ring-8 ring-green-100">
-                <AvatarImage src="" />
-                <AvatarFallback>
-                  {customer.firstname[0]}
-                  {customer.lastname[0]}
-                </AvatarFallback>
-              </Avatar>
+            <Avatar className="bg-green-200 ring-8 ring-green-100">
+              <AvatarImage src="" />
+              <AvatarFallback>
+                {customer.firstname[0]}
+                {customer.lastname[0]}
+              </AvatarFallback>
+            </Avatar>
             <div>
               <h4 className="text-base font-medium capitalize">
                 {customer.firstname} {customer.lastname}

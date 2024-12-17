@@ -13,7 +13,7 @@ const LoginPage = () => {
   const { triggerFetch } = useStore();
   const [formData, setFormData] = useState({
     email: "",
-    password: ""
+    password: "",
   });
   const [loading, setLoading] = useState(false);
 
@@ -35,7 +35,7 @@ const LoginPage = () => {
       await triggerFetch();
       setFormData({
         email: "",
-        password: ""
+        password: "",
       });
       window.location.href = "/";
       setLoading(false);
@@ -43,13 +43,13 @@ const LoginPage = () => {
       console.log("An error occured", error);
       setFormData({
         email: "",
-        password: ""
+        password: "",
       });
       setLoading(false);
     }
     setFormData({
       email: "",
-      password: ""
+      password: "",
     });
     setLoading(false);
   };
@@ -74,6 +74,7 @@ const LoginPage = () => {
                   type="email"
                   id="email"
                   className="!px-10 auth-input"
+                  placeholder="example@gmail.com"
                   required
                   value={formData.email}
                   onChange={(e) =>
@@ -96,6 +97,7 @@ const LoginPage = () => {
                   type={showPassword ? "text" : "password"}
                   id="password"
                   className="auth-input"
+                  placeholder="******"
                   required
                   value={formData.password}
                   onChange={(e) =>
@@ -117,19 +119,24 @@ const LoginPage = () => {
             </div>
 
             <div className="flex items-center justify-between mt-4">
-              <a
+              {/* <a
                 href="/forgot-password"
                 className="text-sm text-[#344054] hover:text-[#303F9E]"
               >
                 Forgot Password?
-              </a>
+              </a> */}
               <Button
                 type="submit"
-                className="bg-[#303F9E] text-white px-4 py-2 rounded-xl shadow-sm hover:bg-[#263284] transition-colors"
+                className="bg-[#303F9E] text-white px-4 py-2 rounded-xl shadow-sm hover:bg-[#263284] transition-colors w-full"
                 disabled={loading}
               >
-                {loading ? "" : "Login"}
-                {loading && <Loader2 className="w-8 h-8 animate-spin" />}
+                {loading ? (
+                  <>
+                    loading <Loader2 className="w-8 h-8 animate-spin" />
+                  </>
+                ) : (
+                  "Login"
+                )}
               </Button>
             </div>
           </form>

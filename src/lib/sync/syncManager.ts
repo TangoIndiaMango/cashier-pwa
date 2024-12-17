@@ -57,6 +57,8 @@ export class SyncManager {
 
   async refresh() {
     try {
+      console.log("Starting fetch...");
+     
       await Promise.all([
         this.syncProducts().catch((error) =>
           console.error("Error syncing products:", error)
@@ -77,9 +79,11 @@ export class SyncManager {
           console.error("Error syncing branches:", error)
         ),
       ]);
+
+      console.log("Fetching completed.");
     } catch (error) {
-      console.error("Error refreshing data:", error);
-      throw error; // Or handle accordingly
+      console.error('Error refreshing data:', error);
+      throw error;
     }
   }
 

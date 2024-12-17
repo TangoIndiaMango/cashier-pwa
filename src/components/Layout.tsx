@@ -1,26 +1,20 @@
-import React, { useEffect, useState } from "react";
-import { Outlet } from "react-router-dom";
-import { Button } from "./ui/button";
-import { useStore } from "@/hooks/useStore";
-import {
-  FeatherIcon,
-  FolderSync,
-  Loader2,
-  LogOut,
-  RefreshCcw,
-} from "lucide-react";
-import { LogoutModal } from "./Modals/LogOutModal";
-import { LocalApi } from "@/lib/api/localApi";
 import { useAuth } from "@/hooks/useAuth";
+import { useStore } from "@/hooks/useStore";
+import { LocalApi } from "@/lib/api/localApi";
+import { FolderSync, Loader2, LogOut, RefreshCcw } from "lucide-react";
+import { useEffect, useState } from "react";
 import { ErrorBoundary } from "react-error-boundary";
+import { Outlet } from "react-router-dom";
 import { NetworkInfo } from "./auth/NetworkInfo";
 import { AppUpdateButton } from "./auth/UpdateBtn";
+import { LogoutModal } from "./Modals/LogOutModal";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { Button } from "./ui/button";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
-  TooltipTrigger,
+  TooltipTrigger
 } from "./ui/tooltip";
 
 function getAbbreviation(firstName, lastName) {

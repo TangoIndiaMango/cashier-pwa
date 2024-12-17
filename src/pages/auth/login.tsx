@@ -17,6 +17,17 @@ const LoginPage = () => {
   });
   const [loading, setLoading] = useState(false);
 
+  const openDB = async () => {
+    try {
+      console.log("Opening DB...");
+      await db.open();
+      console.log("DB Opened successfully.");
+    } catch (error) {
+      console.error("Error opening DB:", error);
+      throw new Error("Could not open IndexedDB.");
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -31,7 +42,7 @@ const LoginPage = () => {
       // set item to local storage
       localStorage.setItem("token", res?.data?.accessToken);
       localStorage.setItem("user", JSON.stringify(res?.data?.user));
-      await db.open();
+      await openDB();
       await triggerFetch();
       setFormData({
         email: "",
@@ -53,6 +64,8 @@ const LoginPage = () => {
     });
     setLoading(false);
   };
+
+
 
   return (
     <AuthLayout>

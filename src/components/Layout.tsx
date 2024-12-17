@@ -36,7 +36,7 @@ const Layout = () => {
   const [unsyncedTransLength, setUnsyncedTransLength] = useState(0);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const { isAuthenticated, isLoading, logout } = useAuth();
-  const userInfo = JSON.parse(localStorage.getItem("user") || "{}");
+  const userInfo = JSON?.parse(localStorage?.getItem("user") || "{}");
 
   useEffect(() => {
     const fetchUnsyncedTrans = async () => {
@@ -132,7 +132,7 @@ const Layout = () => {
             <Avatar className="hidden lg:block">
               <AvatarImage src={userInfo?.image} />
               <AvatarFallback>
-                {getAbbreviation(userInfo?.firstname, userInfo?.lastname)};
+                {getAbbreviation(userInfo?.firstname, userInfo?.lastname)}
               </AvatarFallback>
             </Avatar>
             <Button

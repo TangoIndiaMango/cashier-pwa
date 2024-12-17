@@ -92,7 +92,7 @@ const POSSystem = () => {
     useApplyPoints((state) => state);
   const { creditNotePoints, setCreditNotePoints, setNewCreditNotePoints } =
     useApplyPoints((state) => state);
-  const userInfo = JSON.parse(localStorage.getItem("user") || "{}");
+  const userInfo = JSON?.parse(localStorage?.getItem("user") || "{}");
   const storeInfo = userInfo.store;
 
   const handleInputChange = (

@@ -39,7 +39,9 @@ export const CustomSwitch: React.FC<ICustomSwitch> = ({
   return (
     <div className="flex items-center space-x-2">
       <Switch id={id} {...rest} />
-      <Label htmlFor={id}>{label}</Label>
+      <Label htmlFor={id} className="text-sm">
+        {label}
+      </Label>
     </div>
   );
 };

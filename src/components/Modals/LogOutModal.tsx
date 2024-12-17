@@ -7,9 +7,9 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle
+  DialogTitle,
 } from "@/components/ui/dialog";
-import { AlertTriangle, Loader2, LogOut } from "lucide-react";
+import { AlertTriangle, Loader2 } from "lucide-react";
 interface LogoutModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -24,19 +24,17 @@ export function LogoutModal({
   onLogout,
   onSync,
   isLoading,
-  unsyncedTransactions
+  unsyncedTransactions,
 }: LogoutModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <LogOut className="h-5 w-5 text-muted-foreground" />
+          <DialogTitle className="flex text-2xl items-center gap-2">
             Confirm Logout
           </DialogTitle>
-          <DialogDescription>
-            Are you sure you want to log out? Please review the following
-            information before proceeding.
+          <DialogDescription className="pt-5 text-[16px]">
+            Are you sure you want to log out? If yes, click on logout
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
@@ -64,8 +62,12 @@ export function LogoutModal({
               )}
             </Button>
           )}
-          <Button variant="destructive" className="gap-2" onClick={onLogout} disabled={isLoading}>
-            <LogOut className="h-4 w-4" />
+          <Button
+            variant="destructive"
+            className="gap-2"
+            onClick={onLogout}
+            disabled={isLoading}
+          >
             Logout
           </Button>
         </DialogFooter>

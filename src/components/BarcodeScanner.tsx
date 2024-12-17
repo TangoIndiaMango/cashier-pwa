@@ -4,16 +4,10 @@ import { useStore } from "@/hooks/useStore";
 import { useCart } from "@/hooks/useCart";
 import { toast } from "sonner";
 
-// type IProps = {
-//   barcode: string;
-//   setBarcode: React.Dispatch<React.SetStateAction<string>>;
-
-// };
-
 const BarcodeScanner = () => {
   const [isScannerActive, setIsScannerActive] = useState(false);
   const [barcode, setBarcode] = useState("");
-  const { products, loading, discounts } = useStore();
+  const { products } = useStore();
   const { cartItems, addItemToCart } = useCart();
 
   const handleonClickBarCode = (scannedBarcode: string) => {
@@ -29,14 +23,6 @@ const BarcodeScanner = () => {
     } else {
       toast.error("Product not found");
     }
-
-    // const item = cartItems.find((item) => item.ean === scannedBarcode);
-
-    // if (item) {
-    //   addItemToCart(item);
-    // } else {
-    //   toast.error("Item not found");
-    // }
   };
 
   useEffect(() => {
@@ -65,16 +51,14 @@ const BarcodeScanner = () => {
 
   return (
     <div>
-      {/* <p>Scanned Barcode: {barcode}</p> */}
       <Button
         size="lg"
-        className={`text-white  hover:opacity-80 rounded-lg !border-none ${
+        className={`text-white  hover:opacity-80 rounded-lg !border-none w-full ${
           !isScannerActive ? "bg-[#303f9e]" : "!bg-green-500"
         }`}
         onClick={() => setIsScannerActive((prev) => !prev)}
       >
         {isScannerActive ? "Stop Scanning" : "Start Scanning"}
-        {/* Scan barcode */}
       </Button>
 
       <input

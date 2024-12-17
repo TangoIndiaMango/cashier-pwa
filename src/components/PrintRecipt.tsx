@@ -124,19 +124,19 @@ export const Receipt: React.FC<ReceiptProps> = ({ data, onClose }) => {
       if (matchedMethod) {
         return {
           ...method,
-          name: matchedMethod.name || "Unknown"
+          name: matchedMethod.name || "Unknown",
         };
       }
       return {
         ...method,
-        name: "Unknown"
+        name: "Unknown",
       };
     });
 
     setPaymentMethods(paymentData);
   }, [data.paymentMethods, paymentMethod]);
 
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const user = JSON?.parse(localStorage?.getItem("user") || "{}");
   const store = user?.store[0];
   // console.log(store);
 
@@ -144,7 +144,7 @@ export const Receipt: React.FC<ReceiptProps> = ({ data, onClose }) => {
     let acc_points = 0;
 
     const currentLoyaltyPoints = Number(data.customer.loyalty_points) || 0;
-  
+
     if (currentLoyaltyPoints > 0) {
       acc_points = currentLoyaltyPoints + Number(data.totalAmount * 0.02);
     } else {
@@ -153,12 +153,11 @@ export const Receipt: React.FC<ReceiptProps> = ({ data, onClose }) => {
     acc_points = Number(acc_points);
     customers.find((customer) => {
       if (customer.id === data.customer.id) {
-        customer.loyalty_points = (Number(customer.loyalty_points) + acc_points);
+        customer.loyalty_points = Number(customer.loyalty_points) + acc_points;
       }
     });
     return acc_points.toFixed(2);
   };
-  
 
   return (
     <div className="fixed inset-0 flex items-center justify-center space-y-1 bg-black bg-opacity-50">
@@ -170,7 +169,7 @@ export const Receipt: React.FC<ReceiptProps> = ({ data, onClose }) => {
             style={{
               maxWidth: "58mm",
               margin: "0 auto",
-              fontFamily: "'Courier New', monospace"
+              fontFamily: "'Courier New', monospace",
             }}
           >
             <h2 className="mb-2 text-sm font-bold text-center">

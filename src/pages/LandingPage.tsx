@@ -61,10 +61,8 @@ const POSSystem = () => {
     clearCart,
     handleCartTotalDiscount,
     cartDiscountCode,
-    setCartDiscountCode,
-    setCartRecords
+    setCartDiscountCode
   } = useCart();
-
   const [showCartDiscount, setShowCartDiscount] = useState(false);
 
   const { submitTransaction } = useTransaction();
@@ -95,7 +93,7 @@ const POSSystem = () => {
     useApplyPoints((state) => state);
   const userInfo = JSON.parse(localStorage.getItem("user") || "{}");
   const storeInfo = userInfo.store;
-  
+
   const handleInputChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
@@ -119,9 +117,10 @@ const POSSystem = () => {
         (sum, entry) => sum + (Number(entry.amount) || 0),
         0
       ),
-      totalAmount: cartRecords.total -
-      (Number(loyaltyPoints) || 0) -
-      (Number(creditNotePoints) || 0),
+      totalAmount:
+        cartRecords.total -
+        (Number(loyaltyPoints) || 0) -
+        (Number(creditNotePoints) || 0),
       originalTotal: cartRecords.actualTotal,
       store: storeInfo[0],
       customer: customerDetails as any,

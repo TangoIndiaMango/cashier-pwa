@@ -5,7 +5,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
+  SelectValue,
 } from "@/components/ui/select";
 import useDebounce from "@/hooks/useDebounce";
 import { useStore } from "@/hooks/useStore";
@@ -45,7 +45,7 @@ const CustomerComponent: React.FC<CustomerComponentProps> = ({
   handleInputChange,
   customerDetails,
   setSelectedCustomer,
-  onAddCustomer
+  onAddCustomer,
 }) => {
   const [filteredCustomers, setFilteredCustomers] = useState<LocalCustomer[]>(
     []
@@ -62,7 +62,7 @@ const CustomerComponent: React.FC<CustomerComponentProps> = ({
         return (
           customer.firstname?.toLowerCase().includes(debouncedSearchTerm) ||
           customer.lastname?.toLowerCase().includes(debouncedSearchTerm) ||
-          customer.email?.toLowerCase().includes(debouncedSearchTerm) || 
+          customer.email?.toLowerCase().includes(debouncedSearchTerm) ||
           customer.phoneno?.toLowerCase().includes(debouncedSearchTerm)
         );
       });
@@ -78,7 +78,7 @@ const CustomerComponent: React.FC<CustomerComponentProps> = ({
 
   // Handle selecting a customer
   const handleSelectCustomer = (customer: LocalCustomer) => {
-    console.log(customer)
+    console.log(customer);
     onAddCustomer(customer as any);
     setFilteredCustomers([]);
     setSelectedCustomer(true);
@@ -95,7 +95,7 @@ const CustomerComponent: React.FC<CustomerComponentProps> = ({
       address: customer.address || "",
       loyalty_points: customer?.loyalty_points,
       credit_note_balance: customer?.credit_note_balance,
-      id: customer?.id
+      id: customer?.id,
     });
   };
 

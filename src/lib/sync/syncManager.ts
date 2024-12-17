@@ -3,9 +3,9 @@ import toast from "react-hot-toast";
 import { LocalApi } from "../api/localApi";
 import { RemoteApi } from "../api/remoteApi";
 import { db } from "../db/schema";
-import dayjs from 'dayjs';
-import { saveAs } from 'file-saver';
-import { parse } from 'papaparse';
+import dayjs from "dayjs";
+import { saveAs } from "file-saver";
+import { parse } from "papaparse";
 
 export class SyncManager {
   private static instance: SyncManager;
@@ -14,13 +14,13 @@ export class SyncManager {
   private discountsFetched: boolean = false;
   private failedTrxFetched: boolean = false;
   private syncWindow: number = 30 * 60 * 1000; // 30 minutes
-  private userInfo = JSON.parse(localStorage.getItem('user') || '{}')
-  private storeId = Array.isArray(this.userInfo?.store) && this.userInfo?.store.length > 0
-    ? this.userInfo.store[0].id
-    : 1;
+  private userInfo = JSON?.parse(localStorage?.getItem("user") || "{}");
+  private storeId =
+    Array.isArray(this.userInfo?.store) && this.userInfo?.store.length > 0
+      ? this.userInfo.store[0].id
+      : 1;
 
-  private constructor() {
-  }
+  private constructor() {}
 
   static getInstance(): SyncManager {
     if (!SyncManager.instance) {
@@ -44,7 +44,7 @@ export class SyncManager {
 
   async shouldSync(): Promise<boolean> {
     try {
-      const lastSyncProduct = await db.products.orderBy('lastSyncAt').last();
+      const lastSyncProduct = await db.products.orderBy("lastSyncAt").last();
       const lastSyncTimestamp = lastSyncProduct?.lastSyncAt || new Date(0);
       const now = new Date();
       const timeElapsed = now.getTime() - lastSyncTimestamp.getTime();
@@ -57,23 +57,39 @@ export class SyncManager {
 
   async refresh() {
     try {
+      console.log("Starting fetch...");
+     
       await Promise.all([
-        this.syncProducts().catch((error) => console.error('Error syncing products:', error)),
-        this.syncCustomers().catch((error) => console.error('Error syncing customers:', error)),
-        this.syncPaymentMethods().catch((error) => console.error('Error syncing payment methods:', error)),
-        this.syncDiscounts().catch((error) => console.error('Error syncing discounts:', error)),
-        this.syncFailedTrx().catch((error) => console.error('Error syncing failed transactions:', error)),
-        this.syncBranches(this.storeId).catch((error) => console.error('Error syncing branches:', error))
+        this.syncProducts().catch((error) =>
+          console.error("Error syncing products:", error)
+        ),
+        this.syncCustomers().catch((error) =>
+          console.error("Error syncing customers:", error)
+        ),
+        this.syncPaymentMethods().catch((error) =>
+          console.error("Error syncing payment methods:", error)
+        ),
+        this.syncDiscounts().catch((error) =>
+          console.error("Error syncing discounts:", error)
+        ),
+        this.syncFailedTrx().catch((error) =>
+          console.error("Error syncing failed transactions:", error)
+        ),
+        this.syncBranches(this.storeId).catch((error) =>
+          console.error("Error syncing branches:", error)
+        ),
       ]);
+
+      console.log("Fetching completed.");
     } catch (error) {
       console.error('Error refreshing data:', error);
-      throw error; // Or handle accordingly
+      throw error;
     }
   }
 
   async sync(): Promise<void> {
     if (this.syncInProgress) {
-      toast.success("Sync already in progress, skipping...")
+      toast.success("Sync already in progress, skipping...");
       console.log("Sync already in progress, skipping...");
       return;
     }
@@ -81,16 +97,15 @@ export class SyncManager {
     try {
       this.syncInProgress = true;
       console.log("Starting sync process...");
-      await this.syncTransactions()
-      await this.syncFailedTrx()
-      await this.syncProducts()
-      await this.syncCustomers()
-      await this.syncPaymentMethods()
-      await this.syncBranches(this.storeId)
-      await this.syncDiscounts()
-
+      await this.syncTransactions();
+      await this.syncFailedTrx();
+      await this.syncProducts();
+      await this.syncCustomers();
+      await this.syncPaymentMethods();
+      await this.syncBranches(this.storeId);
+      await this.syncDiscounts();
     } catch (error) {
-      console.error('Sync failed:', error);
+      console.error("Sync failed:", error);
       throw error;
     } finally {
       this.syncInProgress = false;
@@ -100,19 +115,19 @@ export class SyncManager {
   private async syncProducts() {
     const remoteProducts = await RemoteApi.fetchStoreProducts();
     // console.log("Products to Sync", remoteProducts);
-    await db.transaction('rw', db.products, async () => {
+    await db.transaction("rw", db.products, async () => {
       for (const product of remoteProducts) {
         await db.products.put({
           ...product,
-          lastSyncAt: new Date()
+          lastSyncAt: new Date(),
         });
       }
     });
   }
 
   private async syncCustomers() {
-    const remoteCustomers = await RemoteApi.fetchCustomer()
-    await db.transaction('rw', db.customers, async () => {
+    const remoteCustomers = await RemoteApi.fetchCustomer();
+    await db.transaction("rw", db.customers, async () => {
       for (const customer of remoteCustomers) {
         await db.customers.put(customer);
       }
@@ -141,13 +156,17 @@ export class SyncManager {
           state: null,
           city: null,
           address: null,
-          apply_loyalty_point: Number(transaction.loyaltyPoints) > 0 ? true : false,
-          apply_credit_note_point: Number(transaction.creditNotePoints) > 0 ? true : false,
+          apply_loyalty_point:
+            Number(transaction.loyaltyPoints) > 0 ? true : false,
+          apply_credit_note_point:
+            Number(transaction.creditNotePoints) > 0 ? true : false,
           payable_amount: transaction.payableAmount, //after discount
           exact_total_amount: transaction.originalTotal, //total amount before before any discount
-          payment_type: 'cash',
+          payment_type: "cash",
           discount_id: transaction?.discount?.id || null,
-          created_at: dayjs(transaction.createdAt).format("YYYY-MM-DD HH:mm:ss"),
+          created_at: dayjs(transaction.createdAt).format(
+            "YYYY-MM-DD HH:mm:ss"
+          ),
           loyalty_point_value: transaction.loyaltyPoints,
           credit_note_used: transaction.creditNotePoints,
           payment_methods: transaction.paymentMethods.map((method) => {
@@ -179,12 +198,16 @@ export class SyncManager {
       console.log("Transaction to Sync", transactiontoSync);
 
       // Generate random syncId
-      const syncId = `${Math.floor(Date.now() / 1000)}_SYNC`
+      const syncId = `${Math.floor(Date.now() / 1000)}_SYNC`;
       try {
         // Send to remote API for syncing
-        const response = await RemoteApi.syncTransactions(transactiontoSync as any, syncId);
+        const response = await RemoteApi.syncTransactions(
+          transactiontoSync as any,
+          syncId
+        );
 
-        const { successful_transaction, failed_transaction } = response?.data || {};
+        const { successful_transaction, failed_transaction } =
+          response?.data || {};
 
         const successfulCount = successful_transaction || 0;
         const failedCount = failed_transaction || 0;
@@ -199,12 +222,11 @@ export class SyncManager {
         }
 
         // Mark all transactions as synced regardless of success/failure
-        await db.transaction('rw', db.transactions, async () => {
+        await db.transaction("rw", db.transactions, async () => {
           for (const tx of transactiontoSync) {
             await LocalApi.markTransactionSynced(tx.id as string);
           }
         });
-
       } catch (error) {
         console.error("Failed to sync transactions:", error);
         toast.error("Failed to sync transactions, please try again.");
@@ -227,11 +249,15 @@ export class SyncManager {
 
   async syncSingleTransaction(transaction: any) {
     // const syncId = `${Math.floor(Date.now() / 1000)}_SYNC`
-    const syncId = `${transaction.sync_session_id}`
+    const syncId = `${transaction.sync_session_id}`;
 
     try {
-      const response = await RemoteApi.syncTransactions([transaction?.transaction_data], syncId);
-      const { successful_transaction, failed_transaction } = response?.data || {};
+      const response = await RemoteApi.syncTransactions(
+        [transaction?.transaction_data],
+        syncId
+      );
+      const { successful_transaction, failed_transaction } =
+        response?.data || {};
 
       const successfulCount = successful_transaction || 0;
       const failedCount = failed_transaction || 0;
@@ -243,7 +269,6 @@ export class SyncManager {
         console.log("Transactions synced successfully.");
         toast.success(`Successfully synced ${successfulCount} transactions.`);
       }
-
     } catch (error) {
       console.error("Failed to sync transactions:", error);
       toast.error("Failed to sync transactions, please try again.");
@@ -256,7 +281,7 @@ export class SyncManager {
       return;
     }
     const remotePaymentMethods = await RemoteApi.fetchPaymentMethod();
-    await db.transaction('rw', db.paymentMethods, async () => {
+    await db.transaction("rw", db.paymentMethods, async () => {
       for (const method of remotePaymentMethods) {
         await db.paymentMethods.put(method);
       }
@@ -271,7 +296,7 @@ export class SyncManager {
     }
 
     const remoteDiscounts = await RemoteApi.fetchDiscounts();
-    await db.transaction('rw', db.discounts, async () => {
+    await db.transaction("rw", db.discounts, async () => {
       for (const discount of remoteDiscounts) {
         await db.discounts.put(discount);
       }
@@ -283,8 +308,8 @@ export class SyncManager {
     const failedTransactions = await RemoteApi.fetchFailedTransactions();
     if (failedTransactions.length > 0) {
       const csv = parse(failedTransactions);
-      const blob = new Blob([csv as any], { type: 'text/csv;charset=utf-8;' });
-      saveAs(blob, 'failed_transactions.csv');
+      const blob = new Blob([csv as any], { type: "text/csv;charset=utf-8;" });
+      saveAs(blob, "failed_transactions.csv");
     }
   }
 
@@ -296,7 +321,7 @@ export class SyncManager {
 
     const remoteTrx = await RemoteApi.fetchFailedTransactions();
     // console.log(remoteTrx?.data)
-    await db.transaction('rw', db.failedSyncTransactions, async () => {
+    await db.transaction("rw", db.failedSyncTransactions, async () => {
       for (const trx of remoteTrx.data) {
         await db.failedSyncTransactions.put(trx);
       }
@@ -306,11 +331,10 @@ export class SyncManager {
 
   async syncBranches(soterId: string | number) {
     const remoteBranches = await RemoteApi.fetchPos(soterId);
-    await db.transaction('rw', db.branches, async () => {
+    await db.transaction("rw", db.branches, async () => {
       for (const branch of remoteBranches) {
         await db.branches.put(branch);
       }
     });
   }
-
 }

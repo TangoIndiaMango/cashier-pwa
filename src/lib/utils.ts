@@ -25,3 +25,5 @@ export const generateUniqueIdUsingStoreIDAsPrefix = (storeID: any) => {
   const timestamp = Date.now().toString().slice(-4);
   return `${storeID}/${timestamp}`;
 };
+
+export const delay = async (secs = 5) => new Promise((resolve) => setTimeout(resolve, secs * 1000))

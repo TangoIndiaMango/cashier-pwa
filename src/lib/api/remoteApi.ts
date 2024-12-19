@@ -1,28 +1,53 @@
 // src/lib/api/remoteApi.ts
 import { Transaction } from "@/types/type";
 import axios from "axios";
+import toast from "react-hot-toast";
 import {
   LocalCustomer,
   LocalDiscount,
   LocalPaymentMethod,
   LocalProduct,
 } from "../db/schema";
-import toast from "react-hot-toast";
-
-// type AnyData = any
 
 const api = axios.create({
   baseURL: "https://peresiana-ecomm-backend.nigeriasbsc.com/public/api/v3",
   headers: {
     "Content-Type": "application/json",
-    Authorization: `Bearer ${localStorage.getItem("token")}`,
   },
 });
 
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      console.error("Unauthorized access. Please log in again.");
+      toast.error("Session expired. Please log in again.");
+      window.location.href = "/login";
+    } else {
+      console.error("API Error: ", error);
+      toast.error("An error occurred, please try again.");
+    }
+    return Promise.reject(error);
+  }
+);
+
 export class RemoteApi {
+
   static async fetchStoreProducts(): Promise<LocalProduct[]> {
     const response = await api.post("/products/all");
-
     return response.data?.data.map((item) => ({
       id: item.id,
       product_name: item.product_name,
@@ -39,7 +64,6 @@ export class RemoteApi {
 
   static async fetchCustomer(): Promise<LocalCustomer[]> {
     const response = await api.post("/customers/all");
-    // console.log(response?.data?.data);
     return response.data?.data.map((item) => ({
       age: item.age,
       credit_note_balance: item.credit_note_balance,
@@ -51,9 +75,9 @@ export class RemoteApi {
       phoneno: item.phoneno,
     }));
   }
+
   static async fetchPaymentMethod(): Promise<LocalPaymentMethod[]> {
     const response = await api.get("/mop_customers/all");
-    // console.log(response?.data?.data);
     return response.data?.data.map((item) => ({
       id: item.id,
       account_id: item.account_id,
@@ -67,7 +91,6 @@ export class RemoteApi {
 
   static async fetchDiscounts(): Promise<LocalDiscount[]> {
     const response = await api.get("/discounts/all");
-
     return response.data?.data.map((item) => ({
       id: item.id,
       createdAt: item.createdAt,
@@ -100,18 +123,12 @@ export class RemoteApi {
         {
           sync_session_id: syncId,
           transactions,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-            "Content-Type": "application/json",
-          },
         }
       );
       return response.data;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Sync failed:", error);
-      toast.error("Sync failed:" + error);
+      toast.error("Sync failed: " + error?.message);
       throw error;
     }
   }
@@ -128,20 +145,10 @@ export class RemoteApi {
     const pageNumber = page ? page : 1;
     const response = await api.get(`transactions/un-sync`);
     return response.data;
-    // return {
-    //   data: response.data.data.data,
-    //   current_page: response.data.current_page,
-    //   per_page: response.data.per_page,
-    //   total: response.data.total
-    // };
   }
 
   static async downloadFailedTransactions(params: any): Promise<any> {
     const response = await api.get("transactions/un-sync", {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-        "Content-Type": "application/json",
-      },
       params,
     });
     return response.data;
@@ -149,7 +156,6 @@ export class RemoteApi {
 
   static async fetchPos(storeId: string | number): Promise<any> {
     const response = await api.get(`mop_terminals/${storeId}`);
-    // console.log(response?.data?.data);
     return response.data.data;
   }
 
@@ -158,3 +164,4 @@ export class RemoteApi {
     return response.data.data;
   }
 }
+

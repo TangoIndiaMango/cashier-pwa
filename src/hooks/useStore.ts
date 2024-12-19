@@ -1,19 +1,18 @@
-import { useEffect, useState, useCallback } from "react";
-import { useOnlineStatus } from "./useOnlineStatus";
-import { SyncManager } from "../lib/sync/syncManager";
-import { LocalApi } from "../lib/api/localApi";
 import { LocalApiMethods } from "@/lib/api/localMethods";
+import { TransactionSync } from "@/types/trxType";
+import { useCallback, useEffect, useState } from "react";
+import toast from "react-hot-toast";
+import { LocalApi } from "../lib/api/localApi";
 import {
-  LocalProduct,
+  LocalBranch,
+  LocalCustomer,
   LocalDiscount,
   LocalPaymentMethod,
-  LocalCustomer,
-  LocalBranch,
+  LocalProduct,
   LocalTransaction,
   db
 } from "../lib/db/schema";
-import { TransactionSync } from "@/types/trxType";
-import toast from "react-hot-toast";
+import { SyncManager } from "../lib/sync/syncManager";
 
 export function useStore() {
   const [products, setProducts] = useState<LocalProduct[]>([]);
@@ -23,10 +22,10 @@ export function useStore() {
   const [customers, setCustomers] = useState<LocalCustomer[]>([]);
   const [branches, setBranches] = useState<LocalBranch[]>([]);
   const [loading, setLoading] = useState(false);
-  const [lastSyncTime, setLastSyncTime] = useState<number | null>(null);
+  // const [lastSyncTime, setLastSyncTime] = useState<number | null>(null);
   const [error, setError] = useState<Error | null>(null);
-  const { isOnline } = useOnlineStatus();
-  const SHOULD_FETCH = 30 * 60 * 1000
+  // const { isOnline } = useOnlineStatus();
+  // const SHOULD_FETCH = 30 * 60 * 1000
 
   const syncManager = SyncManager.getInstance();
 

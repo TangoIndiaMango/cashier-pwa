@@ -62,9 +62,9 @@ const CustomerDisplay = ({ customer }) => {
             )}
 
             {customer.email && (
-              <div className="flex items-center gap-2 text-sm">
+              <div className="flex flex-wrap items-center gap-2 text-sm">
                 <Mail className="w-4 h-4 text-gray-500" />
-                <span>{customer.email}</span>
+                <span className="line-clamp-1">{customer.email}</span>
               </div>
             )}
           </div>

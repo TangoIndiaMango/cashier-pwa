@@ -14,8 +14,9 @@ import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
-  TooltipTrigger
+  TooltipTrigger,
 } from "./ui/tooltip";
+import ModernLoadingScreen from "./LoadingScreen";
 
 function getAbbreviation(firstName, lastName) {
   if (!firstName || !lastName) {
@@ -52,7 +53,7 @@ const Layout = () => {
   };
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <ModernLoadingScreen />;
   }
 
   if (!isAuthenticated) {

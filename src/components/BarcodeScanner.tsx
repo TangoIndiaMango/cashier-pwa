@@ -50,7 +50,7 @@ const BarcodeScanner = () => {
   }, [isScannerActive]);
 
   return (
-    <div>
+    <div className="w-full">
       <Button
         size="lg"
         className={`text-white  hover:opacity-80 rounded-lg !border-none w-full ${

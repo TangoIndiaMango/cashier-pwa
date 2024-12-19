@@ -20,7 +20,7 @@ export class SyncManager {
       ? this.userInfo.store[0].id
       : 1;
 
-  private constructor() {}
+  private constructor() { }
 
   static getInstance(): SyncManager {
     if (!SyncManager.instance) {
@@ -58,34 +58,19 @@ export class SyncManager {
   async refresh() {
     try {
       console.log("Starting fetch...");
-     
-      await Promise.all([
-        this.syncProducts().catch((error) =>
-          console.error("Error syncing products:", error)
-        ),
-        this.syncCustomers().catch((error) =>
-          console.error("Error syncing customers:", error)
-        ),
-        this.syncPaymentMethods().catch((error) =>
-          console.error("Error syncing payment methods:", error)
-        ),
-        this.syncDiscounts().catch((error) =>
-          console.error("Error syncing discounts:", error)
-        ),
-        this.syncFailedTrx().catch((error) =>
-          console.error("Error syncing failed transactions:", error)
-        ),
-        this.syncBranches(this.storeId).catch((error) =>
-          console.error("Error syncing branches:", error)
-        ),
-      ]);
+      await this.syncProducts();
+      await this.syncCustomers();
+      await this.syncPaymentMethods();
+      await this.syncDiscounts();
+      await this.syncFailedTrx();
+      await this.syncBranches(this.storeId);
 
       console.log("Fetching completed.");
     } catch (error) {
       console.error('Error refreshing data:', error);
-      throw error;
     }
   }
+
 
   async sync(): Promise<void> {
     if (this.syncInProgress) {

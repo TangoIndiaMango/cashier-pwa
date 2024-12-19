@@ -7,13 +7,14 @@ import { RemoteApi } from "@/lib/api/remoteApi";
 import { db } from "@/lib/db/schema";
 import toast from "react-hot-toast";
 import { useStore } from "@/hooks/useStore";
+import { delay } from "@/lib/utils";
 
 const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const { triggerFetch } = useStore();
   const [formData, setFormData] = useState({
     email: "",
-    password: "",
+    password: ""
   });
   const [loading, setLoading] = useState(false);
 
@@ -31,41 +32,42 @@ const LoginPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+
+    // Check if email and password are filled
     if (!formData.email || !formData.password) {
-      toast.error("Fill in email or password");
+      toast.error("Fill in email and password");
       setLoading(false);
       return;
     }
+
     try {
-      const res = await RemoteApi.login(formData?.email, formData?.password);
-      console.log(res?.data);
-      // set item to local storage
-      localStorage.setItem("token", res?.data?.accessToken);
-      localStorage.setItem("user", JSON.stringify(res?.data?.user));
-      await openDB();
-      await triggerFetch();
-      setFormData({
-        email: "",
-        password: "",
-      });
-      window.location.href = "/";
-      setLoading(false);
+      const res = await RemoteApi.login(formData.email, formData.password);
+
+      if (res?.data?.accessToken) {
+        // Set item to local storage
+        localStorage.setItem("token", res?.data?.accessToken);
+        localStorage.setItem("user", JSON.stringify(res?.data?.user));
+        console.log("Sleeping...");
+        await delay();
+        await openDB();
+        await triggerFetch();
+
+        setFormData({
+          email: "",
+          password: ""
+        });
+
+        window.location.href = "/";
+      } else {
+        toast.error("Invalid credentials");
+      }
     } catch (error) {
-      console.log("An error occured", error);
-      setFormData({
-        email: "",
-        password: "",
-      });
+      console.log("An error occurred:", error);
+      toast.error("An error occurred. Please try again later.");
+    } finally {
       setLoading(false);
     }
-    setFormData({
-      email: "",
-      password: "",
-    });
-    setLoading(false);
   };
-
-
 
   return (
     <AuthLayout>

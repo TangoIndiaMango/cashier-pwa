@@ -23,7 +23,7 @@ export function useAuth() {
         try {
           const user = await RemoteApi.getUserByToken(token);
           if (user) {
-            localStorage.setItem("user", JSON.stringify(user));
+            localStorage.setItem("user", JSON.stringify(user?.user));
             localStorage.setItem("token", token);
             db.open();
             triggerLocalFetch();

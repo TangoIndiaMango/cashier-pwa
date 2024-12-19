@@ -16,7 +16,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
+  SelectValue,
 } from "@/components/ui/select";
 import { CustomSwitch } from "@/components/ui/switch";
 import { useApplyPoints } from "@/hooks/useApplyPoints";
@@ -26,7 +26,7 @@ import { usePayment } from "@/hooks/usePayment";
 import { useTransaction } from "@/hooks/useTransaction";
 import {
   formatCurrency,
-  generateUniqueIdUsingStoreIDAsPrefix
+  generateUniqueIdUsingStoreIDAsPrefix,
 } from "@/lib/utils";
 
 import { Search, ShoppingBag } from "lucide-react";
@@ -48,7 +48,7 @@ const initCustomer = {
   address: null,
   loyalty_points: null,
   credit_note_balance: null,
-  id: null
+  id: null,
 };
 
 const POSSystem = () => {
@@ -62,20 +62,20 @@ const POSSystem = () => {
     clearCart,
     handleCartTotalDiscount,
     cartDiscountCode,
-    setCartDiscountCode
+    setCartDiscountCode,
   } = useCart();
   const [showCartDiscount, setShowCartDiscount] = useState(false);
 
   const { submitTransaction } = useTransaction();
-  const store = useStore();
-  console.log("store", store.products);
+  // const store = useStore();
+  // console.log("store", store.products);
   // console.log(transactions);
   const {
     paymentStatus,
     setPaymentStatus,
     paymentMethod,
     handlePaymentSubmit,
-    setPaymentMethod
+    setPaymentMethod,
   } = usePayment();
 
   const { customer, handleAddCustomer, setCustomer } = useCustomer();
@@ -105,7 +105,7 @@ const POSSystem = () => {
     const { name, value } = e.target;
     setCustomerDetails((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -136,7 +136,7 @@ const POSSystem = () => {
         cartRecords.total -
         (Number(loyaltyPoints) || 0) -
         (Number(creditNotePoints) || 0),
-      noDiscountAmount: cartRecords?.total
+      noDiscountAmount: cartRecords?.total,
     };
     console.log(data);
     await submitTransaction(data as any);
@@ -162,13 +162,13 @@ const POSSystem = () => {
   const checkCustomerAndCart = () => {
     if (!selectedCustomer) {
       toast.error("No customer selected", {
-        className: "bg-red-500 text-white"
+        className: "bg-red-500 text-white",
       });
       return false;
     }
     if (cartItems?.length < 1) {
       toast.error("No products selected", {
-        className: "bg-red-500 text-white"
+        className: "bg-red-500 text-white",
       });
       return false;
     }
@@ -182,7 +182,7 @@ const POSSystem = () => {
     if (checked) {
       if (!customer?.loyalty_points) {
         return toast.error("Sorry, No loyalty points", {
-          className: "bg-red-500 text-white"
+          className: "bg-red-500 text-white",
         });
       }
 
@@ -194,7 +194,7 @@ const POSSystem = () => {
       setWithCreditNote(false);
       // handleApplyLoyaltyPoints(Number(loyaltyPoints), true);
       toast.error("Credit Note points removed.", {
-        className: "bg-red-500 text-white"
+        className: "bg-red-500 text-white",
       });
     }
   };
@@ -205,7 +205,7 @@ const POSSystem = () => {
     if (checked) {
       if (!customer?.loyalty_points) {
         return toast.error("Sorry, No loyalty points", {
-          className: "bg-red-500 text-white"
+          className: "bg-red-500 text-white",
         });
       }
 
@@ -217,7 +217,7 @@ const POSSystem = () => {
       setWithLoyalty(false);
       // handleApplyLoyaltyPoints(Number(loyaltyPoints), true);
       toast.error("Loyalty points removed.", {
-        className: "bg-red-500 text-white"
+        className: "bg-red-500 text-white",
       });
     }
   };

@@ -141,7 +141,7 @@ const PaymentMethodModal = ({ isOpen, onClose, total, onPaymentSubmit }) => {
                 {/* Conditionally render branch selection if POS Machine is selected */}
                 {entry.mode_of_payment_id === "13" && (
                   <div>
-                    <Label>Select Branch</Label>
+                    <Label>Select Terminal</Label>
                     <Select
                       value={entry.mode_of_payment_pos_id}
                       onValueChange={(value) =>
@@ -154,7 +154,7 @@ const PaymentMethodModal = ({ isOpen, onClose, total, onPaymentSubmit }) => {
                     >
                       <SelectTrigger>
                         <SelectValue
-                          placeholder="Select branch"
+                          placeholder="Select terminal"
                           className="max-w-md overflow-auto placeholder:text-gray-500"
                         />
                       </SelectTrigger>

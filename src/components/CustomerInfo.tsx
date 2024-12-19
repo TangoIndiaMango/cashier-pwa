@@ -63,7 +63,7 @@ const CustomerComponent: React.FC<CustomerComponentProps> = ({
           customer.firstname?.toLowerCase().includes(debouncedSearchTerm) ||
           customer.lastname?.toLowerCase().includes(debouncedSearchTerm) ||
           customer.email?.toLowerCase().includes(debouncedSearchTerm) ||
-          customer.phoneno?.toLowerCase().includes(debouncedSearchTerm)
+          customer.phoneno?.toString()?.includes(debouncedSearchTerm)
         );
       });
       setFilteredCustomers(filtered);

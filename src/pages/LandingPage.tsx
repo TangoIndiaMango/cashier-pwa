@@ -33,6 +33,7 @@ import { Search, ShoppingBag } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import { useStore } from "@/hooks/useStore";
 
 const initCustomer = {
   firstname: "",
@@ -66,6 +67,8 @@ const POSSystem = () => {
   const [showCartDiscount, setShowCartDiscount] = useState(false);
 
   const { submitTransaction } = useTransaction();
+  const store = useStore();
+  console.log("store", store.products);
   // console.log(transactions);
   const {
     paymentStatus,

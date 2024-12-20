@@ -3,12 +3,10 @@ import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
 import path from "path";
 
-// Determine the base URL dynamically
-const isProduction = process.env.NODE_ENV === "production";
-const base = isProduction ? "/pwa/" : "/";
+// const isProduction = process.env.NODE_ENV === "production";
+// const base = isProduction ? "/pwa/" : "/";
 
 export default defineConfig({
-  base,
   plugins: [
     react(),
     VitePWA({
@@ -30,13 +28,13 @@ export default defineConfig({
         ],
       },
       manifest: {
-        id: "/pwa/",
         name: "Persianas Cashier",
         short_name: "Persianas",
-        start_url: "/pwa/",
+        description: "A Persianas retail app with offline support.",
+        start_url: "/",
         display: "standalone",
         background_color: "#ffffff",
-        description: "A Persianas retail app with offline support.",
+        theme_color: "#2196f3",
         icons: [
           {
             src: "icons/settings.png",
@@ -55,10 +53,6 @@ export default defineConfig({
             purpose: "any maskable",
           },
         ],
-        theme_color: "#2196f3",
-        orientation: "portrait",
-        lang: "en-US",
-        dir: "ltr",
         screenshots: [
           {
             src: "screenshots/cashier.jpg",

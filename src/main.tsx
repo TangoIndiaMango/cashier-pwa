@@ -19,7 +19,7 @@ const updateSW = registerSW({
 
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-  <BrowserRouter>
+  <BrowserRouter basename='/pwa/'>
     <App />
   </BrowserRouter>
 </React.StrictMode>,

@@ -8,10 +8,12 @@ import { db } from "@/lib/db/schema";
 import toast from "react-hot-toast";
 import { useStore } from "@/hooks/useStore";
 import { delay } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
 
 const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const { triggerFetch } = useStore();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: "",
     password: ""
@@ -57,7 +59,7 @@ const LoginPage = () => {
           password: ""
         });
 
-        window.location.href = "/";
+        navigate(`/`);
       } else {
         toast.error("Invalid credentials");
       }

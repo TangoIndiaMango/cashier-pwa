@@ -26,4 +26,4 @@ export const generateUniqueIdUsingStoreIDAsPrefix = (storeID: any) => {
   return `${storeID}/${timestamp}`;
 };
 
-export const delay = async (secs = 5) => new Promise((resolve) => setTimeout(resolve, secs * 1000))
+export const delay = async (secs = 3) => new Promise((resolve) => setTimeout(resolve, secs * 1000))

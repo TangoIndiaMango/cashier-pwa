@@ -1,10 +1,13 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import { VitePWA } from 'vite-plugin-pwa'
-import path from "path"
-// https://vite.dev/config/
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import { VitePWA } from "vite-plugin-pwa";
+import path from "path";
+
+// const isProduction = process.env.NODE_ENV === "production";
+// const base = isProduction ? "/pwa/" : "/";
 
 export default defineConfig({
+  base: '/pwa/',
   plugins: [react(),
   VitePWA({
     registerType: 'autoUpdate',
@@ -76,7 +79,7 @@ export default defineConfig({
   },
   build: {
     rollupOptions: {
-      external: ['src/help/**/*'],
-    }
-  }
-})
+      external: ["src/help/**/*"],
+    },
+  },
+});

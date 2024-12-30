@@ -35,7 +35,7 @@ api.interceptors.response.use(
     if (error.response && error.response.status === 401) {
       console.error("Unauthorized access. Please log in again.");
       toast.error("Session expired. Please log in again.");
-      window.location.href = "/login";
+      window.location.href = `/login`;
     } else {
       console.error("API Error: ", error);
       toast.error("An error occurred, please try again.");

@@ -1,7 +1,6 @@
 {
   "name": "cashier-persianas",
   "private": true,
-  "homepage": "pwa",
   "version": "0.0.0",
   "type": "module",
   "scripts": {

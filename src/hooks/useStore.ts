@@ -32,7 +32,7 @@ export function useStore() {
 
   const refreshDB = async () => {
     await db.open();
-    await delay()
+    await delay(1)
   };
 
   const triggerFetch = async () => {

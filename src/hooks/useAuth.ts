@@ -12,19 +12,20 @@ export function useAuth() {
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
   const { triggerFetch } = useStore();
-
+const SLEEP_TIME = 1
   useEffect(() => {
     const checkAuth = async () => {
       const storedToken = localStorage.getItem("token");
       if (storedToken) {
         console.log("Sleeping...");
-        await delay();
+        await delay(SLEEP_TIME);
         db.open();
         console.log("Sleeping before loading data...");
-        await delay(2);
+        await delay(SLEEP_TIME);
         triggerFetch();
         setIsAuthenticated(true);
         navigate("/");
+        setIsLoading(false);
         return
       } else if (token) {
         try {
@@ -33,13 +34,14 @@ export function useAuth() {
             localStorage.setItem("user", JSON.stringify(user?.user));
             localStorage.setItem("token", token);
             console.log("Sleeping...");
-            await delay();
+            await delay(SLEEP_TIME);
             db.open();
             console.log("Sleeping before loading data...");
-            await delay(2);
+            await delay(SLEEP_TIME);
             triggerFetch();
             setIsAuthenticated(true);
             navigate("/");
+            setIsLoading(false);
             return
           }
         } catch (error) {
@@ -49,6 +51,7 @@ export function useAuth() {
         return
       } else {
         navigate("/login");
+        setIsLoading(false);
       }
       setIsLoading(false);
     };

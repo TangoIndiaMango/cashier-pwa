@@ -13,6 +13,7 @@ import {
   db
 } from "../lib/db/schema";
 import { SyncManager } from "../lib/sync/syncManager";
+import { delay } from "@/lib/utils";
 
 export function useStore() {
   const [products, setProducts] = useState<LocalProduct[]>([]);
@@ -31,7 +32,7 @@ export function useStore() {
 
   const refreshDB = async () => {
     await db.open();
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    await delay()
   };
 
   const triggerFetch = async () => {

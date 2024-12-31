@@ -1,15 +1,15 @@
-import React, { useState } from "react";
 import { FailedTransactionTable } from "@/components/FailedTransactionTable";
 import { Button } from "@/components/ui/button";
-import { useStore } from "../hooks/useStore";
 import useGoBack from "@/hooks/useGoBack";
-import { RemoteApi } from '../lib/api/remoteApi';
 import { saveAs } from 'file-saver';
-import * as XLSX from 'xlsx';
+import { useState } from "react";
 import toast from "react-hot-toast";
+import * as XLSX from 'xlsx';
+import { useStore } from "../hooks/useStore";
+import { RemoteApi } from '../lib/api/remoteApi';
 
 const FailedTransaction = () => {
-  const { failedTrx } = useStore();
+  // const { failedTrx } = useStore();
   const { goBackButton } = useGoBack();
 
   const [loading, setLoading] = useState(false);
@@ -78,12 +78,12 @@ const FailedTransaction = () => {
       </div>
 
       {/* {downloadError && (
-        <div className="text-red-500 mt-4">
+        <div className="mt-4 text-red-500">
           {downloadError}
         </div>
       )} */}
 
-      <FailedTransactionTable failedTrx={failedTrx} />
+      <FailedTransactionTable/>
     </div>
   );
 };

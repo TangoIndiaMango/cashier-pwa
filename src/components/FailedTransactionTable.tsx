@@ -10,23 +10,23 @@ import {
 } from "@/components/ui/table";
 import { useCart } from "@/hooks/useCart";
 import { LocalTransactionItem } from "@/lib/db/schema";
+import { SyncManager } from "@/lib/sync/syncManager";
 import { formatBalance } from "@/lib/utils";
-import { Edit, Eye, Loader2, LucideFolderSync, Trash2 } from "lucide-react";
+import dayjs from 'dayjs';
+import { Eye, Loader2, LucideFolderSync } from "lucide-react";
 import { useState } from "react";
+import { useStore } from "../hooks/useStore";
 import { ProductDetailsDialog } from "./Modals/ProductDetailsDialog";
 import ProductSearchModal from "./Modals/ProductSearchModal";
-import { useStore } from "../hooks/useStore";
-import dayjs from 'dayjs';
-import { SyncManager } from "@/lib/sync/syncManager";
 
-export function FailedTransactionTable({ failedTrx }) {
+export function FailedTransactionTable() {
   const { updateCartItem } = useCart();
 
   const [selectedProduct, setSelectedProduct] =
     useState<LocalTransactionItem | null>(null);
   const [showEditProd, setShowEditProd] = useState(false);
   const [showViewProd, setShowViewProd] = useState(false);
-  const { loading } = useStore();
+  const { loading, failedTrx } = useStore();
   const syncMang = SyncManager.getInstance()
 
   const handleEdit = (product: LocalTransactionItem, action: string) => {
@@ -150,16 +150,3 @@ export function FailedTransactionTable({ failedTrx }) {
     </div>
   );
 }
-
-// function getStatusColor(status: string | undefined) {
-//   switch (status?.toLowerCase()) {
-//     case "completed":
-//       return "bg-green-100 text-green-800";
-//     case "draft":
-//       return "bg-yellow-100 text-yellow-800";
-//     case "failed":
-//       return "bg-red-100 text-red-800";
-//     default:
-//       return "bg-gray-100 text-gray-800";
-//   }
-// }

@@ -19,14 +19,14 @@ import { useStore } from "../hooks/useStore";
 import { ProductDetailsDialog } from "./Modals/ProductDetailsDialog";
 import ProductSearchModal from "./Modals/ProductSearchModal";
 
-export function FailedTransactionTable() {
+export function FailedTransactionTable({failedTrx}) {
   const { updateCartItem } = useCart();
 
   const [selectedProduct, setSelectedProduct] =
     useState<LocalTransactionItem | null>(null);
   const [showEditProd, setShowEditProd] = useState(false);
   const [showViewProd, setShowViewProd] = useState(false);
-  const { loading, failedTrx } = useStore();
+  const { loading } = useStore();
   const syncMang = SyncManager.getInstance()
 
   const handleEdit = (product: LocalTransactionItem, action: string) => {

@@ -6,9 +6,10 @@ import { useState } from "react";
 import toast from "react-hot-toast";
 import * as XLSX from "xlsx";
 import { RemoteApi } from "../lib/api/remoteApi";
+import { useStore } from "@/hooks/useStore";
 
 const FailedTransaction = () => {
-  // const { failedTrx } = useStore();
+  const { failedTrx } = useStore();
   const { goBackButton } = useGoBack();
 
   const [loading, setLoading] = useState(false);
@@ -97,7 +98,7 @@ const FailedTransaction = () => {
         </div>
       )} */}
 
-      <FailedTransactionTable />
+      <FailedTransactionTable failedTrx={failedTrx} />
     </div>
   );
 };

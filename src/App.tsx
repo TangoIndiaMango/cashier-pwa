@@ -15,9 +15,10 @@ function App() {
         <Route path="/" element={<Layout />}>
           {/* <Route path="/:id" element={<POSPage />} /> */}
           <Route index element={<POSSystem />} />
-          <Route path="/failed-sync" element={<FailedTransaction />} />
+          {/* <Route path="/failed-sync" element={<FailedTransaction />} /> */}
         </Route>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/failed" element={<FailedTransaction />} />
       </Routes>
       <Toaster position="top-right" />
     </>

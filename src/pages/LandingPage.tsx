@@ -228,10 +228,7 @@ const POSSystem = () => {
         {/* Header Section */}
         <header className="flex items-center justify-between w-full gap-5 p-5">
           <h1 className="flex-1 text-2xl font-bold">Orders</h1>
-          <Button
-            variant={"destructive"}
-            onClick={() => navigate("/failed-sync")}
-          >
+          <Button variant={"destructive"} onClick={() => navigate("/failed")}>
             Failed Sync
           </Button>
         </header>

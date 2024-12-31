@@ -3,9 +3,9 @@ import { FailedTransactionTable } from "@/components/FailedTransactionTable";
 import { Button } from "@/components/ui/button";
 import { useStore } from "../hooks/useStore";
 import useGoBack from "@/hooks/useGoBack";
-import { RemoteApi } from '../lib/api/remoteApi';
-import { saveAs } from 'file-saver';
-import * as XLSX from 'xlsx';
+import { RemoteApi } from "../lib/api/remoteApi";
+import { saveAs } from "file-saver";
+import * as XLSX from "xlsx";
 import toast from "react-hot-toast";
 
 const FailedTransaction = () => {
@@ -20,8 +20,10 @@ const FailedTransaction = () => {
   };
 
   const downloadCSV = (data: any[]) => {
-    const csvContent = data.map(row => Object.values(row).join(',')).join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const csvContent = data
+      .map((row) => Object.values(row).join(","))
+      .join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     saveAs(blob, "failed_transactions.csv");
   };
 
@@ -29,19 +31,24 @@ const FailedTransaction = () => {
     const worksheet = XLSX.utils.json_to_sheet(data);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Failed Transactions");
-    const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-    const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8' });
+    const excelBuffer = XLSX.write(workbook, {
+      bookType: "xlsx",
+      type: "array",
+    });
+    const blob = new Blob([excelBuffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8",
+    });
     saveAs(blob, "failed_transactions.xlsx");
   };
 
-  const handleDownload = async (fileType: 'csv' | 'excel') => {
+  const handleDownload = async (fileType: "csv" | "excel") => {
     setLoading(true);
     // setDownloadError(null);
     try {
       const result = await RemoteApi.downloadFailedTransactions(params);
       const data = result?.data?.data;
       if (data && Array.isArray(data)) {
-        if (fileType === 'csv') {
+        if (fileType === "csv") {
           downloadCSV(data);
         } else {
           downloadExcel(data);
@@ -67,10 +74,18 @@ const FailedTransaction = () => {
             Failed Sync Transactions
           </h1>
           <div className="space-x-2">
-            <Button variant="lightblue" onClick={() => handleDownload('csv')} disabled={loading}>
+            <Button
+              variant="lightblue"
+              onClick={() => handleDownload("csv")}
+              disabled={loading}
+            >
               {loading ? "Downloading..." : "Download CSV"}
             </Button>
-            <Button variant="secondary" onClick={() => handleDownload('excel')} disabled={loading}>
+            <Button
+              variant="secondary"
+              onClick={() => handleDownload("excel")}
+              disabled={loading}
+            >
               {loading ? "Downloading..." : "Download Excel"}
             </Button>
           </div>
@@ -89,4 +104,3 @@ const FailedTransaction = () => {
 };
 
 export default FailedTransaction;
-

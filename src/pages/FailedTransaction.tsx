@@ -1,15 +1,12 @@
 import { FailedTransactionTable } from "@/components/FailedTransactionTable";
 import { Button } from "@/components/ui/button";
 import useGoBack from "@/hooks/useGoBack";
+import { useStore } from "@/hooks/useStore";
 import { saveAs } from "file-saver";
 import { useState } from "react";
-import { RemoteApi } from "../lib/api/remoteApi";
-import { saveAs } from "file-saver";
-import * as XLSX from "xlsx";
 import toast from "react-hot-toast";
 import * as XLSX from "xlsx";
 import { RemoteApi } from "../lib/api/remoteApi";
-import { useStore } from "@/hooks/useStore";
 
 const FailedTransaction = () => {
   const { failedTrx } = useStore();

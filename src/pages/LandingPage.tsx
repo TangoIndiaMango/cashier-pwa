@@ -228,10 +228,7 @@ const POSSystem = () => {
         {/* Header Section */}
         <header className="flex items-center justify-between w-full gap-5 p-5">
           <h1 className="flex-1 text-2xl font-bold">Orders</h1>
-          <Button
-            variant={"destructive"}
-            onClick={() => navigate("/failed-sync")}
-          >
+          <Button variant={"destructive"} onClick={() => navigate("/failed")}>
             Failed Sync
           </Button>
         </header>
@@ -242,10 +239,10 @@ const POSSystem = () => {
         <div className="w-full p-3 space-y-6 md:col-span-2">
           {/* Product Table */}
           <div className="flex-1 w-full p-3 space-y-10 bg-white border rounded-lg shadow-sm h-fit">
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between w-full gap-5 h-fit">
+            <div className="flex flex-col w-full gap-5 lg:flex-row lg:items-center lg:justify-between h-fit">
               <div>
                 <h1 className="text-2xl font-bold">Current Transaction</h1>
-                <p className="text-gray-500 text-sm">
+                <p className="text-sm text-gray-500">
                   You're viewing the current transaction below
                 </p>
               </div>
@@ -357,7 +354,7 @@ const POSSystem = () => {
                     setShowCartDiscount(true);
                     setCartDiscountCode("");
                   }}
-                  className="w-fit py-2 rounded-lg"
+                  className="py-2 rounded-lg w-fit"
                 >
                   Apply
                 </Button>
@@ -397,7 +394,7 @@ const POSSystem = () => {
               />
             </div>
 
-            <div className="space-y-2 my-2">
+            <div className="my-2 space-y-2">
               <div className="flex justify-between">
                 <span className="text-sm text-gray-500">Total Items</span>
                 <span>{cartItems.length}</span>

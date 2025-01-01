@@ -23,7 +23,6 @@ export function useStore() {
   const [customers, setCustomers] = useState<LocalCustomer[]>([]);
   const [branches, setBranches] = useState<LocalBranch[]>([]);
   const [loading, setLoading] = useState(false);
-  // const [lastSyncTime, setLastSyncTime] = useState<number | null>(null);
   const [error, setError] = useState<Error | null>(null);
   // const { isOnline } = useOnlineStatus();
   // const SHOULD_FETCH = 30 * 60 * 1000

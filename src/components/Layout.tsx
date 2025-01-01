@@ -68,7 +68,7 @@ const Layout = () => {
         <nav className="flex items-center justify-between w-full px-6 py-4 border-b shadow-sm">
           <div className="flex items-center gap-4">
             <img
-              src="/persianas-logo-2.svg"
+              src="persianas-logo-2.svg"
               alt="logo"
               className="h-6 md:h-10 lg:h-10 xl:h-12"
             />

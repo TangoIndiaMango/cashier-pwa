@@ -28,47 +28,74 @@ export default defineConfig({
       ]
     },
     manifest: {
-      id: '/pos-app',
-      name: 'Persianas Cashier',
-      short_name: 'Persianas',
-      start_url: '.',
-      display: 'standalone',
-      background_color: '#ffffff',
-      description: 'A persianas retail app with offline support.',
-      icons: [
+      "id": "/pwa",
+      "name": "Persianas Cashier",
+      "short_name": "Persianas",
+      "start_url": "/pwa/",
+      "display": "standalone",
+      "background_color": "#ffffff",
+      "description": "A persianas retail app with offline support.",
+      "icons": [
         {
-          src: '/icons/settings.png',
-          sizes: '192x192',
-          type: 'image/png',
+          "src": "/pwa/pers-logo.svg",
+          "sizes": "210x89",
+          "type": "image/svg+xml",
+          "purpose": "any"
         },
         {
-          src: '/pers-logo.svg',
-          sizes: '512x512',
-          type: 'image/png',
+          "src": "/pwa/pers-logo.svg",
+          "sizes": "210x89",
+          "type": "image/svg+xml",
+          "purpose": "any"
         },
         {
-          src: '/pers-logo.svg',
-          sizes: '512x512',
-          type: 'image/png',
-          purpose: 'any maskable',
+          "src": "/pwa/pers-logo.svg",
+          "sizes": "210x89",
+          "type": "image/svg+xml",
+          "purpose": "any"
+        },
+        {
+          "src": "/pwa/pwa-square.webp",
+          "sizes": "144x63",
+        },
+        {
+          "src": "/pwa/pwa-512.png",
+          "sizes": "512x512",
+          "type": "image/png",
+          "purpose": "maskable"
+        },
+        {
+          "src": "/pwa/pwa-square-2.webp",
+          "sizes": "144x144",
+          "type": "image/webp",
+          "purpose": "any"
         }
       ],
-      theme_color: '#2196f3',
-      orientation: 'portrait',
-      lang: 'en-US',
-      dir: 'ltr',
-      screenshots: [{
-        src: "/screenshots/cashier.jpg",
-        sizes: "1080x1920",
-        type: "image/png",
-        form_factor: 'narrow',
-      },
-      {
-        src: "/screenshots/auth-bg.svg",
-        sizes: "1080x1920",
-        type: "image/png",
-        form_factor: 'wide',
-      }]
+      "theme_color": "#2F3F9E",
+      "orientation": "portrait",
+      "lang": "en-US",
+      "dir": "ltr",
+      "screenshots": [
+        {
+          "src": "/pwa/screenshots/cashier.jpg",
+          "sizes": "3044x1698",
+          "type": "image/png",
+          "form_factor": "narrow"
+        },
+        {
+          "src": "/pwa/screenshots/auth-bg.svg",
+          "sizes": "704x1024",
+          "type": "image/png",
+          "form_factor": "wide"
+        }
+      ],
+      "related_applications": [
+        {
+          "platform": "web",
+          "url": "https://prlerp.com/",
+          // id?: string;
+        }
+      ]
     },
   })
   ],

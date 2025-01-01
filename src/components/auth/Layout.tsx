@@ -11,7 +11,7 @@ const AuthLayout = ({ children }) => {
               <div className="bg-[rgba(234,236,240,0.3)] backdrop-blur-lg border border-white/50 rounded-2xl p-6">
                 <div className="flex items-center mb-8">
                   <img
-                    src="/pers-logo.svg"
+                    src="pers-logo.svg"
                     alt="logo"
                     className="mr-2 w-[50px] h-[50px]"
                   />

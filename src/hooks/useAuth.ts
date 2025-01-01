@@ -29,6 +29,7 @@ const SLEEP_TIME = 1
       } else if (token) {
         try {
           const user = await RemoteApi.getUserByToken(token);
+          console.log(user)
           if (user) {
             localStorage.setItem("user", JSON.stringify(user?.user));
             localStorage.setItem("token", token);

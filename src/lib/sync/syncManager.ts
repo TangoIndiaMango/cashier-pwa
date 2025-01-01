@@ -17,8 +17,7 @@ export class SyncManager {
   private userInfo = JSON?.parse(localStorage?.getItem("user") || "{}");
   private storeId =
     Array.isArray(this.userInfo?.store) && this.userInfo?.store.length > 0
-      ? this.userInfo.store[0].id
-      : 1;
+      ? String(this.userInfo.store[0].id || 1) : String(this.userInfo.store.store_id || 1);
 
   private constructor() { }
 

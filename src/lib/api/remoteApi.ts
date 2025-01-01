@@ -155,11 +155,13 @@ export class RemoteApi {
 
   static async fetchPos(storeId: string | number): Promise<any> {
     const response = await api.get(`mop_terminals/${storeId}`);
+    console.log(response.data);
     return response.data.data;
   }
 
   static async getUserByToken(token: string): Promise<any> {
     const response = await api.get(`user-by-token/${token}`);
+    
     return response.data.data;
   }
 }

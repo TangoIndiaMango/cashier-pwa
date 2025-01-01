@@ -7,7 +7,7 @@ import path from "path";
 // const base = isProduction ? "/pwa/" : "/";
 
 export default defineConfig({
-  base: '/pwa/',
+  // base: '/pwa/',
   plugins: [react(),
   VitePWA({
     registerType: 'autoUpdate',

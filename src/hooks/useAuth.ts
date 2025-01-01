@@ -24,7 +24,6 @@ const SLEEP_TIME = 1
         await delay(SLEEP_TIME);
         triggerFetch();
         setIsAuthenticated(true);
-        navigate("/");
         setIsLoading(false);
         return
       } else if (token) {
@@ -40,7 +39,6 @@ const SLEEP_TIME = 1
             await delay(SLEEP_TIME);
             triggerFetch();
             setIsAuthenticated(true);
-            navigate("/");
             setIsLoading(false);
             return
           }

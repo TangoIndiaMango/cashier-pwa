@@ -1,12 +1,12 @@
-import React, { useState } from "react";
 import { FailedTransactionTable } from "@/components/FailedTransactionTable";
 import { Button } from "@/components/ui/button";
-import { useStore } from "../hooks/useStore";
 import useGoBack from "@/hooks/useGoBack";
-import { RemoteApi } from "../lib/api/remoteApi";
+import { useStore } from "@/hooks/useStore";
 import { saveAs } from "file-saver";
-import * as XLSX from "xlsx";
+import { useState } from "react";
 import toast from "react-hot-toast";
+import * as XLSX from "xlsx";
+import { RemoteApi } from "../lib/api/remoteApi";
 
 const FailedTransaction = () => {
   const { failedTrx } = useStore();
@@ -16,7 +16,7 @@ const FailedTransaction = () => {
   // const [downloadError, setDownloadError] = useState<string | null>(null);
 
   const params = {
-    export: true,
+    export: true
   };
 
   const downloadCSV = (data: any[]) => {
@@ -33,10 +33,10 @@ const FailedTransaction = () => {
     XLSX.utils.book_append_sheet(workbook, worksheet, "Failed Transactions");
     const excelBuffer = XLSX.write(workbook, {
       bookType: "xlsx",
-      type: "array",
+      type: "array"
     });
     const blob = new Blob([excelBuffer], {
-      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8",
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8"
     });
     saveAs(blob, "failed_transactions.xlsx");
   };
@@ -93,7 +93,7 @@ const FailedTransaction = () => {
       </div>
 
       {/* {downloadError && (
-        <div className="text-red-500 mt-4">
+        <div className="mt-4 text-red-500">
           {downloadError}
         </div>
       )} */}

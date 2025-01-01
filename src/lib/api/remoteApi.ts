@@ -10,7 +10,7 @@ import {
 } from "../db/schema";
 import { redirect } from "react-router-dom";
 
-const baseUrl = "https://peresiana-ecomm-backend.nigeriasbsc.com/public/api/";
+const baseUrl = "https://prlerp.com/peresianas-BE/public/api/";
 
 const api = axios.create({
   baseURL: baseUrl + "v3",
@@ -141,7 +141,7 @@ export class RemoteApi {
     return response.data;
   }
 
-  static async fetchFailedTransactions(page?: string | number): Promise<any> {
+  static async fetchFailedTransactions(): Promise<any> {
     const response = await api.get(`transactions/un-sync`);
     return response.data;
   }

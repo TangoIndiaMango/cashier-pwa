@@ -8,9 +8,12 @@ import {
   LocalPaymentMethod,
   LocalProduct,
 } from "../db/schema";
+import { redirect } from "react-router-dom";
+
+const baseUrl = "https://prlerp.com/peresianas-BE/public/api/";
 
 const api = axios.create({
-  baseURL: "https://peresiana-ecomm-backend.nigeriasbsc.com/public/api/v3",
+  baseURL: baseUrl + "v3",
   headers: {
     "Content-Type": "application/json",
   },
@@ -35,7 +38,8 @@ api.interceptors.response.use(
     if (error.response && error.response.status === 401) {
       console.error("Unauthorized access. Please log in again.");
       toast.error("Session expired. Please log in again.");
-      window.location.href = `/login`;
+      // window.location.href = `/login`;
+      redirect("/login");
     } else {
       console.error("API Error: ", error);
       toast.error("An error occurred, please try again.");
@@ -45,7 +49,6 @@ api.interceptors.response.use(
 );
 
 export class RemoteApi {
-
   static async fetchStoreProducts(): Promise<LocalProduct[]> {
     const response = await api.post("/products/all");
     return response.data?.data.map((item) => ({
@@ -118,13 +121,10 @@ export class RemoteApi {
     syncId: string
   ): Promise<any> {
     try {
-      const response = await api.post(
-        "/transactions/sync",
-        {
-          sync_session_id: syncId,
-          transactions,
-        }
-      );
+      const response = await api.post("/transactions/sync", {
+        sync_session_id: syncId,
+        transactions,
+      });
       return response.data;
     } catch (error: any) {
       console.error("Sync failed:", error);
@@ -134,15 +134,14 @@ export class RemoteApi {
   }
 
   static async login(email: string, password: string): Promise<any> {
-    const response = await axios.post(
-      "https://www.peresiana-ecomm-backend.nigeriasbsc.com/public/api/v1/auth/login",
-      { email, password }
-    );
+    const response = await axios.post(baseUrl + "v1/auth/login", {
+      email,
+      password,
+    });
     return response.data;
   }
 
-  static async fetchFailedTransactions(page?: string | number): Promise<any> {
-    const pageNumber = page ? page : 1;
+  static async fetchFailedTransactions(): Promise<any> {
     const response = await api.get(`transactions/un-sync`);
     return response.data;
   }
@@ -164,4 +163,3 @@ export class RemoteApi {
     return response.data.data;
   }
 }
-

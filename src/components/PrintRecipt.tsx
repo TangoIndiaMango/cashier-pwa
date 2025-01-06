@@ -55,6 +55,7 @@ export const Receipt: React.FC<ReceiptProps> = ({ data, onClose }) => {
                     line-height: 1.2;
                     text-align: center;
                     height: 100%;
+                    font-weight: bold;
                   }
                   * {
                     box-sizing: border-box;
@@ -73,6 +74,7 @@ export const Receipt: React.FC<ReceiptProps> = ({ data, onClose }) => {
                   }
                   td {
                     word-wrap: break-word;
+                    font-weight: bold;
                   }
                   th {
                     border-bottom: 1px dashed #000;
@@ -124,20 +126,24 @@ export const Receipt: React.FC<ReceiptProps> = ({ data, onClose }) => {
       if (matchedMethod) {
         return {
           ...method,
-          name: matchedMethod.name || "Unknown",
+          name: matchedMethod?.name || "Unknown"
         };
       }
       return {
         ...method,
-        name: "Unknown",
+        name: "Unknown"
       };
     });
 
     setPaymentMethods(paymentData);
   }, [data.paymentMethods, paymentMethod]);
 
-  const user = JSON?.parse(localStorage?.getItem("user") || "{}");
-  const store = user?.store[0];
+  const user = JSON?.parse(sessionStorage?.getItem("user") || "{}");
+  // const store = user?.store[0];
+  const store =
+    Array.isArray(user?.store) && user?.store.length > 0
+      ? user.store[0]
+      : user?.store;
   // console.log(store);
 
   const getAccumulatedPoints = () => {
@@ -160,7 +166,7 @@ export const Receipt: React.FC<ReceiptProps> = ({ data, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center space-y-1 bg-black bg-opacity-50">
+    <div className="fixed inset-0 flex items-center justify-center space-y-1 font-bold bg-black bg-opacity-50">
       <ScrollArea className="w-full md:h-[600px] max-w-lg p-4 bg-white rounded-lg">
         <div className="w-full p-4 ">
           <div
@@ -169,7 +175,7 @@ export const Receipt: React.FC<ReceiptProps> = ({ data, onClose }) => {
             style={{
               maxWidth: "58mm",
               margin: "0 auto",
-              fontFamily: "'Courier New', monospace",
+              fontFamily: "'Courier New', monospace"
             }}
           >
             <h2 className="mb-2 text-sm font-bold text-center">
@@ -216,7 +222,7 @@ export const Receipt: React.FC<ReceiptProps> = ({ data, onClose }) => {
                   <tr key={index}>
                     <td>{item.quantity}</td>
                     <td>{item.ean}</td>
-                    <td>{item.product_name}</td>
+                    <td className="line-clamp-1">{item.product_name}</td>
                     <td className="price">{item.retail_price?.toFixed(2)}</td>
                     <td className="amount">
                       {(item.retail_price * item.quantity)?.toFixed(2)}

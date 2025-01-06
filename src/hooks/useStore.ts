@@ -22,6 +22,7 @@ export function useStore() {
   const [paymentMethod, setPaymentMethod] = useState<LocalPaymentMethod[]>([]);
   const [customers, setCustomers] = useState<LocalCustomer[]>([]);
   const [branches, setBranches] = useState<LocalBranch[]>([]);
+  const [unsyncedTrx, setUnsyncedTrx] = useState<LocalTransaction[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   // const { isOnline } = useOnlineStatus();
@@ -31,7 +32,7 @@ export function useStore() {
 
   const refreshDB = async () => {
     await db.open();
-    await delay(1)
+    await delay(2)
   };
 
   const triggerFetch = async () => {
@@ -58,14 +59,16 @@ export function useStore() {
         localCustomers,
         localPaymentMethods,
         localBranches,
-        localDiscounts
+        localDiscounts,
+        localunsyncedTrx,
       ] = await Promise.all([
         LocalApi.getAllProducts(),
         LocalApiMethods.getFailedSyncTrx(),
         LocalApi.getCustomers(),
         LocalApiMethods.getAllPaymentMethods(),
         LocalApiMethods.getBranches(),
-        LocalApiMethods.getDiscounts()
+        LocalApiMethods.getDiscounts(),
+        LocalApi.getUnsynedTransactions(),
       ]);
 
       setProducts(localProducts);
@@ -74,6 +77,7 @@ export function useStore() {
       setPaymentMethod(localPaymentMethods);
       setBranches(localBranches);
       setDiscounts(localDiscounts);
+      setUnsyncedTrx(localunsyncedTrx);
       console.log("Loaded local data");
     } catch (error) {
       console.error("Local fetch failed:", error);
@@ -139,6 +143,7 @@ export function useStore() {
     paymentMethod,
     branches,
     customers,
+    unsyncedTrx,
     loading,
     error,
     failedTrx,

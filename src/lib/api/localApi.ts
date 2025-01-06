@@ -34,11 +34,11 @@ export class LocalApi {
 
       console.log(`Current quantity: ${product.available_quantity}`);
       console.log(`Quantity change: ${quantityChange}`);
-  
+
       if (product.available_quantity + quantityChange < 0) {
         throw new Error('Insufficient quantity');
       }
-  
+
       const newQuantity = product.available_quantity - quantityChange;
       console.log(`Updated quantity: ${newQuantity}`);
 
@@ -60,8 +60,8 @@ export class LocalApi {
     const id = crypto.randomUUID();
     console.log(transaction)
     console.log(transaction?.customer?.phoneno, "Here's the customertrans")
-    await this.updateCustomerCreditNote(transaction?.customer?.phoneno)
-    await this.updateCustomerLoyaltyPoints(transaction?.customer?.phoneno)
+    await this.updateCustomerCreditNote(transaction?.customer)
+    await this.updateCustomerLoyaltyPoints(transaction?.customer)
 
     try {
       await db.transaction('rw', [db.transactions, db.products], async () => {
@@ -88,7 +88,6 @@ export class LocalApi {
     }
   }
 
-
   static async deleteAllTransactions(): Promise<void> {
     await db.transaction('rw', db.transactions, async () => {
       await db.transactions.clear();
@@ -107,29 +106,60 @@ export class LocalApi {
     return await db.customers.toArray();
   }
 
-  static async updateCustomerLoyaltyPoints(customerPhoneno: string): Promise<void> {
+  static async updateCustomerLoyaltyPoints(customerInfo: LocalCustomer): Promise<void> {
     const { newLoyaltyPoints } = useApplyPoints.getState();
     await db.transaction('rw', db.customers, async () => {
-      const customer = await db.customers.where("phoneno").equals(customerPhoneno).first();
+      let customer = await db.customers.where("phoneno").equals(customerInfo?.phoneno).first();
+      if (!customer) {
+        customer = await db.customers.add({
+          phoneno: customerInfo.phoneno,
+          credit_note_balance: 0,
+          firstname: customerInfo.firstname,
+          lastname: customerInfo.lastname,
+          id: Date.now(),
+          email: customerInfo.email || `${customerInfo.firstname}+${customerInfo.firstname}@prlerp.com`,
+          age: null,
+          gender: "",
+          country: "",
+          state: "",
+          city: "",
+          address: "",
+          loyalty_points: newLoyaltyPoints
+        });
 
-      if (!customer) throw new Error('Customer not found');
-
-      await db.customers.update(customer?.id, {
-        loyalty_points: newLoyaltyPoints,
-      });
+      } else {
+        await db.customers.update(customer?.id, {
+          loyalty_points: newLoyaltyPoints,
+        });
+      }
     });
   }
 
-  static async updateCustomerCreditNote(customerPhoneno: string): Promise<void> {
+  static async updateCustomerCreditNote(customerInfo: LocalCustomer): Promise<void> {
     const { newCreditNotePoints } = useApplyPoints.getState();
     await db.transaction('rw', db.customers, async () => {
-      const customer = await db.customers.where("phoneno").equals(customerPhoneno).first();
-
-      if (!customer) throw new Error('Customer not found');
-
-      await db.customers.update(customer?.id, {
-        credit_note_balance: newCreditNotePoints,
-      });
+      let customer = await db.customers.where("phoneno").equals(customerInfo?.phoneno).first();
+      if (!customer) {
+        customer = await db.customers.add({
+          phoneno: customerInfo.phoneno,
+          credit_note_balance: newCreditNotePoints,
+          firstname: customerInfo.firstname,
+          lastname: customerInfo.lastname,
+          id: Date.now(),
+          email: customerInfo.email || `${customerInfo.firstname}+${customerInfo.firstname}@prlerp.com`,
+          age: null,
+          gender: "",
+          country: "",
+          state: "",
+          city: "",
+          address: "",
+          loyalty_points: 0
+        });
+      } else {
+        await db.customers.update(customer?.id, {
+          credit_note_balance: newCreditNotePoints,
+        });
+      }
     });
   }
 

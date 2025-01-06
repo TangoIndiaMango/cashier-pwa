@@ -20,9 +20,8 @@ import { ProductDetailsDialog } from "./Modals/ProductDetailsDialog";
 import ProductSearchModal from "./Modals/ProductSearchModal";
 
 export function CurrentProductTable() {
-  const { updateCartItem, removeItemFromCart, cartItems } = useCart();
+  const { updateCartItem, removeItemFromCart, cartItems, cartRecords } = useCart();
   const { updateAvailableQuantity } = useStore();
-
 
   const [selectedProduct, setSelectedProduct] =
     useState<LocalTransactionItem | null>(null);
@@ -31,7 +30,7 @@ export function CurrentProductTable() {
 
   const [quantities, setQuantities] = useState<Record<string, number>>(
     cartItems.reduce((acc, product) => {
-      acc[product.product_code!] = product.quantity || 1;
+      acc[product.ean!] = product.quantity || 1;
       return acc;
     }, {})
   );
@@ -48,11 +47,11 @@ export function CurrentProductTable() {
     setQuantities((prevQuantities) => {
       return {
         ...prevQuantities,
-        [product.product_code!]: quantity
+        [product.ean!]: quantity
       };
     });
-console.log("Quantiyi", quantity)
-    updateCartItem({ id: product.id, quantity });
+    console.log("Quantity", quantity);
+    updateCartItem({ ean: product.ean, quantity });
     // updateAvailableQuantity(product.ean!, quantity);
   };
 
@@ -99,7 +98,7 @@ console.log("Quantiyi", quantity)
         </TableHeader>
         <TableBody>
           {[...cartItems].reverse().map((product, index) => {
-            const quantity = quantities[product.product_code!] || 1;
+            const quantity = quantities[product.ean!] || 1;
             return (
               <TableRow key={index}>
                 <TableCell className="font-medium text-[#303f9e]">
@@ -155,9 +154,7 @@ console.log("Quantiyi", quantity)
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() =>
-                        removeItemFromCart(product.ean as string)
-                      }
+                      onClick={() => removeItemFromCart(product.ean as string)}
                     >
                       <Trash2 className="w-4 h-4 text-red-600" />
                       <span className="sr-only">Delete</span>

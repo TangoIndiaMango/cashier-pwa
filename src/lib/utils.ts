@@ -27,3 +27,10 @@ export const generateUniqueIdUsingStoreIDAsPrefix = (storeID: any) => {
 };
 
 export const delay = async (secs = 3) => new Promise((resolve) => setTimeout(resolve, secs * 1000))
+
+export function getStoreId(): string | undefined {
+    const userInfo = JSON?.parse(sessionStorage?.getItem("user") || "{}");
+    return Array.isArray(userInfo?.store) && userInfo?.store.length > 0
+      ? String(userInfo.store[0]?.id)
+      : String(userInfo?.store?.store_id);
+  }

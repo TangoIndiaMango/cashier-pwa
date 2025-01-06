@@ -95,10 +95,11 @@ export const useZudCart = create<State & Actions>((set) => ({
     }));
   },
   updateCartItem(product: Partial<LocalTransactionItem>) {
+    console.log(product)
     set((values) => ({
       ...values,
       cartItems: values.cartItems.map((item) =>
-        item.id === product.id
+        item.ean === product.ean
           ? {
             ...item,
             ...product,

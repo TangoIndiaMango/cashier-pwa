@@ -6,18 +6,12 @@ import { db } from "../db/schema";
 import dayjs from "dayjs";
 import { saveAs } from "file-saver";
 import { parse } from "papaparse";
+import { delay } from "../utils";
 
 export class SyncManager {
   private static instance: SyncManager;
   private syncInProgress: boolean = false;
-  private paymentMethodsFetched: boolean = false;
-  private discountsFetched: boolean = false;
-  private failedTrxFetched: boolean = false;
   private syncWindow: number = 30 * 60 * 1000; // 30 minutes
-  private userInfo = JSON?.parse(localStorage?.getItem("user") || "{}");
-  private storeId =
-    Array.isArray(this.userInfo?.store) && this.userInfo?.store.length > 0
-      ? String(this.userInfo.store[0].id || 1) : String(this.userInfo.store.store_id || 1);
 
   private constructor() { }
 
@@ -62,8 +56,7 @@ export class SyncManager {
       await this.syncPaymentMethods();
       await this.syncDiscounts();
       await this.syncFailedTrx();
-      await this.syncBranches(this.storeId);
-
+      await this.syncBranches();
       console.log("Fetching completed.");
     } catch (error) {
       console.error('Error refreshing data:', error);
@@ -82,12 +75,13 @@ export class SyncManager {
       this.syncInProgress = true;
       console.log("Starting sync process...");
       await this.syncTransactions();
+      await delay(1)
       await this.syncFailedTrx();
       await this.syncProducts();
       await this.syncCustomers();
       await this.syncPaymentMethods();
-      await this.syncBranches(this.storeId);
       await this.syncDiscounts();
+      await this.syncBranches();
     } catch (error) {
       console.error("Sync failed:", error);
       throw error;
@@ -260,32 +254,21 @@ export class SyncManager {
   }
 
   private async syncPaymentMethods() {
-    if (this.paymentMethodsFetched) {
-      console.log("Payment methods already synced");
-      return;
-    }
     const remotePaymentMethods = await RemoteApi.fetchPaymentMethod();
     await db.transaction("rw", db.paymentMethods, async () => {
       for (const method of remotePaymentMethods) {
         await db.paymentMethods.put(method);
       }
     });
-    this.paymentMethodsFetched = true;
   }
 
   private async syncDiscounts() {
-    if (this.discountsFetched) {
-      console.log("Discounts already synced");
-      return;
-    }
-
     const remoteDiscounts = await RemoteApi.fetchDiscounts();
     await db.transaction("rw", db.discounts, async () => {
       for (const discount of remoteDiscounts) {
         await db.discounts.put(discount);
       }
     });
-    this.discountsFetched = true;
   }
 
   private async DownloadFailedTrx() {
@@ -298,11 +281,6 @@ export class SyncManager {
   }
 
   private async syncFailedTrx() {
-    if (this.failedTrxFetched) {
-      console.log("Failed trx already synced");
-      return;
-    }
-
     const remoteTrx = await RemoteApi.fetchFailedTransactions();
     // console.log(remoteTrx?.data)
     await db.transaction("rw", db.failedSyncTransactions, async () => {
@@ -310,11 +288,10 @@ export class SyncManager {
         await db.failedSyncTransactions.put(trx);
       }
     });
-    this.failedTrxFetched = true;
   }
 
-  async syncBranches(soterId: string | number) {
-    const remoteBranches = await RemoteApi.fetchPos(soterId);
+  async syncBranches() {
+    const remoteBranches = await RemoteApi.fetchPos();
     await db.transaction("rw", db.branches, async () => {
       for (const branch of remoteBranches) {
         await db.branches.put(branch);

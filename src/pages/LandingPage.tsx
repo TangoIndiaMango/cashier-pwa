@@ -16,7 +16,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
+  SelectValue
 } from "@/components/ui/select";
 import { CustomSwitch } from "@/components/ui/switch";
 import { useApplyPoints } from "@/hooks/useApplyPoints";
@@ -26,10 +26,10 @@ import { usePayment } from "@/hooks/usePayment";
 import { useTransaction } from "@/hooks/useTransaction";
 import {
   formatCurrency,
-  generateUniqueIdUsingStoreIDAsPrefix,
+  generateUniqueIdUsingStoreIDAsPrefix
 } from "@/lib/utils";
 
-import { Search, ShoppingBag } from "lucide-react";
+import { Loader2, Search, ShoppingBag } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
@@ -48,7 +48,7 @@ const initCustomer = {
   address: null,
   loyalty_points: null,
   credit_note_balance: null,
-  id: null,
+  id: null
 };
 
 const POSSystem = () => {
@@ -62,7 +62,7 @@ const POSSystem = () => {
     clearCart,
     handleCartTotalDiscount,
     cartDiscountCode,
-    setCartDiscountCode,
+    setCartDiscountCode
   } = useCart();
   const [showCartDiscount, setShowCartDiscount] = useState(false);
 
@@ -75,7 +75,7 @@ const POSSystem = () => {
     setPaymentStatus,
     paymentMethod,
     handlePaymentSubmit,
-    setPaymentMethod,
+    setPaymentMethod
   } = usePayment();
 
   const { customer, handleAddCustomer, setCustomer } = useCustomer();
@@ -83,6 +83,7 @@ const POSSystem = () => {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [customerDetails, setCustomerDetails] =
     useState<CustomerDetails>(initCustomer);
+  const [isLoading, setIsLoading] = useState(false);
 
   const [withCreditNote, setWithCreditNote] = useState(false);
   const [withCreditNoteModal, setWithCreditNoteModal] = useState(false);
@@ -94,8 +95,11 @@ const POSSystem = () => {
     useApplyPoints((state) => state);
   const { creditNotePoints, setCreditNotePoints, setNewCreditNotePoints } =
     useApplyPoints((state) => state);
-  const userInfo = JSON.parse(localStorage.getItem("user") || "{}");
+  const userInfo = JSON.parse(sessionStorage.getItem("user") || "{}");
   const storeInfo = userInfo.store;
+  const storeID = Array.isArray(storeInfo)
+    ? storeInfo[0]?.storeID || "PRL"
+    : storeInfo?.storeID || "PRL";
 
   const handleInputChange = (
     e: React.ChangeEvent<
@@ -105,7 +109,7 @@ const POSSystem = () => {
     const { name, value } = e.target;
     setCustomerDetails((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: value
     }));
   };
 
@@ -113,8 +117,9 @@ const POSSystem = () => {
     if (!paymentMethod.length) {
       return toast.error("No payment method selected");
     }
+    setIsLoading(true);
     const data = {
-      recieptNo: generateUniqueIdUsingStoreIDAsPrefix(storeInfo[0].storeID),
+      recieptNo: generateUniqueIdUsingStoreIDAsPrefix(storeID),
       paymentMethods: paymentMethod,
       payableAmount: paymentMethod.reduce(
         (sum, entry) => sum + (Number(entry.amount) || 0),
@@ -136,12 +141,13 @@ const POSSystem = () => {
         cartRecords.total -
         (Number(loyaltyPoints) || 0) -
         (Number(creditNotePoints) || 0),
-      noDiscountAmount: cartRecords?.total,
+      noDiscountAmount: cartRecords?.total
     };
     console.log(data);
     await submitTransaction(data as any);
     setReceiptData(data as any);
     setShowReceipt(true);
+    setIsLoading(false);
     clearCart();
     setPaymentMethod([]);
     setCustomer(null);
@@ -162,13 +168,13 @@ const POSSystem = () => {
   const checkCustomerAndCart = () => {
     if (!selectedCustomer) {
       toast.error("No customer selected", {
-        className: "bg-red-500 text-white",
+        className: "bg-red-500 text-white"
       });
       return false;
     }
     if (cartItems?.length < 1) {
       toast.error("No products selected", {
-        className: "bg-red-500 text-white",
+        className: "bg-red-500 text-white"
       });
       return false;
     }
@@ -182,7 +188,7 @@ const POSSystem = () => {
     if (checked) {
       if (!customer?.loyalty_points) {
         return toast.error("Sorry, No loyalty points", {
-          className: "bg-red-500 text-white",
+          className: "bg-red-500 text-white"
         });
       }
 
@@ -194,7 +200,7 @@ const POSSystem = () => {
       setWithCreditNote(false);
       // handleApplyLoyaltyPoints(Number(loyaltyPoints), true);
       toast.error("Credit Note points removed.", {
-        className: "bg-red-500 text-white",
+        className: "bg-red-500 text-white"
       });
     }
   };
@@ -205,7 +211,7 @@ const POSSystem = () => {
     if (checked) {
       if (!customer?.loyalty_points) {
         return toast.error("Sorry, No loyalty points", {
-          className: "bg-red-500 text-white",
+          className: "bg-red-500 text-white"
         });
       }
 
@@ -217,7 +223,7 @@ const POSSystem = () => {
       setWithLoyalty(false);
       // handleApplyLoyaltyPoints(Number(loyaltyPoints), true);
       toast.error("Loyalty points removed.", {
-        className: "bg-red-500 text-white",
+        className: "bg-red-500 text-white"
       });
     }
   };
@@ -454,12 +460,17 @@ const POSSystem = () => {
                   !paymentMethod.length ||
                   !customerDetails.firstname ||
                   !customerDetails.lastname ||
-                  !customerDetails.phoneno
+                  !customerDetails.phoneno ||
+                  isLoading
                 }
                 onClick={handleSubmit}
                 className="w-full py-2"
               >
-                Submit & Print Receipt
+                {isLoading ? (
+                  <Loader2 className="w-6 h-6 animate-spin" />
+                ) : (
+                  "Submit & Print Receipt"
+                )}
               </Button>
               {/* <Button
                 disabled={cartItems.length === 0}

@@ -14,7 +14,7 @@ const BarcodeScanner = () => {
     if (!scannedBarcode) return;
 
     // setShowAddProduct(true);
-    console.log(cartItems);
+    // console.log(cartItems);
     const foundProduct = products.find(
       (prod) => prod.ean.toString() === scannedBarcode.toString()
     );

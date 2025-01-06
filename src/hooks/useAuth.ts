@@ -1,6 +1,6 @@
 import { RemoteApi } from "@/lib/api/remoteApi";
 import { db } from "@/lib/db/schema";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useStore } from "./useStore";
 import { delay } from "@/lib/utils";
@@ -9,65 +9,77 @@ export function useAuth() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const token = searchParams.get("token");
   const { triggerFetch } = useStore();
-const SLEEP_TIME = 1
-  useEffect(() => {
-    const checkAuth = async () => {
-      const storedToken = localStorage.getItem("token");
-      if (storedToken) {
-        console.log("Sleeping...");
-        await delay(SLEEP_TIME);
-        db.open();
-        console.log("Sleeping before loading data...");
-        await delay(SLEEP_TIME);
-        triggerFetch();
-        setIsAuthenticated(true);
-        setIsLoading(false);
-        return
-      } else if (token) {
-        try {
-          const user = await RemoteApi.getUserByToken(token);
-          console.log(user)
-          if (user) {
-            localStorage.setItem("user", JSON.stringify(user?.user));
-            localStorage.setItem("token", token);
-            console.log("Sleeping...");
-            await delay(SLEEP_TIME);
-            db.open();
-            console.log("Sleeping before loading data...");
-            await delay(SLEEP_TIME);
-            triggerFetch();
-            setIsAuthenticated(true);
-            setIsLoading(false);
-            return
-          }
-        } catch (error) {
-          console.error("Error authenticating with token:", error);
-          navigate("/login");
+  const SLEEP_TIME = 1
+
+  const authenticateUser =
+    async (token: string) => {
+      try {
+        const user = await RemoteApi.getUserByToken(token);
+        if (user) {
+          sessionStorage.setItem("user", JSON.stringify(user?.user));
+          sessionStorage.setItem("token", token);
+
+          console.log("Sleeping...");
+          await delay(SLEEP_TIME);
+
+          await db.open();
+          console.log("Sleeping before loading data...");
+          await delay(SLEEP_TIME);
+
+          await triggerFetch();
+          setIsAuthenticated(true);
+          removeTokenFromUrl();
+          setIsLoading(false);
+          return true;
         }
-        return
-      } else {
-        navigate("/login");
+      } catch (error) {
+        console.error("Authentication error:", error);
         setIsLoading(false);
       }
+      return false;
+    };
+
+
+  const removeTokenFromUrl = useCallback(() => {
+    searchParams.delete("token");
+    setSearchParams(searchParams, { replace: true });
+  }, [searchParams, setSearchParams]);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      setIsLoading(true);
+
+      const storedToken = sessionStorage.getItem("token");
+
+      if (token) {
+        await authenticateUser(token);
+        return
+      } else if (storedToken) {
+        setIsAuthenticated(true)
+        setIsLoading(false);
+        return
+      }
+
+      navigate("/login");
       setIsLoading(false);
     };
 
     checkAuth();
-  }, [token, navigate]);
+  }, [navigate, token]);
+
 
   const logout = async () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("user");
     db.close();
     await db.delete();
-
-    console.log("Dexie Database deleted successfully!");
     setIsAuthenticated(false);
     navigate("/login");
   };
 
   return { isAuthenticated, isLoading, logout };
+
 }

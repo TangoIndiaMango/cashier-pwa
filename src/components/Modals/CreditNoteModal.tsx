@@ -35,7 +35,7 @@ const CreditNote: React.FC<ICreditNote> = ({
       return toast.error("Value is more than available credit not points", {
         className: "bg-red-500 text-white",
       });
-    console.log(total);
+    // console.log(total);
     if (val > total)
       return toast.error("Value is more than the total to pay for", {
         className: "bg-red-500 text-white",

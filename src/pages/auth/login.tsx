@@ -47,8 +47,8 @@ const LoginPage = () => {
 
       if (res?.data?.accessToken) {
         // Set item to local storage
-        localStorage.setItem("token", res?.data?.accessToken);
-        localStorage.setItem("user", JSON.stringify(res?.data?.user));
+        sessionStorage.setItem("token", res?.data?.accessToken);
+        sessionStorage.setItem("user", JSON.stringify(res?.data?.user));
         console.log("Sleeping...");
         await delay();
         await openDB();

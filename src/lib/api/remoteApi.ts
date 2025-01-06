@@ -3,12 +3,14 @@ import { Transaction } from "@/types/type";
 import axios from "axios";
 import toast from "react-hot-toast";
 import {
+  db,
   LocalCustomer,
   LocalDiscount,
   LocalPaymentMethod,
   LocalProduct,
 } from "../db/schema";
 import { redirect } from "react-router-dom";
+import { getStoreId } from "../utils";
 
 const baseUrl = "https://prlerp.com/peresianas-BE/public/api/";
 
@@ -21,7 +23,7 @@ const api = axios.create({
 
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("token");
+    const token = sessionStorage.getItem("token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -38,10 +40,16 @@ api.interceptors.response.use(
     if (error.response && error.response.status === 401) {
       console.error("Unauthorized access. Please log in again.");
       toast.error("Session expired. Please log in again.");
-      // window.location.href = `/login`;
+      sessionStorage.removeItem("token");
+      sessionStorage.removeItem("user");
       redirect("/login");
+      db.delete()
     } else {
       console.error("API Error: ", error);
+      sessionStorage.removeItem("token");
+      sessionStorage.removeItem("user");
+      redirect("/login");
+      db.delete()
       toast.error("An error occurred, please try again.");
     }
     return Promise.reject(error);
@@ -49,6 +57,7 @@ api.interceptors.response.use(
 );
 
 export class RemoteApi {
+
   static async fetchStoreProducts(): Promise<LocalProduct[]> {
     const response = await api.post("/products/all");
     return response.data?.data.map((item) => ({
@@ -153,13 +162,21 @@ export class RemoteApi {
     return response.data;
   }
 
-  static async fetchPos(storeId: string | number): Promise<any> {
+  static async fetchPos(): Promise<any> {
+    const storeId = getStoreId();
+    if (!storeId) {
+      toast.error("Store ID not found. Please log in again.");
+      redirect("/login");
+      return;
+    }
     const response = await api.get(`mop_terminals/${storeId}`);
+    console.log(response.data);
     return response.data.data;
   }
 
   static async getUserByToken(token: string): Promise<any> {
     const response = await api.get(`user-by-token/${token}`);
+
     return response.data.data;
   }
 }

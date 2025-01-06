@@ -43,14 +43,17 @@ const ProductSearchModal = ({
 
     if (foundProductByEan) {
       setFilteredProducts([foundProductByEan]);
+      return
     }else {
       const foundProductByCode = await LocalApi.getProductByCode(searchTermStr);
       if (foundProductByCode && foundProductByCode.length) {
         setFilteredProducts(foundProductByCode)
+        return
       }else{
         toast.error("Product not found")
         setSearchTerm("")
         setFilteredProducts(null)
+        return
       }
     }
     // const foundProduct = products.find(
@@ -105,7 +108,6 @@ const ProductSearchModal = ({
       setSelectedProduct(null);
       setDiscount("");
       setSearchTerm("");
-      toast("Product added successfully");
     }
   };
   // console.log(quantity)

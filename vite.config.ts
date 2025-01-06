@@ -109,4 +109,7 @@ export default defineConfig({
       external: ["src/help/**/*"],
     },
   },
+  // esbuild:{
+  //   drop: ['console', 'debugger'],
+  // }
 });

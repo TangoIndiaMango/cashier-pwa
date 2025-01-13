@@ -3,14 +3,13 @@ import { Transaction } from "@/types/type";
 import axios from "axios";
 import toast from "react-hot-toast";
 import {
-  db,
   LocalCustomer,
   LocalDiscount,
   LocalPaymentMethod,
   LocalProduct,
 } from "../db/schema";
 import { redirect } from "react-router-dom";
-import { getStoreId } from "../utils";
+import { db, getStoreId } from "../utils";
 
 const baseUrl = "https://prlerp.com/peresianas-BE/public/api/";
 

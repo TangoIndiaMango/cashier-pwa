@@ -57,13 +57,13 @@ const PaymentMethodModal = ({ isOpen, onClose, total, onPaymentSubmit }) => {
     const roundedTotal = Math.round(total * 100) / 100; //-> 30754.2
     const roundedTotalPayments = Math.round(totalPayments * 100) / 100; //->30754.2
 
-    if (Math.abs(roundedTotal - roundedTotalPayments) > tolerance) {
+    if (totalPayments !== 0 && Math.abs(roundedTotal - roundedTotalPayments) > tolerance) {
       alert("Total payments must equal transaction total");
       return;
     }
     const allEntriesValid = paymentEntries.every(
       (method) =>
-        method.mode_of_payment_id && method.amount && Number(method.amount) > 0
+        method.mode_of_payment_id && method.amount && Number(method.amount) >= 0
     );
     if (!allEntriesValid) {
       toast.error("Please fill in all payment details");

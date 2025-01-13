@@ -11,8 +11,11 @@ import {
 } from "../db/schema";
 import { redirect } from "react-router-dom";
 import { getStoreId } from "../utils";
+// https://www.peresiana-ecomm-backend.nigeriasbsc.com/public/api/
+// https://prlerp.com/peresianas-BE/public/api/
 
-const baseUrl = "https://prlerp.com/peresianas-BE/public/api/";
+const baseUrl =
+  "https://www.peresiana-ecomm-backend.nigeriasbsc.com/public/api/";
 
 const api = axios.create({
   baseURL: baseUrl + "v3",
@@ -43,13 +46,13 @@ api.interceptors.response.use(
       sessionStorage.removeItem("token");
       sessionStorage.removeItem("user");
       redirect("/login");
-      db.delete()
+      db.delete();
     } else {
       console.error("API Error: ", error);
       sessionStorage.removeItem("token");
       sessionStorage.removeItem("user");
       redirect("/login");
-      db.delete()
+      db.delete();
       toast.error("An error occurred, please try again.");
     }
     return Promise.reject(error);
@@ -57,7 +60,6 @@ api.interceptors.response.use(
 );
 
 export class RemoteApi {
-
   static async fetchStoreProducts(): Promise<LocalProduct[]> {
     const response = await api.post("/products/all");
     return response.data?.data.map((item) => ({

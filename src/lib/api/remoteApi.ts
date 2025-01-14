@@ -46,6 +46,7 @@ api.interceptors.response.use(
       sessionStorage.removeItem("user");
       redirect("/login");
       db.delete();
+      
     } else {
       console.error("API Error: ", error);
       sessionStorage.removeItem("token");
@@ -168,7 +169,7 @@ export class RemoteApi {
     if (!storeId) {
       toast.error("Store ID not found. Please log in again.");
       redirect("/login");
-      return;
+      return null;
     }
     const response = await api.get(`mop_terminals/${storeId}`);
     console.log(response.data);

@@ -17,15 +17,15 @@ export class LocalApi {
   }
 
   static async getProductByBrandName(brand_name: string): Promise<LocalProduct | undefined> {
-    return db.products.where({ brand_name }).first();
+    return db.products.where("sessionId").equals(String(db.sessionId)).and((product) => product.brand_name === brand_name).first();
   }
 
   static async getProductByCode(product_code: string): Promise<LocalProduct[] | undefined> {
-    return db.products.where({ product_code }).toArray();
+    return db.products.where("sessionId").equals(String(db.sessionId)).and((product) => product.product_code === product_code).toArray();
   }
 
   static async getProductByBrandID(brandId: string): Promise<LocalProduct | undefined> {
-    return db.products.where({ brandId }).first();
+    return db.products.where("sessionId").equals(String(db.sessionId)).and((product) => product.brand_id === brandId).first();
   }
 
   static async updateProductQuantity(ean: string, quantityChange: number): Promise<void> {
@@ -66,6 +66,7 @@ export class LocalApi {
     if (!sessionId) {
       toast.error("Please login again, no SessionID found")
       redirect('/login')
+      return ""
     }
 
     console.log(transaction)
@@ -86,7 +87,7 @@ export class LocalApi {
           id,
           createdAt: new Date(),
           synced: 'false',
-          sessionId: String(sessionId)
+          sessionId: sessionId
         });
       });
 
@@ -100,8 +101,9 @@ export class LocalApi {
   }
 
   static async deleteAllTransactions(): Promise<void> {
+    const sessionId = String(db.sessionId)
     await db.transaction('rw', db.transactions, async () => {
-      await db.transactions.clear();
+      await db.transactions.where('sessionId').equals(sessionId).delete();
     });
   }
 
@@ -164,11 +166,12 @@ export class LocalApi {
 
   static async clearSessionData() {
     const sessionId = String(db.sessionId)
- 
-    await db.transaction('rw', db.transactions, db.customers, async () => {
+
+    await db.transaction('rw', db.transactions, db.customers, db.branches, db.products, async () => {
       await db.transactions.where('sessionId').equals(sessionId).delete();
       await db.customers.where("sessionId").equals(sessionId).delete();
-      
+      await db.products.where("sessionId").equals(sessionId).delete();
+      await db.branches.where("sessionId").equals(sessionId).delete();
     })
   }
 }

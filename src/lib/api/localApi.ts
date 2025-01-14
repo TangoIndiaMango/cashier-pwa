@@ -2,36 +2,56 @@
 import { useApplyPoints } from '@/hooks/useApplyPoints';
 import toast from 'react-hot-toast';
 import type { LocalCustomer, LocalProduct, LocalTransaction } from '../db/schema';
-import { db } from '../utils';
-import { redirect } from 'react-router-dom';
+import { getDbInstance } from '../db/dbSingleton';
 // import { db } from '../db/schema';
-db.openDatabase()
+
 export class LocalApi {
+  static sessionId: string | null = null;
+  static dbInstance: any = null;
+  static async initDb() {
+    if (!this.dbInstance) {
+      this.dbInstance = await getDbInstance();
+      this.sessionId = sessionStorage.getItem("sessionId");
+    }
+  }
+
   // Product Operations
   static async getAllProducts(): Promise<LocalProduct[]> {
-    return db.products.where("sessionId").equals(String(db.sessionId)).toArray();
+    await this.initDb();
+    const db = this.dbInstance;
+    return db.products.where("sessionId").equals(String(this.sessionId)).toArray();
   }
 
   static async getProductById(id: string): Promise<LocalProduct | undefined> {
-    return db.products.where("sessionId").equals(String(db.sessionId)).and((product) => product.id === id).first();
+    await this.initDb();
+    const db = this.dbInstance;
+    return db.products.where("sessionId").equals(String(this.sessionId)).and((product) => product.id === id).first();
   }
 
   static async getProductByBrandName(brand_name: string): Promise<LocalProduct | undefined> {
-    return db.products.where("sessionId").equals(String(db.sessionId)).and((product) => product.brand_name === brand_name).first();
+    await this.initDb();
+    const db = this.dbInstance;
+    return db.products.where("sessionId").equals(String(this.sessionId)).and((product) => product.brand_name === brand_name).first();
   }
 
   static async getProductByCode(product_code: string): Promise<LocalProduct[] | undefined> {
-    return db.products.where("sessionId").equals(String(db.sessionId)).and((product) => product.product_code === product_code).toArray();
+    await this.initDb();
+    const db = this.dbInstance;
+    return db.products.where("sessionId").equals(String(this.sessionId)).and((product) => product.product_code === product_code).toArray();
   }
 
   static async getProductByBrandID(brandId: string): Promise<LocalProduct | undefined> {
-    return db.products.where("sessionId").equals(String(db.sessionId)).and((product) => product.brand_id === brandId).first();
+    await this.initDb();
+    const db = this.dbInstance;
+    return db.products.where("sessionId").equals(String(this.sessionId)).and((product) => product.brand_id === brandId).first();
   }
 
   static async updateProductQuantity(ean: string, quantityChange: number): Promise<void> {
+    await this.initDb();
+    const db = this.dbInstance;
     await db.transaction('rw', db.products, async () => {
 
-      const product = await db.products.where("sessionId").equals(String(db.sessionId)).and((product) => product.ean === ean).first();
+      const product = await db.products.where("sessionId").equals(String(this.sessionId)).and((product) => product.ean === ean).first();
 
       if (!product) throw new Error('Product not found');
 
@@ -60,14 +80,10 @@ export class LocalApi {
 
   // Transaction Operations
   static async createTransaction(transaction: Omit<LocalTransaction, 'id' | 'createdAt' | 'synced' | "sessionId">): Promise<string> {
+    await this.initDb();
+    const db = this.dbInstance;
     const id = crypto.randomUUID();
-    const sessionId = String(db.sessionId)
-
-    if (!sessionId) {
-      toast.error("Please login again, no SessionID found")
-      redirect('/login')
-      return ""
-    }
+    const sessionId = String(this.sessionId)
 
     console.log(transaction)
     console.log(transaction?.customer?.phoneno, "Here's the customertrans")
@@ -101,30 +117,40 @@ export class LocalApi {
   }
 
   static async deleteAllTransactions(): Promise<void> {
-    const sessionId = String(db.sessionId)
+    await this.initDb();
+    const db = this.dbInstance;
+    const sessionId = String(this.sessionId)
     await db.transaction('rw', db.transactions, async () => {
       await db.transactions.where('sessionId').equals(sessionId).delete();
     });
   }
 
   static async getUnsynedTransactions(): Promise<LocalTransaction[]> {
-    const sessionId = String(db.sessionId)
+    await this.initDb();
+    const db = this.dbInstance;
+    // const sessionId = String(this.sessionId)
 
-    return await db.transactions.where('sessionId').equals(sessionId).and((transaction) => transaction.synced === 'false').toArray();
+    return await db.transactions.where('sessionId').equals(db.sessionId).and((transaction) => transaction.synced === 'false').toArray();
   }
 
   static async markTransactionSynced(id: string): Promise<void> {
+    await this.initDb();
+    const db = this.dbInstance;
     const sessionId = String(db.sessionId)
     await db.transactions.update(id, { synced: 'true', sessionId });
   }
 
   static async getCustomers(): Promise<LocalCustomer[]> {
-    const sessionId = String(db.sessionId);
+    await this.initDb();
+    const db = this.dbInstance;
+    const sessionId = String(this.sessionId);
     return await db.customers.where("sessionId").equals(sessionId).toArray();
   }
 
   static async updateOrCreateCustomer(customerInfo: LocalCustomer, points: number, type: "credit_note_balance" | "loyalty_points"): Promise<void> {
-    const sessionId = String(db.sessionId);
+    await this.initDb();
+    const db = this.dbInstance;
+    const sessionId = String(this.sessionId);
     await db.transaction('rw', db.customers, async () => {
       let customer = await db.customers.where("sessionId").equals(sessionId).and((cust) => cust.phoneno === customerInfo.phoneno).first();
       if (!customer) {
@@ -161,17 +187,28 @@ export class LocalApi {
   }
 
   static async getAllTransactions(): Promise<LocalTransaction[]> {
-    return await db.transactions.where("sessionId").equals(String(db.sessionId)).toArray();
+    await this.initDb();
+    const db = this.dbInstance;
+    return await db.transactions.where("sessionId").equals(String(this.sessionId)).toArray();
   }
 
   static async clearSessionData() {
-    const sessionId = String(db.sessionId)
+    await this.initDb();
+    const db = this.dbInstance;
+    const sessionId = String(this.sessionId)
 
     await db.transaction('rw', db.transactions, db.customers, db.branches, db.products, async () => {
       await db.transactions.where('sessionId').equals(sessionId).delete();
       await db.customers.where("sessionId").equals(sessionId).delete();
       await db.products.where("sessionId").equals(sessionId).delete();
       await db.branches.where("sessionId").equals(sessionId).delete();
+    })
+
+    await db.transaction('rw', db.discounts, db.paymentMethods, db.failedSyncTransactions, async () => {
+      await db.discounts.where('sessionId').equals(sessionId).delete()
+      await db.paymentMethods.where('sessionId').equals(sessionId).delete()
+      await db.failedSyncTransactions.where('sessionId').equals(sessionId).delete()
+
     })
   }
 }

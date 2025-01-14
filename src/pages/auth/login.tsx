@@ -1,13 +1,14 @@
-import { useState } from "react";
-import { Eye, EyeOff, Loader2, Mail } from "lucide-react";
 import AuthLayout from "@/components/auth/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { RemoteApi } from "@/lib/api/remoteApi";
-import toast from "react-hot-toast";
 import { useStore } from "@/hooks/useStore";
-import { db, delay } from "@/lib/utils";
+import { RemoteApi } from "@/lib/api/remoteApi";
+import { delay } from "@/lib/utils";
+import { Eye, EyeOff, Loader2, Mail } from "lucide-react";
+import { useState } from "react";
+import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import { getDbInstance } from '../../lib/db/dbSingleton';
 
 const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -50,7 +51,7 @@ const LoginPage = () => {
         sessionStorage.setItem("user", JSON.stringify(res?.data?.user));
         console.log("Sleeping...");
         await delay();
-        await db.openDatabase();
+        await getDbInstance();
         await triggerFetch();
 
         setFormData({

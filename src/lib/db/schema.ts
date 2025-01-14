@@ -121,10 +121,10 @@ export class StoreDatabase extends Dexie {
   // orderedProduct!: Table<LocalTransactionItem>;
   failedSyncTransactions!: Table<TransactionSync>;
   branches!: Table<LocalBranch>;
-  sessionId?: string | null;
-  constructor(sessionId?: string) {
+  sessionId!: string;
+  constructor() {
     super("StoreDB");
-    this.sessionId = sessionId || getSessionId();
+    
 
     this.version(1).stores({
       products:
@@ -135,7 +135,8 @@ export class StoreDatabase extends Dexie {
       discounts:
         "id, createdAt, name, discount_type, value, code, value_type, status, start_date, end_date, is_active, percentage, price, type, sessionId",
       failedSyncTransactions: "id, created_at, sync_session_id, sessionId",
-      branches: "id, name,  location, is_active, is_default, staff_id, account_id, mode_of_payment_id, terminalID, sessionId"
+      branches: "id, name,  location, is_active, is_default, staff_id, account_id, mode_of_payment_id, terminalID, sessionId",
+      sessionId: "sessionId",
       // orderedProduct:
       //   "id, product_code, product_name, retail_price, quantity, discount, ean, lastSyncAt, isModified",
     });
@@ -152,6 +153,6 @@ export class StoreDatabase extends Dexie {
 }
 
 // export const db = new StoreDatabase();
-export const getSessionDB = (sessionId?: string) => {
-  return new StoreDatabase(sessionId);
+export const getSessionDB = () => {
+  return new StoreDatabase();
 };

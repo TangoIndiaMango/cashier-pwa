@@ -1,8 +1,10 @@
 import { LocalApiMethods } from "@/lib/api/localMethods";
-import { db, delay } from "@/lib/utils";
+import { getDbInstance } from "@/lib/db/dbSingleton";
+import { delay } from "@/lib/utils";
 import { TransactionSync } from "@/types/trxType";
 import { useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import { redirect } from "react-router-dom";
 import { LocalApi } from "../lib/api/localApi";
 import {
   LocalBranch,
@@ -31,8 +33,8 @@ export function useStore() {
   const syncManager = SyncManager.getInstance();
 
   const refreshDB = async () => {
-    await db.openDatabase()
     await delay(2)
+    await getDbInstance();
   };
 
   const triggerFetch = async () => {
@@ -133,7 +135,10 @@ export function useStore() {
       await triggerLocalFetch();
     } catch (err) {
       setError(err as Error);
-      throw err;
+      toast.error('Failed to create transaction. Please try again.');
+      redirect("/login");
+
+      return Promise.reject(error);
     }
   }
 

@@ -2,14 +2,15 @@
 import { Transaction } from "@/types/type";
 import axios from "axios";
 import toast from "react-hot-toast";
+import { redirect } from "react-router-dom";
 import {
   LocalCustomer,
   LocalDiscount,
   LocalPaymentMethod,
   LocalProduct,
 } from "../db/schema";
-import { redirect } from "react-router-dom";
-import { db, getStoreId } from "../utils";
+import { getStoreId } from "../utils";
+import { LocalApi } from "./localApi";
 // https://www.peresiana-ecomm-backend.nigeriasbsc.com/public/api/
 // https://prlerp.com/peresianas-BE/public/api/
 
@@ -38,21 +39,23 @@ api.interceptors.request.use(
 
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
     if (error.response && error.response.status === 401) {
       console.error("Unauthorized access. Please log in again.");
       toast.error("Session expired. Please log in again.");
+      await LocalApi.clearSessionData();
       sessionStorage.removeItem("token");
       sessionStorage.removeItem("user");
       redirect("/login");
-      db.delete();
+      // db.delete();
       
     } else {
       console.error("API Error: ", error);
+      await LocalApi.clearSessionData();
       sessionStorage.removeItem("token");
       sessionStorage.removeItem("user");
       redirect("/login");
-      db.delete();
+      // db.delete();
       toast.error("An error occurred, please try again.");
     }
     return Promise.reject(error);
@@ -172,7 +175,7 @@ export class RemoteApi {
       return null;
     }
     const response = await api.get(`mop_terminals/${storeId}`);
-    console.log(response.data);
+    // console.log(response.data);
     return response.data.data;
   }
 

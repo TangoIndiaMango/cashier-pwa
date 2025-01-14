@@ -5,20 +5,31 @@ import { RemoteApi } from "../api/remoteApi";
 import dayjs from "dayjs";
 import { saveAs } from "file-saver";
 import { parse } from "papaparse";
-import { db, delay } from "../utils";
-db.openDatabase()
-export class SyncManager {
+import { delay } from "../utils";
+import { getDbInstance } from "../db/dbSingleton";
+
+export class SyncManager{
   private static instance: SyncManager;
   private syncInProgress: boolean = false;
   private syncWindow: number = 30 * 60 * 1000; // 30 minutes
-
+  static dbInstance: any = null;
+  static sessionId: string | null = null;
+    
   private constructor() { }
+
 
   static getInstance(): SyncManager {
     if (!SyncManager.instance) {
       SyncManager.instance = new SyncManager();
     }
     return SyncManager.instance;
+  }
+
+  static async initDb() {
+    if (!this.dbInstance) {
+      this.dbInstance = await getDbInstance();
+      this.sessionId = sessionStorage.getItem("sessionId");
+    }
   }
 
   // async scheduleSync() {
@@ -90,8 +101,10 @@ export class SyncManager {
   }
 
   private async syncProducts() {
+    await SyncManager.initDb();
+    const db = SyncManager.dbInstance;
     const remoteProducts = await RemoteApi.fetchStoreProducts();
-    const sessionId = String(db.sessionId);
+    const sessionId = String(SyncManager.sessionId);
     // console.log("Products to Sync", remoteProducts);
     await db.transaction("rw", db.products, async () => {
       for (const product of remoteProducts) {
@@ -105,8 +118,10 @@ export class SyncManager {
   }
 
   private async syncCustomers() {
+    await SyncManager.initDb();
+    const db = SyncManager.dbInstance;
     const remoteCustomers = await RemoteApi.fetchCustomer();
-    const sessionId = String(db.sessionId);
+    const sessionId = String(SyncManager.sessionId);
     await db.transaction("rw", db.customers, async () => {
       for (const customer of remoteCustomers) {
         await db.customers.put({ ...customer, sessionId });
@@ -179,6 +194,8 @@ export class SyncManager {
 
       // Generate random syncId
       const syncId = `${Math.floor(Date.now() / 1000)}_SYNC`;
+      await SyncManager.initDb();
+      const db = SyncManager.dbInstance;
       try {
         // Send to remote API for syncing
         const response = await RemoteApi.syncTransactions(
@@ -256,8 +273,10 @@ export class SyncManager {
   }
 
   private async syncPaymentMethods() {
+    await SyncManager.initDb();
+    const db = SyncManager.dbInstance;
     const remotePaymentMethods = await RemoteApi.fetchPaymentMethod();
-    const sessionId = String(db.sessionId);
+    const sessionId = String(SyncManager.sessionId);
     await db.transaction("rw", db.paymentMethods, async () => {
       for (const method of remotePaymentMethods) {
         await db.paymentMethods.put({ ...method, sessionId });
@@ -266,8 +285,10 @@ export class SyncManager {
   }
 
   private async syncDiscounts() {
+    await SyncManager.initDb();
+    const db = SyncManager.dbInstance;
     const remoteDiscounts = await RemoteApi.fetchDiscounts();
-    const sessionId = String(db.sessionId);
+    const sessionId = String(SyncManager.sessionId);
     await db.transaction("rw", db.discounts, async () => {
       for (const discount of remoteDiscounts) {
         await db.discounts.put({ ...discount, sessionId });
@@ -285,8 +306,10 @@ export class SyncManager {
   }
 
   private async syncFailedTrx() {
+    await SyncManager.initDb();
+    const db = SyncManager.dbInstance;
     const remoteTrx = await RemoteApi.fetchFailedTransactions();
-    const sessionId = String(db.sessionId);
+    const sessionId = String(SyncManager.sessionId);
     // console.log(remoteTrx?.data)
     await db.transaction("rw", db.failedSyncTransactions, async () => {
       for (const trx of remoteTrx.data) {
@@ -296,8 +319,10 @@ export class SyncManager {
   }
 
   async syncBranches() {
+    await SyncManager.initDb();
+    const db = SyncManager.dbInstance;
     const remoteBranches = await RemoteApi.fetchPos();
-    const sessionId = String(db.sessionId);
+    const sessionId = String(SyncManager.sessionId);
     await db.transaction("rw", db.branches, async () => {
       for (const branch of remoteBranches) {
         await db.branches.put({ ...branch, sessionId });

@@ -11,10 +11,10 @@ import {
   LocalPaymentMethod,
   LocalProduct,
   LocalTransaction,
-  db,
 } from "../lib/db/schema";
 import { SyncManager } from "../lib/sync/syncManager";
 import { useOnlineStatus } from "./useOnlineStatus";
+import { db } from "@/lib/utils";
 
 export function useStore() {
   const [products, setProducts] = useState<LocalProduct[]>([]);
@@ -109,7 +109,7 @@ export function useStore() {
   };
 
   const refreshDB = async () => {
-    await db.open();
+    await db.openDatabase()
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
   // Trigger sync when online or manually

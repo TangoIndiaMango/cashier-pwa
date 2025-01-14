@@ -1,6 +1,7 @@
 import { PaymentEntry } from "@/hooks/usePayment";
 import { TransactionSync } from "@/types/trxType";
 import Dexie, { Table } from "dexie";
+import { getSessionId } from "../utils";
 
 export interface LocalBranch {
   id: number;
@@ -17,6 +18,7 @@ export interface LocalBranch {
   terminalID: string;
   createdAt: Date;
   updatedAt: Date;
+  sessionId?: string | null;
 }
 
 export interface LocalPaymentMethod {
@@ -27,6 +29,7 @@ export interface LocalPaymentMethod {
   name: string;
   slug: string;
   is_active: number;
+  sessionId?: string | null;
 }
 export interface LocalProduct {
   id: string;
@@ -41,6 +44,7 @@ export interface LocalProduct {
   color: string;
   lastSyncAt: Date;
   isModified: boolean;
+  sessionId?: string | null;
 }
 
 export interface LocalTransaction {
@@ -48,7 +52,7 @@ export interface LocalTransaction {
   createdAt?: Date;
   recieptNo?: string;
   totalAmount: number;
-  originalTotal:number;
+  originalTotal: number;
   paymentMethods: PaymentEntry[];
   payableAmount: number;
   status: string;
@@ -58,12 +62,14 @@ export interface LocalTransaction {
   creditNotePoints: string;
   items: LocalTransactionItem[];
   discount: LocalDiscount;
+  sessionId: string;
 }
 
 export interface LocalTransactionItem extends Partial<LocalProduct> {
   quantity: number;
   totalPrice: number;
   discount?: LocalDiscount;
+  sessionId?: string | null;
 }
 
 export interface LocalDiscount {
@@ -85,6 +91,7 @@ export interface LocalDiscount {
   product_id: string;
   redemption: number;
   redemption_value: number;
+  sessionId?: string | null;
 }
 
 export interface LocalCustomer {
@@ -101,9 +108,11 @@ export interface LocalCustomer {
   state: string;
   city: string;
   address: string;
+  sessionId?: string | null;
 }
 
 export class StoreDatabase extends Dexie {
+
   products!: Table<LocalProduct>;
   transactions!: Table<LocalTransaction>;
   customers!: Table<LocalCustomer>;
@@ -112,32 +121,37 @@ export class StoreDatabase extends Dexie {
   // orderedProduct!: Table<LocalTransactionItem>;
   failedSyncTransactions!: Table<TransactionSync>;
   branches!: Table<LocalBranch>;
-
-  constructor() {
+  sessionId?: string | null;
+  constructor(sessionId?: string) {
     super("StoreDB");
+    this.sessionId = sessionId || getSessionId();
 
     this.version(1).stores({
       products:
-        "id, product_name, product_code,ean, brand_name, brand_id, size, lastSyncAt",
-      transactions: "id, createdAt, synced",
-      customers: "id, firstname, lastname, email, phoneno",
-      paymentMethods: "id, account_id, createdAt, mopID, name, slug, is_active",
+        "id, product_name, product_code,ean, brand_name, brand_id, size, lastSyncAt, sessionId",
+      transactions: "id, createdAt, synced, sessionId",
+      customers: "id, firstname, lastname, email, phoneno, sessionId",
+      paymentMethods: "id, account_id, createdAt, mopID, name, slug, is_active, sessionId",
       discounts:
-        "id, createdAt, name, discount_type, value, code, value_type, status, start_date, end_date, is_active, percentage, price, type",
-      failedSyncTransactions: "id, created_at, sync_session_id",
-      branches: "id, name,  location, is_active, is_default, staff_id, account_id, mode_of_payment_id, terminalID"
+        "id, createdAt, name, discount_type, value, code, value_type, status, start_date, end_date, is_active, percentage, price, type, sessionId",
+      failedSyncTransactions: "id, created_at, sync_session_id, sessionId",
+      branches: "id, name,  location, is_active, is_default, staff_id, account_id, mode_of_payment_id, terminalID, sessionId"
       // orderedProduct:
       //   "id, product_code, product_name, retail_price, quantity, discount, ean, lastSyncAt, isModified",
     });
   }
+
+
+  async openDatabase() {
+    await this.open().then(() => {
+      console.log("Database opened successfully!");
+    }).catch((error) => {
+      console.error("Failed to open database:", error);
+    });
+  }
 }
 
-export const db = new StoreDatabase();
-
-db.open()
-  .then(() => {
-    console.log("Database opened successfully!");
-  })
-  .catch((error) => {
-    console.error("Failed to open database:", error);
-  });
+// export const db = new StoreDatabase();
+export const getSessionDB = (sessionId?: string) => {
+  return new StoreDatabase(sessionId);
+};

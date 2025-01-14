@@ -1,4 +1,5 @@
 import { LocalApiMethods } from "@/lib/api/localMethods";
+import { db, delay } from "@/lib/utils";
 import { TransactionSync } from "@/types/trxType";
 import { useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
@@ -9,11 +10,9 @@ import {
   LocalDiscount,
   LocalPaymentMethod,
   LocalProduct,
-  LocalTransaction,
-  db
+  LocalTransaction
 } from "../lib/db/schema";
 import { SyncManager } from "../lib/sync/syncManager";
-import { delay } from "@/lib/utils";
 
 export function useStore() {
   const [products, setProducts] = useState<LocalProduct[]>([]);
@@ -25,13 +24,14 @@ export function useStore() {
   const [unsyncedTrx, setUnsyncedTrx] = useState<LocalTransaction[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+
   // const { isOnline } = useOnlineStatus();
   // const SHOULD_FETCH = 30 * 60 * 1000
 
   const syncManager = SyncManager.getInstance();
 
   const refreshDB = async () => {
-    await db.open();
+    await db.openDatabase()
     await delay(2)
   };
 

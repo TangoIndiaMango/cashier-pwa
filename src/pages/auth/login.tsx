@@ -4,10 +4,9 @@ import AuthLayout from "@/components/auth/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { RemoteApi } from "@/lib/api/remoteApi";
-import { db } from "@/lib/db/schema";
 import toast from "react-hot-toast";
 import { useStore } from "@/hooks/useStore";
-import { delay } from "@/lib/utils";
+import { db, delay } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 
 const LoginPage = () => {
@@ -20,16 +19,16 @@ const LoginPage = () => {
   });
   const [loading, setLoading] = useState(false);
 
-  const openDB = async () => {
-    try {
-      console.log("Opening DB...");
-      await db.open();
-      console.log("DB Opened successfully.");
-    } catch (error) {
-      console.error("Error opening DB:", error);
-      throw new Error("Could not open IndexedDB.");
-    }
-  };
+  // const openDB = async () => {
+  //   try {
+  //     console.log("Opening DB...");
+  //     await db.open();
+  //     console.log("DB Opened successfully.");
+  //   } catch (error) {
+  //     console.error("Error opening DB:", error);
+  //     throw new Error("Could not open IndexedDB.");
+  //   }
+  // };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -51,7 +50,7 @@ const LoginPage = () => {
         sessionStorage.setItem("user", JSON.stringify(res?.data?.user));
         console.log("Sleeping...");
         await delay();
-        await openDB();
+        await db.openDatabase();
         await triggerFetch();
 
         setFormData({

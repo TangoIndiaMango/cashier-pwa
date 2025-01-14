@@ -1,8 +1,9 @@
 import { useAuth } from "@/hooks/useAuth";
+import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { useStore } from "@/hooks/useStore";
 import { FolderSync, Loader2, LogOut, RefreshCcw } from "lucide-react";
 import { useState } from "react";
-import { Outlet, redirect, useNavigate } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import { NetworkInfo } from "./auth/NetworkInfo";
 import { AppUpdateButton } from "./auth/UpdateBtn";
 import ModernLoadingScreen from "./LoadingScreen";
@@ -15,8 +16,6 @@ import {
   TooltipProvider,
   TooltipTrigger
 } from "./ui/tooltip";
-import { useOnlineStatus } from "@/hooks/useOnlineStatus";
-import toast from "react-hot-toast";
 
 const Layout = () => {
   const { triggerSync, triggerFetch, triggerLocalFetch, loading, unsyncedTrx } =

@@ -3,14 +3,13 @@ import { Transaction } from "@/types/type";
 import axios from "axios";
 import toast from "react-hot-toast";
 import {
-  db,
   LocalCustomer,
   LocalDiscount,
   LocalPaymentMethod,
   LocalProduct,
 } from "../db/schema";
 import { redirect } from "react-router-dom";
-import { getStoreId } from "../utils";
+import { db, getStoreId } from "../utils";
 // https://www.peresiana-ecomm-backend.nigeriasbsc.com/public/api/
 // https://prlerp.com/peresianas-BE/public/api/
 
@@ -47,6 +46,7 @@ api.interceptors.response.use(
       sessionStorage.removeItem("user");
       redirect("/login");
       db.delete();
+      
     } else {
       console.error("API Error: ", error);
       sessionStorage.removeItem("token");
@@ -169,7 +169,7 @@ export class RemoteApi {
     if (!storeId) {
       toast.error("Store ID not found. Please log in again.");
       redirect("/login");
-      return;
+      return null;
     }
     const response = await api.get(`mop_terminals/${storeId}`);
     console.log(response.data);

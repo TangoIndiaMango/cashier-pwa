@@ -1,9 +1,8 @@
 import { RemoteApi } from "@/lib/api/remoteApi";
-import { db } from "@/lib/db/schema";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useStore } from "./useStore";
-import { delay } from "@/lib/utils";
+import { db, delay } from "@/lib/utils";
 
 export function useAuth() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -25,7 +24,7 @@ export function useAuth() {
           console.log("Sleeping...");
           await delay(SLEEP_TIME);
 
-          await db.open();
+          await db.openDatabase();
           console.log("Sleeping before loading data...");
           await delay(SLEEP_TIME);
 
@@ -75,6 +74,7 @@ export function useAuth() {
     sessionStorage.removeItem("token");
     sessionStorage.removeItem("user");
     db.close();
+    await delay(SLEEP_TIME);
     await db.delete();
     setIsAuthenticated(false);
     navigate("/login");

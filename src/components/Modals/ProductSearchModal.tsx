@@ -10,8 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useStore } from "@/hooks/useStore";
 import { LocalApi } from "@/lib/api/localApi";
-import { db, LocalTransactionItem } from "@/lib/db/schema";
-import { formatCurrency } from "@/lib/utils";
+import { LocalTransactionItem } from "@/lib/db/schema";
+import { db, formatCurrency } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
@@ -24,8 +24,9 @@ const ProductSearchModal = ({
   const [searchTerm, setSearchTerm] = useState(""); // State to hold the search term
   const [selectedProduct, setSelectedProduct] =
     useState<Partial<LocalTransactionItem> | null>(null);
-  const [filteredProducts, setFilteredProducts] =
-    useState<Partial<LocalTransactionItem> | null | any>(fileredProduct);
+  const [filteredProducts, setFilteredProducts] = useState<
+    Partial<LocalTransactionItem> | null | any
+  >(fileredProduct);
   // console.log(fileredProduct);
   const [discount, setDiscount] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -33,27 +34,27 @@ const ProductSearchModal = ({
 
   // console.log(discounts)
 
-  const handleEnter =async () => {
-    await db.open()
+  const handleEnter = async () => {
+    await db.openDatabase();
     const searchTermStr = searchTerm.toString().trim();
-    console.log(searchTerm)
-    const foundProductByEan = products.find(
-      (prod) => prod?.ean?.toString() === searchTermStr
-    );
+    console.log(searchTerm);
+    const foundProductByEan = products
+      .filter((prodS) => prodS?.sessionId?.toString() === String(db.sessionId))
+      .find((prod) => prod?.ean?.toString() === searchTermStr);
 
     if (foundProductByEan) {
       setFilteredProducts([foundProductByEan]);
-      return
-    }else {
+      return;
+    } else {
       const foundProductByCode = await LocalApi.getProductByCode(searchTermStr);
       if (foundProductByCode && foundProductByCode.length) {
-        setFilteredProducts(foundProductByCode)
-        return
-      }else{
-        toast.error("Product not found")
-        setSearchTerm("")
-        setFilteredProducts(null)
-        return
+        setFilteredProducts(foundProductByCode);
+        return;
+      } else {
+        toast.error("Product not found");
+        setSearchTerm("");
+        setFilteredProducts(null);
+        return;
       }
     }
     // const foundProduct = products.find(
@@ -157,27 +158,34 @@ const ProductSearchModal = ({
             </div>
           ) : (
             <div className="grid gap-2 overflow-auto max-h-40">
-            {Array.isArray(filteredProducts) && filteredProducts.length > 0 ? (
-              filteredProducts.map((prod) => (
-                <div
-                  key={prod.id}  // Ensure each product has a unique `id` or another unique key
-                  className="p-2 border rounded cursor-pointer hover:bg-gray-100"
-                  onClick={() => setSelectedProduct(prod)}
-                >
-                  <p className="font-medium">{prod.product_name}</p>
-                  <div className="grid grid-cols-2">
-                  <p className="text-sm text-gray-500">Brand name: {prod.brand_name}</p>
-                  <p className="text-sm text-gray-500">Color: {prod.color}</p>
-                  <p className="text-sm text-gray-500">Size: {prod.size}</p>
-                  <p className="text-sm text-gray-500">Ean: {prod.ean}</p>
+              {Array.isArray(filteredProducts) &&
+              filteredProducts.length > 0 ? (
+                filteredProducts.map((prod) => (
+                  <div
+                    key={prod.id} // Ensure each product has a unique `id` or another unique key
+                    className="p-2 border rounded cursor-pointer hover:bg-gray-100"
+                    onClick={() => setSelectedProduct(prod)}
+                  >
+                    <p className="font-medium">{prod.product_name}</p>
+                    <div className="grid grid-cols-2">
+                      <p className="text-sm text-gray-500">
+                        Brand name: {prod.brand_name}
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        Color: {prod.color}
+                      </p>
+                      <p className="text-sm text-gray-500">Size: {prod.size}</p>
+                      <p className="text-sm text-gray-500">Ean: {prod.ean}</p>
+                    </div>
+                    <p className="text-sm text-gray-500">
+                      Product code: {prod.product_code}
+                    </p>
                   </div>
-                  <p className="text-sm text-gray-500">Product code: {prod.product_code}</p>
-                </div>
-              ))
-            ) : (
-              <p className="text-gray-500">No products found</p>
-            )}
-          </div>
+                ))
+              ) : (
+                <p className="text-gray-500">No products found</p>
+              )}
+            </div>
           )}
 
           {selectedProduct && (

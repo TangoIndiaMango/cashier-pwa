@@ -25,8 +25,10 @@ import { useCustomer } from "@/hooks/useCustomer";
 import { usePayment } from "@/hooks/usePayment";
 import { useTransaction } from "@/hooks/useTransaction";
 import {
+  db,
   formatCurrency,
-  generateUniqueIdUsingStoreIDAsPrefix
+  generateUniqueIdUsingStoreIDAsPrefix,
+  getSessionId
 } from "@/lib/utils";
 
 import { Loader2, Search, ShoppingBag } from "lucide-react";
@@ -77,7 +79,6 @@ const POSSystem = () => {
     handlePaymentSubmit,
     setPaymentMethod
   } = usePayment();
-
   const { customer, handleAddCustomer, setCustomer } = useCustomer();
   const [selectedCustomer, setSelectedCustomer] = useState(false);
   const [searchQuery, setSearchQuery] = useState<string>("");

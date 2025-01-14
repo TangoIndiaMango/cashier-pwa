@@ -1,6 +1,8 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { getSessionDB } from "./db/schema";
+import { redirect } from "react-router-dom";
+import toast from "react-hot-toast";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -53,6 +55,11 @@ export const getSessionId = () => {
   const storeInfo = getStoreInfo()
   const userInfo = getUserInfo()
   const sessionID = getSessionID()
+  if (!storeInfo || !userInfo || !sessionID) {
+    toast.error("SessionID not found. Please login again")
+    redirect("/login")
+    return ""
+  }
   const storeIdStr = String(storeInfo.store_id || storeInfo.id);
   const firstnameStr = String(userInfo.firstname);
   const phonenoStr = String(userInfo.phoneno);

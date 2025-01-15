@@ -34,8 +34,8 @@ export function useStore() {
 
   const refreshDB = async () => {
     const db = getDbInstance()
-    await db.openDatabase()
     await delay(2)
+    await db.openDatabase()
   };
 
   const triggerFetch = async () => {
@@ -72,12 +72,12 @@ export function useStore() {
         localDiscounts,
         localunsyncedTrx,
       ] = await Promise.all([
-        LocalApi.getAllProducts(sessionId),
-        LocalApiMethods.getFailedSyncTrx(sessionId),
-        LocalApi.getCustomers(sessionId),
-        LocalApiMethods.getAllPaymentMethods(sessionId),
-        LocalApiMethods.getBranches(sessionId),
-        LocalApiMethods.getDiscounts(sessionId),
+        LocalApi.getAllProducts(),
+        LocalApiMethods.getFailedSyncTrx(),
+        LocalApi.getCustomers(),
+        LocalApiMethods.getAllPaymentMethods(),
+        LocalApiMethods.getBranches(),
+        LocalApiMethods.getDiscounts(),
         LocalApi.getUnsynedTransactions(sessionId),
       ]);
 
@@ -168,6 +168,7 @@ export function useStore() {
     triggerFetch,
     updateAvailableQuantity,
     createTransaction,
+    setLoading,
     triggerLocalFetch,
   };
 }

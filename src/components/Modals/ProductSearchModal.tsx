@@ -12,7 +12,7 @@ import { useStore } from "@/hooks/useStore";
 import { LocalApi } from "@/lib/api/localApi";
 import { getDbInstance } from "@/lib/db/db";
 import { LocalTransactionItem } from "@/lib/db/schema";
-import { formatCurrency } from "@/lib/utils";
+import { delay, formatCurrency } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
@@ -32,7 +32,7 @@ const ProductSearchModal = ({
   const [discount, setDiscount] = useState("");
   const [error, setError] = useState<string | null>(null);
   const { products, loading, discounts, updateAvailableQuantity } = useStore();
-const sessionId = sessionStorage.getItem("sessionId")
+// const sessionId = sessionStorage.getItem("sessionId")
   // console.log(discounts)
 
   const handleEnter = async () => {
@@ -40,15 +40,16 @@ const sessionId = sessionStorage.getItem("sessionId")
     await db.openDatabase();
     const searchTermStr = searchTerm.toString().trim();
     console.log(searchTerm);
-    const foundProductByEan = products
-      .filter((prodS) => prodS?.sessionId?.toString() === String(db.sessionId))
-      .find((prod) => prod?.ean?.toString() === searchTermStr);
+    // const foundProductByEan = products
+    //   .filter((prodS) => prodS?.sessionId?.toString() === String(db.sessionId))
+    //   .find((prod) => prod?.ean?.toString() === searchTermStr);
+    const foundProductByEan = products.find((prod) => prod?.ean?.toString() === searchTermStr);
 
     if (foundProductByEan) {
       setFilteredProducts([foundProductByEan]);
       return;
     } else {
-      const foundProductByCode = await LocalApi.getProductByCode(searchTermStr, String(sessionId));
+      const foundProductByCode = await LocalApi.getProductByCode(searchTermStr);
       if (foundProductByCode && foundProductByCode.length) {
         setFilteredProducts(foundProductByCode);
         return;

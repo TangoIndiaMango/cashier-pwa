@@ -176,7 +176,10 @@ export class SyncManager {
   private async syncTransactions() {
     const sessionId = sessionStorage.getItem('sessionId')
     const unsynedTransactions = await LocalApi.getUnsynedTransactions(String(sessionId));
-    if (unsynedTransactions.length === 0) return;
+    if (unsynedTransactions.length === 0) {
+      toast.success("No transactions to sync");
+      return;
+    };
     console.log("Transactions to Sync", unsynedTransactions);
     const batchSize = 10;
 
@@ -240,29 +243,29 @@ export class SyncManager {
       // Generate random syncId
       const syncId = `${Math.floor(Date.now() / 1000)}_SYNC`;
       try {
+        // Send to remote API for syncing
+        const response = await RemoteApi.syncTransactions(
+          transactiontoSync as any,
+          syncId
+        );
+        
+        const { successful_transaction, failed_transaction } =
+        response?.data || {};
+        
+        const successfulCount = successful_transaction || 0;
+        const failedCount = failed_transaction || 0;
+        
+        // Show success or failure message
+        if (failedCount > 0) {
+          console.error("Sync failed:", response?.message);
+          toast.error(response?.message); // Show error with failed count
+        } else {
+          console.log("Transactions synced successfully.");
+          toast.success(`Successfully synced ${successfulCount} transactions.`);
+        }
+        
+        // Mark all transactions as synced regardless of success/failure
         await db.transaction("rw", db.transactions, async () => {
-          // Send to remote API for syncing
-          const response = await RemoteApi.syncTransactions(
-            transactiontoSync as any,
-            syncId
-          );
-
-          const { successful_transaction, failed_transaction } =
-            response?.data || {};
-
-          const successfulCount = successful_transaction || 0;
-          const failedCount = failed_transaction || 0;
-
-          // Show success or failure message
-          if (failedCount > 0) {
-            console.error("Sync failed:", response?.message);
-            toast.error(response?.message); // Show error with failed count
-          } else {
-            console.log("Transactions synced successfully.");
-            toast.success(`Successfully synced ${successfulCount} transactions.`);
-          }
-
-          // Mark all transactions as synced regardless of success/failure
           for (const tx of transactiontoSync) {
             await db.transactions.update(tx.id as string, { synced: "true", sessionId: String(sessionId) })
           }

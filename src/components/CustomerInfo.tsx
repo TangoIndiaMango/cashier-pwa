@@ -5,13 +5,17 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
+  SelectValue
 } from "@/components/ui/select";
 import useDebounce from "@/hooks/useDebounce";
 import { useStore } from "@/hooks/useStore";
 import { LocalCustomer } from "@/lib/db/schema";
 import React, { useEffect, useState } from "react";
 import { Textarea } from "./ui/textarea";
+import { Checkbox } from "./ui/checkbox";
+import { LocalApi } from "@/lib/api/localApi";
+import toast from "react-hot-toast";
+import { Button } from "./ui/button";
 
 // Define the types for customer details
 export interface CustomerDetails {
@@ -45,12 +49,13 @@ const CustomerComponent: React.FC<CustomerComponentProps> = ({
   handleInputChange,
   customerDetails,
   setSelectedCustomer,
-  onAddCustomer,
+  onAddCustomer
 }) => {
   const [filteredCustomers, setFilteredCustomers] = useState<LocalCustomer[]>(
     []
   );
-  const { customers, loading } = useStore();
+  const { customers, loading, setLoading } = useStore();
+  const [createNew, setCreateNew] = useState(false);
 
   const debouncedSearchTerm = useDebounce(searchQuery.toLowerCase(), 500);
 
@@ -95,8 +100,30 @@ const CustomerComponent: React.FC<CustomerComponentProps> = ({
       address: customer.address || "",
       loyalty_points: customer?.loyalty_points,
       credit_note_balance: customer?.credit_note_balance,
-      id: customer?.id,
+      id: customer?.id
     });
+  };
+
+  const handleCreateNew = async () => {
+    try {
+      setLoading(true);
+      await LocalApi.createNewCustomerInfo(
+        customerDetails as Partial<LocalCustomer>
+      );
+    } catch (error) {
+      console.log(error);
+      toast.error(String(error));
+      setLoading(false);
+    }
+    setLoading(false);
+  };
+
+  const handleOnCreateCheckChange = () => {
+    if (!customerDetails.firstname || !customerDetails.phoneno) {
+      toast.error("Please fill in firstname, lastname and (phoneno or email)");
+      return;
+    }
+    setCreateNew((prev) => !prev);
   };
 
   return (
@@ -200,6 +227,30 @@ const CustomerComponent: React.FC<CustomerComponentProps> = ({
             onChange={handleInputChange}
             rows={3}
           />
+
+          <div className="flex flex-col items-center w-full gap-5 py-3 justify-betwen sm:flex-row">
+            <div className="flex items-center flex-1 py-3 space-x-2">
+              <Checkbox
+                id="new_customer"
+                checked={createNew}
+                onCheckedChange={handleOnCreateCheckChange}
+              />
+              <Label
+                htmlFor="new_customer"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                Is new customer
+              </Label>
+            </div>
+
+            {createNew && (
+              <div className="flex items-center justify-end ">
+                <Button variant="lightblue" onClick={handleCreateNew}>
+                  Create Customer
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
 
         {/*  <div className="flex items-center justify-between col-span-2">

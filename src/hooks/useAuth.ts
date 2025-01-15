@@ -1,8 +1,10 @@
+import { LocalApi } from "@/lib/api/localApi";
 import { RemoteApi } from "@/lib/api/remoteApi";
+import { getDbInstance } from "@/lib/db/db";
+import { delay, getSessionId } from "@/lib/utils";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useStore } from "./useStore";
-import { db, delay } from "@/lib/utils";
 
 export function useAuth() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -23,7 +25,11 @@ export function useAuth() {
 
           console.log("Sleeping...");
           await delay(SLEEP_TIME);
-
+          const sessionId = getSessionId();
+          sessionStorage.setItem("sessionId", sessionId);
+          await delay(SLEEP_TIME);
+          const db = getDbInstance()
+          await delay(SLEEP_TIME);
           await db.openDatabase();
           console.log("Sleeping before loading data...");
           await delay(SLEEP_TIME);
@@ -71,13 +77,16 @@ export function useAuth() {
 
 
   const logout = async () => {
+    const sessionId = sessionStorage.getItem('sessionId');
+    await LocalApi.clearSessionData(String(sessionId));
+    console.log("Clearing data for sessionId:", sessionId);
+    await delay(SLEEP_TIME);
+
     sessionStorage.removeItem("token");
     sessionStorage.removeItem("user");
-    db.close();
-    await delay(SLEEP_TIME);
-    await db.delete();
+    sessionStorage.removeItem("sessionId");
     setIsAuthenticated(false);
-    navigate("/login");
+    navigate("/login", { replace: true });
   };
 
   return { isAuthenticated, isLoading, logout };

@@ -8,7 +8,7 @@ import { Wifi } from "lucide-react";
 export const NetworkInfo: React.FC = () => {
   const { isOnline, networkType, rtt } = useOnlineStatus();
 
-  console.log(networkType, rtt);
+  // console.log(networkType, rtt);
 
   return (
     <>

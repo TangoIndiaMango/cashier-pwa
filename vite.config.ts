@@ -106,7 +106,7 @@ export default defineConfig({
   },
   build: {
     rollupOptions: {
-      external: ["src/help/**/*"],
+      external: [""],
     },
   },
   // esbuild:{

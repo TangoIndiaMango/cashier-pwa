@@ -1,5 +1,5 @@
 import { LocalApiMethods } from "@/lib/api/localMethods";
-import { db, delay } from "@/lib/utils";
+import { delay } from "@/lib/utils";
 import { TransactionSync } from "@/types/trxType";
 import { useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
@@ -13,6 +13,8 @@ import {
   LocalTransaction
 } from "../lib/db/schema";
 import { SyncManager } from "../lib/sync/syncManager";
+import { getDbInstance } from "@/lib/db/db";
+import { redirect } from "react-router-dom";
 
 export function useStore() {
   const [products, setProducts] = useState<LocalProduct[]>([]);
@@ -24,13 +26,14 @@ export function useStore() {
   const [unsyncedTrx, setUnsyncedTrx] = useState<LocalTransaction[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-
+  // const [errorShown, setErrorShown] = useState(false);
   // const { isOnline } = useOnlineStatus();
   // const SHOULD_FETCH = 30 * 60 * 1000
 
   const syncManager = SyncManager.getInstance();
 
   const refreshDB = async () => {
+    const db = getDbInstance()
     await db.openDatabase()
     await delay(2)
   };
@@ -51,6 +54,13 @@ export function useStore() {
 
   const triggerLocalFetch = async () => {
     try {
+      const sessionId = sessionStorage.getItem("sessionId")
+
+      if (!sessionId) {
+        toast.error("No session ID found, you'll be redirected to login again.");
+        redirect('/login');
+        return null;
+      }
       setLoading(true);
       await refreshDB();
       const [
@@ -62,13 +72,13 @@ export function useStore() {
         localDiscounts,
         localunsyncedTrx,
       ] = await Promise.all([
-        LocalApi.getAllProducts(),
-        LocalApiMethods.getFailedSyncTrx(),
-        LocalApi.getCustomers(),
-        LocalApiMethods.getAllPaymentMethods(),
-        LocalApiMethods.getBranches(),
-        LocalApiMethods.getDiscounts(),
-        LocalApi.getUnsynedTransactions(),
+        LocalApi.getAllProducts(sessionId),
+        LocalApiMethods.getFailedSyncTrx(sessionId),
+        LocalApi.getCustomers(sessionId),
+        LocalApiMethods.getAllPaymentMethods(sessionId),
+        LocalApiMethods.getBranches(sessionId),
+        LocalApiMethods.getDiscounts(sessionId),
+        LocalApi.getUnsynedTransactions(sessionId),
       ]);
 
       setProducts(localProducts);
@@ -129,7 +139,14 @@ export function useStore() {
     data: Omit<LocalTransaction, "id" | "createdAt" | "synced">
   ) => {
     try {
-      await LocalApi.createTransaction(data);
+      const sessionId = sessionStorage.getItem('sessionId');
+
+      if (!sessionId) {
+        toast.error("No session ID found, please login again.");
+        redirect('/login');
+        return;
+      }
+      await LocalApi.createTransaction(data, sessionId);
       await triggerLocalFetch();
     } catch (err) {
       setError(err as Error);

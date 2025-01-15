@@ -1,33 +1,29 @@
 import { TransactionSync } from "@/types/trxType";
 import { LocalBranch, LocalDiscount, LocalPaymentMethod } from "../db/schema";
-import { db } from "../utils";
+import { getDbInstance } from "../db/db";
+
+const db = getDbInstance()
 
 export class LocalApiMethods {
 
-    static async getAllPaymentMethods(): Promise<LocalPaymentMethod[]> {
-        const sessionId = String(db.sessionId)
-
-        return db.paymentMethods.where('sessionId').equals(sessionId).toArray();
+    static async getAllPaymentMethods(sessionId: string): Promise<LocalPaymentMethod[]> {
+        return db.paymentMethods.where('sessionId').equals(String(sessionId)).toArray();
     }
 
-    static async getDiscounts(): Promise<LocalDiscount[]> {
-        const sessionId = String(db.sessionId)
-        return db.discounts.where('sessionId').equals(sessionId).toArray();
+    static async getDiscounts(sessionId: string): Promise<LocalDiscount[]> {
+        return db.discounts.where('sessionId').equals(String(sessionId)).toArray();
     }
 
-    static async getFailedSyncTrx(): Promise<TransactionSync[]> {
-        const sessionId = String(db.sessionId)
-        const transactions = await db.failedSyncTransactions.where('sessionId').equals(sessionId).toArray();
+    static async getFailedSyncTrx(sessionId: string): Promise<TransactionSync[]> {
+        const transactions = await db.failedSyncTransactions.where('sessionId').equals(String(sessionId)).toArray();
         return [...transactions].reverse();
     }
 
-    static async getBranches(): Promise<LocalBranch[]> {
-        const sessionId = String(db.sessionId)
-        return db.branches.where('sessionId').equals(sessionId).toArray();
+    static async getBranches(sessionId: string): Promise<LocalBranch[]> {
+        return db.branches.where('sessionId').equals(String(sessionId)).toArray();
     }
 
-    static async getPaymentMethodById(id: string): Promise<LocalPaymentMethod | undefined> {
-        const sessionId = String(db.sessionId)
-        return db.paymentMethods.where("sesionId").equals(sessionId).and((paymentMethod) => paymentMethod.id === id).first();
+    static async getPaymentMethodById(id: string, sessionId: string): Promise<LocalPaymentMethod | undefined> {
+        return db.paymentMethods.where("sesionId").equals(String(sessionId)).and((paymentMethod) => paymentMethod.id === id).first();
     }
 }

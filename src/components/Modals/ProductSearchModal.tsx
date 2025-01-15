@@ -10,8 +10,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useStore } from "@/hooks/useStore";
 import { LocalApi } from "@/lib/api/localApi";
+import { getDbInstance } from "@/lib/db/db";
 import { LocalTransactionItem } from "@/lib/db/schema";
-import { db, formatCurrency } from "@/lib/utils";
+import { formatCurrency } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
@@ -35,6 +36,7 @@ const ProductSearchModal = ({
   // console.log(discounts)
 
   const handleEnter = async () => {
+    const db = getDbInstance()
     await db.openDatabase();
     const searchTermStr = searchTerm.toString().trim();
     console.log(searchTerm);

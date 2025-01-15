@@ -1,12 +1,15 @@
 // src/lib/sync/syncManager.ts
-import toast from "react-hot-toast";
-import { LocalApi } from "../api/localApi";
-import { RemoteApi } from "../api/remoteApi";
 import dayjs from "dayjs";
 import { saveAs } from "file-saver";
 import { parse } from "papaparse";
-import { db, delay } from "../utils";
-db.openDatabase()
+import toast from "react-hot-toast";
+import { LocalApi } from "../api/localApi";
+import { RemoteApi } from "../api/remoteApi";
+import { getDbInstance } from "../db/db";
+import { delay } from "../utils";
+
+
+const db = getDbInstance()
 export class SyncManager {
   private static instance: SyncManager;
   private syncInProgress: boolean = false;
@@ -43,19 +46,14 @@ export class SyncManager {
       return timeElapsed >= this.syncWindow;
     } catch (error) {
       console.error("Error checking sync status:", error);
-      return true; // Default to requiring sync on error
+      return true;
     }
   }
 
   async refresh() {
     try {
       console.log("Starting fetch...");
-      await this.syncProducts();
-      await this.syncCustomers();
-      await this.syncPaymentMethods();
-      await this.syncDiscounts();
-      await this.syncFailedTrx();
-      await this.syncBranches();
+      await this.syncData()
       console.log("Fetching completed.");
     } catch (error) {
       console.error('Error refreshing data:', error);
@@ -75,12 +73,7 @@ export class SyncManager {
       console.log("Starting sync process...");
       await this.syncTransactions();
       await delay(1)
-      await this.syncFailedTrx();
-      await this.syncProducts();
-      await this.syncCustomers();
-      await this.syncPaymentMethods();
-      await this.syncDiscounts();
-      await this.syncBranches();
+      await this.syncData()
     } catch (error) {
       console.error("Sync failed:", error);
       throw error;
@@ -89,24 +82,39 @@ export class SyncManager {
     }
   }
 
-  private async syncProducts() {
+  private async syncData() {
+    const sessionId = sessionStorage.getItem('sessionId');
+    if (!sessionId) {
+      toast.error("Session ID is not available. Please log in.");
+      return;
+    }
+
+    await Promise.all([
+      this.syncProducts(sessionId),
+      this.syncCustomers(sessionId),
+      this.syncPaymentMethods(sessionId),
+      this.syncDiscounts(sessionId),
+      this.syncFailedTrx(sessionId),
+      this.syncBranches(sessionId),
+      this.sessionIDinDb(sessionId),
+    ]);
+  }
+
+  private async syncProducts(sessionId: string) {
     const remoteProducts = await RemoteApi.fetchStoreProducts();
-    const sessionId = String(db.sessionId);
-    // console.log("Products to Sync", remoteProducts);
     await db.transaction("rw", db.products, async () => {
       for (const product of remoteProducts) {
         await db.products.put({
           ...product,
           lastSyncAt: new Date(),
-          sessionId
+          sessionId,
         });
       }
     });
   }
 
-  private async syncCustomers() {
+  private async syncCustomers(sessionId: string) {
     const remoteCustomers = await RemoteApi.fetchCustomer();
-    const sessionId = String(db.sessionId);
     await db.transaction("rw", db.customers, async () => {
       for (const customer of remoteCustomers) {
         await db.customers.put({ ...customer, sessionId });
@@ -114,8 +122,60 @@ export class SyncManager {
     });
   }
 
+  private async syncPaymentMethods(sessionId: string) {
+    const remotePaymentMethods = await RemoteApi.fetchPaymentMethod();
+    await db.transaction("rw", db.paymentMethods, async () => {
+      for (const method of remotePaymentMethods) {
+        await db.paymentMethods.put({ ...method, sessionId });
+      }
+    });
+  }
+
+  private async syncDiscounts(sessionId: string) {
+    const remoteDiscounts = await RemoteApi.fetchDiscounts();
+    await db.transaction("rw", db.discounts, async () => {
+      for (const discount of remoteDiscounts) {
+        await db.discounts.put({ ...discount, sessionId });
+      }
+    });
+  }
+
+  private async syncFailedTrx(sessionId: string) {
+    const remoteTrx = await RemoteApi.fetchFailedTransactions();
+    await db.transaction("rw", db.failedSyncTransactions, async () => {
+      for (const trx of remoteTrx.data) {
+        await db.failedSyncTransactions.put({ ...trx, sessionId });
+      }
+    });
+  }
+
+  private async syncBranches(sessionId: string) {
+    const remoteBranches = await RemoteApi.fetchPos();
+    await db.transaction("rw", db.branches, async () => {
+      for (const branch of remoteBranches) {
+        await db.branches.put({ ...branch, sessionId });
+      }
+    });
+  }
+
+  private async sessionIDinDb(sessionId: string) {
+    await db.transaction("rw", db.sessionIds, async () => {
+      await db.sessionIds.put({ sessionId });
+    })
+  }
+
+  private async DownloadFailedTrx() {
+    const failedTransactions = await RemoteApi.fetchFailedTransactions();
+    if (failedTransactions.length > 0) {
+      const csv = parse(failedTransactions);
+      const blob = new Blob([csv as any], { type: "text/csv;charset=utf-8;" });
+      saveAs(blob, "failed_transactions.csv");
+    }
+  }
+
   private async syncTransactions() {
-    const unsynedTransactions = await LocalApi.getUnsynedTransactions();
+    const sessionId = sessionStorage.getItem('sessionId')
+    const unsynedTransactions = await LocalApi.getUnsynedTransactions(String(sessionId));
     if (unsynedTransactions.length === 0) return;
     console.log("Transactions to Sync", unsynedTransactions);
     const batchSize = 10;
@@ -180,31 +240,31 @@ export class SyncManager {
       // Generate random syncId
       const syncId = `${Math.floor(Date.now() / 1000)}_SYNC`;
       try {
-        // Send to remote API for syncing
-        const response = await RemoteApi.syncTransactions(
-          transactiontoSync as any,
-          syncId
-        );
-
-        const { successful_transaction, failed_transaction } =
-          response?.data || {};
-
-        const successfulCount = successful_transaction || 0;
-        const failedCount = failed_transaction || 0;
-
-        // Show success or failure message
-        if (failedCount > 0) {
-          console.error("Sync failed:", response?.message);
-          toast.error(response?.message); // Show error with failed count
-        } else {
-          console.log("Transactions synced successfully.");
-          toast.success(`Successfully synced ${successfulCount} transactions.`);
-        }
-
-        // Mark all transactions as synced regardless of success/failure
         await db.transaction("rw", db.transactions, async () => {
+          // Send to remote API for syncing
+          const response = await RemoteApi.syncTransactions(
+            transactiontoSync as any,
+            syncId
+          );
+
+          const { successful_transaction, failed_transaction } =
+            response?.data || {};
+
+          const successfulCount = successful_transaction || 0;
+          const failedCount = failed_transaction || 0;
+
+          // Show success or failure message
+          if (failedCount > 0) {
+            console.error("Sync failed:", response?.message);
+            toast.error(response?.message); // Show error with failed count
+          } else {
+            console.log("Transactions synced successfully.");
+            toast.success(`Successfully synced ${successfulCount} transactions.`);
+          }
+
+          // Mark all transactions as synced regardless of success/failure
           for (const tx of transactiontoSync) {
-            await LocalApi.markTransactionSynced(tx.id as string);
+            await db.transactions.update(tx.id as string, { synced: "true", sessionId: String(sessionId) })
           }
         });
       } catch (error) {
@@ -255,53 +315,4 @@ export class SyncManager {
     }
   }
 
-  private async syncPaymentMethods() {
-    const remotePaymentMethods = await RemoteApi.fetchPaymentMethod();
-    const sessionId = String(db.sessionId);
-    await db.transaction("rw", db.paymentMethods, async () => {
-      for (const method of remotePaymentMethods) {
-        await db.paymentMethods.put({ ...method, sessionId });
-      }
-    });
-  }
-
-  private async syncDiscounts() {
-    const remoteDiscounts = await RemoteApi.fetchDiscounts();
-    const sessionId = String(db.sessionId);
-    await db.transaction("rw", db.discounts, async () => {
-      for (const discount of remoteDiscounts) {
-        await db.discounts.put({ ...discount, sessionId });
-      }
-    });
-  }
-
-  private async DownloadFailedTrx() {
-    const failedTransactions = await RemoteApi.fetchFailedTransactions();
-    if (failedTransactions.length > 0) {
-      const csv = parse(failedTransactions);
-      const blob = new Blob([csv as any], { type: "text/csv;charset=utf-8;" });
-      saveAs(blob, "failed_transactions.csv");
-    }
-  }
-
-  private async syncFailedTrx() {
-    const remoteTrx = await RemoteApi.fetchFailedTransactions();
-    const sessionId = String(db.sessionId);
-    // console.log(remoteTrx?.data)
-    await db.transaction("rw", db.failedSyncTransactions, async () => {
-      for (const trx of remoteTrx.data) {
-        await db.failedSyncTransactions.put({ ...trx, sessionId });
-      }
-    });
-  }
-
-  async syncBranches() {
-    const remoteBranches = await RemoteApi.fetchPos();
-    const sessionId = String(db.sessionId);
-    await db.transaction("rw", db.branches, async () => {
-      for (const branch of remoteBranches) {
-        await db.branches.put({ ...branch, sessionId });
-      }
-    });
-  }
 }

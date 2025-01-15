@@ -1,8 +1,7 @@
 import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
-import { getSessionDB } from "./db/schema";
-import { redirect } from "react-router-dom";
 import toast from "react-hot-toast";
+import { redirect } from "react-router-dom";
+import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -50,23 +49,23 @@ export function getStoreInfo() {
     : userInfo?.store;
 }
 
-export const getSessionID = () => String(sessionStorage.getItem('token'))
+export const getSessionID = () => String(sessionStorage.getItem('token'));
+
 export const getSessionId = () => {
-  const storeInfo = getStoreInfo()
-  const userInfo = getUserInfo()
-  const sessionID = getSessionID()
+  const storeInfo = getStoreInfo();
+  const userInfo = getUserInfo();
+  const sessionID = getSessionID();
   if (!storeInfo || !userInfo || !sessionID) {
-    toast.error("SessionID not found. Please login again")
-    redirect("/login")
-    return ""
+    toast.error("SessionID not found. Please login again");
+    redirect("/login");
+    return "";
   }
   const storeIdStr = String(storeInfo.store_id || storeInfo.id);
   const firstnameStr = String(userInfo.firstname);
   const phonenoStr = String(userInfo.phoneno);
   const sessionSlice = sessionID.slice(10, 14);
-  console.log(storeIdStr, firstnameStr, phonenoStr, sessionSlice)
-  const formattedSessionId = storeIdStr + firstnameStr + phonenoStr + sessionSlice;
-
+  const uniqueString = String(Math.random().toString(36).slice(3, 9))
+  const formattedSessionId = uniqueString + storeIdStr + firstnameStr + phonenoStr + sessionSlice;
+  // sessionStorage.setItem('sessionId', formattedSessionId);
   return formattedSessionId;
-}
-export const db = getSessionDB(getSessionId())
+};

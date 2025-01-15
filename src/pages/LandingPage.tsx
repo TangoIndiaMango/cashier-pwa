@@ -25,17 +25,14 @@ import { useCustomer } from "@/hooks/useCustomer";
 import { usePayment } from "@/hooks/usePayment";
 import { useTransaction } from "@/hooks/useTransaction";
 import {
-  db,
   formatCurrency,
-  generateUniqueIdUsingStoreIDAsPrefix,
-  getSessionId
+  generateUniqueIdUsingStoreIDAsPrefix
 } from "@/lib/utils";
 
 import { Loader2, Search, ShoppingBag } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
-import { useStore } from "@/hooks/useStore";
 
 const initCustomer = {
   firstname: "",

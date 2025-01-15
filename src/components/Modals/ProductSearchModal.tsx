@@ -32,7 +32,7 @@ const ProductSearchModal = ({
   const [discount, setDiscount] = useState("");
   const [error, setError] = useState<string | null>(null);
   const { products, loading, discounts, updateAvailableQuantity } = useStore();
-
+const sessionId = sessionStorage.getItem("sessionId")
   // console.log(discounts)
 
   const handleEnter = async () => {
@@ -48,7 +48,7 @@ const ProductSearchModal = ({
       setFilteredProducts([foundProductByEan]);
       return;
     } else {
-      const foundProductByCode = await LocalApi.getProductByCode(searchTermStr);
+      const foundProductByCode = await LocalApi.getProductByCode(searchTermStr, String(sessionId));
       if (foundProductByCode && foundProductByCode.length) {
         setFilteredProducts(foundProductByCode);
         return;

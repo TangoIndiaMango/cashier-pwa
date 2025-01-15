@@ -7,10 +7,10 @@ import { LocalTransaction } from '@/lib/db/schema';
 export const useTransaction = () => {
   const { createTransaction } = useStore();
   const [transactions, setTransactions] = useState<LocalTransaction[]>([]);
-
+  const sessionId = sessionStorage.getItem('sessionId');
   const getAllTransactions = async () => {
     try {
-      const transactions = await LocalApi.getAllTransactions();
+      const transactions = await LocalApi.getAllTransactions(String(sessionId));
       setTransactions(transactions);
     } catch (err) {
       console.error('Error fetching transactions:', err);
@@ -28,7 +28,7 @@ export const useTransaction = () => {
 
   const deleteTransaction = async () => {
     try {
-      await LocalApi.deleteAllTransactions();
+      await LocalApi.deleteAllTransactions(String(sessionId));
       await getAllTransactions();
     } catch (err) {
       console.error('Error deleting transaction:', err);
@@ -39,5 +39,5 @@ export const useTransaction = () => {
     getAllTransactions();
   }, []);
 
-  return { transactions, submitTransaction , deleteTransaction};
+  return { transactions, submitTransaction, deleteTransaction };
 };

@@ -9,34 +9,49 @@ import { getDbInstance } from '../db/db';
 const db = getDbInstance()
 export class LocalApi {
   // Product Operations
-  static async getAllProducts(sessionId: string): Promise<LocalProduct[]> {
-    return db.products.where("sessionId").equals(String(sessionId)).toArray();
+  // static async getAllProducts(sessionId: string): Promise<LocalProduct[]> {
+  //   return db.products.where("sessionId").equals(String(sessionId)).toArray();
+  // }
+  static async getAllProducts(): Promise<LocalProduct[]> {
+    return db.products.toArray();
   }
 
-  static async getProductById(id: string, sessionId: string): Promise<LocalProduct | undefined> {
-    return db.products.where("sessionId").equals(String(sessionId)).and((product) => product.id === id).first();
+  // static async getProductById(id: string, sessionId: string): Promise<LocalProduct | undefined> {
+  //   return db.products.where("sessionId").equals(String(sessionId)).and((product) => product.id === id).first();
+  // }
+  static async getProductById(id: string): Promise<LocalProduct | undefined> {
+    return db.products.get(id);
   }
 
-  static async getProductByBrandName(brand_name: string, sessionId: string): Promise<LocalProduct | undefined> {
-    return db.products.where("sessionId").equals(String(sessionId)).and((product) => product.brand_name === brand_name).first();
+  // static async getProductByBrandName(brand_name: string, sessionId: string): Promise<LocalProduct | undefined> {
+  //   return db.products.where("sessionId").equals(String(sessionId)).and((product) => product.brand_name === brand_name).first();
+  // }
+  static async getProductByBrandName(brand_name: string): Promise<LocalProduct | undefined> {
+    return db.products.where({ brand_name }).first();
   }
 
-  static async getProductByCode(product_code: string, sessionId: string): Promise<LocalProduct[] | undefined> {
+  // static async getProductByCode(product_code: string, sessionId: string): Promise<LocalProduct[] | undefined> {
 
-    return db.products.where("sessionId").equals(String(sessionId)).and((product) => product.product_code === product_code).toArray();
+  //   return db.products.where("sessionId").equals(String(sessionId)).and((product) => product.product_code === product_code).toArray();
+  // }
+  static async getProductByCode(product_code: string): Promise<LocalProduct[] | undefined> {
+    return db.products.where({ product_code }).toArray();
   }
 
-  static async getProductByBrandID(brandId: string, sessionId: string): Promise<LocalProduct | undefined> {
+  // static async getProductByBrandID(brandId: string, sessionId: string): Promise<LocalProduct | undefined> {
 
-    return db.products.where("sessionId").equals(String(sessionId)).and((product) => product.brand_id === brandId).first();
+  //   return db.products.where("sessionId").equals(String(sessionId)).and((product) => product.brand_id === brandId).first();
+  // }
+  static async getProductByBrandID(brandId: string): Promise<LocalProduct | undefined> {
+    return db.products.where({ brandId }).first();
   }
 
-  static async updateProductQuantity(ean: string, quantityChange: number, sessionId: string): Promise<void> {
+  static async updateProductQuantity(ean: string, quantityChange: number, sessionId?: string): Promise<void> {
 
     await db.transaction('rw', db.products, async () => {
 
-      const product = await db.products.where("sessionId").equals(String(sessionId)).and((product) => product.ean === ean).first();
-
+      // const product = await db.products.where("sessionId").equals(String(sessionId)).and((product) => product.ean === ean).first();
+      const product = await db.products.where("ean").equals(String(ean)).first();
       if (!product) throw new Error('Product not found');
 
       console.log(`Current quantity: ${product.available_quantity}`);
@@ -104,6 +119,36 @@ export class LocalApi {
     }
   }
 
+  static async createNewCustomerInfo(customerInfo: Partial<LocalCustomer>): Promise<void> {
+
+    await db.transaction('rw', db.customers, async () => {
+      const customerByEmail = await db.customers.where("email").equals(String(customerInfo.email)).first();
+
+      const customerByPhone = await db.customers.where("phoneno").equals(String(customerInfo.phoneno)).first();
+
+      if (customerByEmail || customerByPhone) {
+        throw new Error("Customer with provided phone number or email already exists.");
+
+      }
+
+      await db.customers.add({
+        phoneno: String(customerInfo.phoneno),
+        credit_note_balance: 0,
+        firstname: String(customerInfo.firstname) || "N/A",
+        lastname: String(customerInfo.lastname) || "N/A",
+        id: Date.now(),
+        email: customerInfo.email || `${customerInfo.firstname}+${customerInfo.firstname}@prlerp.com`,
+        age: null,
+        gender: "",
+        country: "",
+        state: "",
+        city: "",
+        address: "",
+        loyalty_points: 0
+      });
+    });
+  }
+
   static async deleteAllTransactions(sessionId: string): Promise<void> {
     await db.transaction('rw', db.transactions, async () => {
       await db.transactions.where('sessionId').equals(String(sessionId)).delete();
@@ -120,15 +165,19 @@ export class LocalApi {
     await db.transactions.update(id, { synced: 'true', sessionId });
   }
 
-  static async getCustomers(sessionId: string): Promise<LocalCustomer[]> {
+  // static async getCustomers(sessionId: string): Promise<LocalCustomer[]> {
 
-    return await db.customers.where("sessionId").equals(String(sessionId)).toArray();
+  //   return await db.customers.where("sessionId").equals(String(sessionId)).toArray();
+  // }
+  static async getCustomers(): Promise<LocalCustomer[]> {
+    return await db.customers.toArray();
   }
 
   static async updateOrCreateCustomer(customerInfo: LocalCustomer, points: number, type: "credit_note_balance" | "loyalty_points"): Promise<void> {
-    const sessionId = sessionStorage.getItem('sessionId');
+    // const sessionId = sessionStorage.getItem('sessionId');
     await db.transaction('rw', db.customers, async () => {
-      let customer = await db.customers.where("sessionId").equals(String(sessionId)).and((cust) => cust.phoneno === customerInfo.phoneno).first();
+      // let customer = await db.customers.where("sessionId").equals(String(sessionId)).and((cust) => cust.phoneno === customerInfo.phoneno).first();
+      let customer = await db.customers.where("phoneno").equals(customerInfo.phoneno).first();
       if (!customer) {
         customer = await db.customers.add({
           phoneno: customerInfo.phoneno,

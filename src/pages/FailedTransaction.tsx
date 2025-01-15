@@ -1,18 +1,35 @@
 import { FailedTransactionTable } from "@/components/FailedTransactionTable";
 import { Button } from "@/components/ui/button";
 import useGoBack from "@/hooks/useGoBack";
-import { useStore } from "@/hooks/useStore";
 import { saveAs } from "file-saver";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import * as XLSX from "xlsx";
 import { RemoteApi } from "../lib/api/remoteApi";
 
 const FailedTransaction = () => {
-  const { failedTrx } = useStore();
+  const [failedTrx, setFailedTrx] = useState([]);
   const { goBackButton } = useGoBack();
+  const [loading, setLoading] = useState<boolean>(true);
 
-  const [loading, setLoading] = useState(false);
+  useEffect(() => {
+    const getFailedTrx = async () => {
+      try {
+        setLoading(true);
+        const data = await RemoteApi.fetchFailedTransactions();
+        setFailedTrx(data?.data);
+      } catch (error) {
+        console.error("Failed to fetch transactions:", error);
+        toast.error(
+          "Failed to fetch failed transactions. Please try again later."
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getFailedTrx();
+  }, []);
   // const [downloadError, setDownloadError] = useState<string | null>(null);
 
   const params = {

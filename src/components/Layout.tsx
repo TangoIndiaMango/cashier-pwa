@@ -2,7 +2,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { useStore } from "@/hooks/useStore";
 import { FolderSync, Loader2, LogOut, RefreshCcw } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { NetworkInfo } from "./auth/NetworkInfo";
 import { AppUpdateButton } from "./auth/UpdateBtn";
@@ -36,11 +36,27 @@ const Layout = () => {
 
   //   fetchUnsyncedTrans();
   // }, []);
+
+  useEffect(() => {
+
+    const handleVisisbitlyChange = async () => {
+      if (!document.hidden && isAuthenticated) {
+        await triggerLocalFetch();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisisbitlyChange);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisisbitlyChange);
+    };
+  }, [isAuthenticated]);
+
   function getAbbreviation(firstName, lastName) {
     if (!firstName || !lastName) {
       console.error("Cashier should have Firstname and Lastname");
       navigate("/login");
-      return;
+      return "";
     }
 
     return `${firstName[0].toUpperCase()}${lastName[0].toUpperCase()}`;
@@ -129,7 +145,10 @@ const Layout = () => {
                 <Avatar className="hidden lg:block">
                   <AvatarImage src={userInfo?.image} />
                   <AvatarFallback>
-                    {getAbbreviation(userInfo?.firstname, userInfo?.lastname || "N/A")}
+                    {getAbbreviation(
+                      userInfo?.firstname,
+                      userInfo?.lastname || "N/A"
+                    )}
                   </AvatarFallback>
                 </Avatar>
               </TooltipTrigger>

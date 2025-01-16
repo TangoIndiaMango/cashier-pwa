@@ -88,6 +88,21 @@ export class LocalApi {
       return ""
     }
 
+  //   const customer = transaction?.customer;
+
+  //   if (customer) {
+  //     const customerExists = await this.checkIfCustomerExists(customer);
+  //     if (!customerExists) {
+  //         try {
+  //             // Create a new customer if the customer doesn't exist
+  //             await this.createNewCustomerInfo(customer);
+  //         } catch (error) {
+  //             toast.error("Customer creation failed: " + error);
+  //             throw new Error('Customer creation failed.');
+  //         }
+  //     }
+  // }
+
     console.log(transaction)
     console.log(transaction?.customer?.phoneno, "Here's the customertrans")
     await this.updateCustomerCreditNote(transaction?.customer)
@@ -119,17 +134,20 @@ export class LocalApi {
     }
   }
 
+  static async checkIfCustomerExists(customerInfo: Partial<LocalCustomer>): Promise<boolean> {
+    const customerByEmail = await db.customers.where("email").equals(String(customerInfo.email)).first();
+    const customerByPhone = await db.customers.where("phoneno").equals(String(customerInfo.phoneno)).first();
+
+    return customerByEmail !== undefined || customerByPhone !== undefined;
+}
+
   static async createNewCustomerInfo(customerInfo: Partial<LocalCustomer>): Promise<void> {
 
     await db.transaction('rw', db.customers, async () => {
-      const customerByEmail = await db.customers.where("email").equals(String(customerInfo.email)).first();
-
-      const customerByPhone = await db.customers.where("phoneno").equals(String(customerInfo.phoneno)).first();
-
-      if (customerByEmail || customerByPhone) {
-        throw new Error("Customer with provided phone number or email already exists.");
-
-      }
+      const customerExists = await this.checkIfCustomerExists(customerInfo);
+        if (customerExists) {
+            throw new Error("Customer with provided phone number or email already exists.");
+        }
 
       await db.customers.add({
         phoneno: String(customerInfo.phoneno),

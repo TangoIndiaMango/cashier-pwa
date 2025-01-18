@@ -57,7 +57,8 @@ export function useStore() {
       const sessionId = sessionStorage.getItem("sessionId")
 
       if (!sessionId) {
-        toast.error("No session ID found, you'll be redirected to login again.");
+        // toast.error("No session ID found, you'll be redirected to login again.");
+        console.log("Reidrect to login, no sessionId")
         redirect('/login');
         return null;
       }

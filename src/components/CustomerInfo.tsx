@@ -40,6 +40,7 @@ interface CustomerComponentProps {
   customerDetails: CustomerDetails;
   onAddCustomer: (customerDetails: CustomerDetails) => void;
   setSelectedCustomer: (t: boolean) => void;
+  setCreateUserClicked: (t: boolean) => void;
 }
 
 const CustomerComponent: React.FC<CustomerComponentProps> = ({
@@ -48,7 +49,8 @@ const CustomerComponent: React.FC<CustomerComponentProps> = ({
   handleInputChange,
   customerDetails,
   setSelectedCustomer,
-  onAddCustomer
+  onAddCustomer,
+  setCreateUserClicked
 }) => {
   const [filteredCustomers, setFilteredCustomers] = useState<LocalCustomer[]>(
     []
@@ -109,6 +111,7 @@ const CustomerComponent: React.FC<CustomerComponentProps> = ({
         customerDetails as Partial<LocalCustomer>
       );
       toast.success("Customer created successfully");
+      setCreateUserClicked(true)
     } catch (error) {
       console.log(error);
       toast.error(String(error));

@@ -46,7 +46,7 @@ export class LocalApi {
     return db.products.where({ brandId }).first();
   }
 
-  static async updateProductQuantity(ean: string, quantityChange: number, sessionId?: string): Promise<void> {
+  static async updateProductQuantity(ean: string, quantityChange: number): Promise<void> {
 
     await db.transaction('rw', db.products, async () => {
 
@@ -113,7 +113,7 @@ export class LocalApi {
         for (const item of transaction.items) {
           console.log('Updating product:', item)
           console.log(item.ean, item.quantity)
-          await this.updateProductQuantity(item.ean!, item.quantity, sessionId);
+          await this.updateProductQuantity(item.ean!, item.quantity);
         }
         // console.log("After updating quantity", transaction)
         await db.transactions.add({
@@ -155,7 +155,7 @@ export class LocalApi {
         firstname: String(customerInfo.firstname) || "N/A",
         lastname: String(customerInfo.lastname) || "N/A",
         id: Date.now(),
-        email: customerInfo.email || `${customerInfo.firstname}+${customerInfo.firstname}@prlerp.com`,
+        email: customerInfo.email?.toLowerCase() || `${customerInfo.firstname?.toLowerCase()}${customerInfo.lastname?.toLowerCase()}@prlerp.com`,
         age: null,
         gender: "",
         country: "",

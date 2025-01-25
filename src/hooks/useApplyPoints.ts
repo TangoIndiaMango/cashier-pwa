@@ -9,6 +9,7 @@ interface PoinstState {
   setNewLoyaltyPoints: (by: number) => void;
   setCreditNotePoints: (by: number) => void;
   setNewCreditNotePoints: (by: number) => void;
+  clearPoints: () => void;
 }
 
 export const useApplyPoints = create<PoinstState>()((set) => ({
@@ -19,5 +20,6 @@ export const useApplyPoints = create<PoinstState>()((set) => ({
   setLoyaltyPoints: (by) => set(() => ({ loyaltyPoints: by })),
   setNewLoyaltyPoints: (by) => set(() => ({ newLoyaltyPoints: by })),
   setCreditNotePoints: (by) => set(() => ({ creditNotePoints: by })),
-  setNewCreditNotePoints: (by) => set(() => ({ newCreditNotePoints: by }))
+  setNewCreditNotePoints: (by) => set(() => ({ newCreditNotePoints: by })),
+  clearPoints: () => set(() => ({ loyaltyPoints: 0, newLoyaltyPoints: 0, creditNotePoints: 0, newCreditNotePoints: 0})),
 }));

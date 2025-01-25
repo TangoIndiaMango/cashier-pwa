@@ -25,7 +25,7 @@ interface ReceiptProps {
 export const Receipt: React.FC<ReceiptProps> = ({ data, onClose }) => {
   const printFrameRef = useRef<HTMLIFrameElement>(null);
   const { paymentMethod, customers } = useStore();
-
+const {clearPoints} = useApplyPoints()
   // console.log(data);
 
   const printReceipt = () => {
@@ -110,6 +110,7 @@ export const Receipt: React.FC<ReceiptProps> = ({ data, onClose }) => {
         }, 100);
       }
     }
+    clearPoints()
   };
   const [paymentMethods, setPaymentMethods] = useState(
     data.paymentMethods || []

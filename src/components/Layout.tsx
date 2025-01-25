@@ -16,6 +16,7 @@ import {
   TooltipProvider,
   TooltipTrigger
 } from "./ui/tooltip";
+import { Badge } from "./ui/badge";
 
 const Layout = () => {
   const { triggerSync, triggerFetch, triggerLocalFetch, loading, unsyncedTrx } =
@@ -38,7 +39,6 @@ const Layout = () => {
   // }, []);
 
   useEffect(() => {
-
     const handleVisisbitlyChange = async () => {
       if (!document.hidden && isAuthenticated) {
         await triggerLocalFetch();
@@ -137,6 +137,20 @@ const Layout = () => {
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
+          {unsyncedTrx?.length > 0 && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Badge aria-label="UnSync count" variant="secondary">
+                    <span className="text-blue-600">{`${unsyncedTrx.length} unsynced`}</span>
+                  </Badge>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{`Number of unsynced ${unsyncedTrx.length}`}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
         </div>
         <div className="flex items-center gap-2">
           <TooltipProvider>

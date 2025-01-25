@@ -15,7 +15,7 @@ import { LocalApi } from "./localApi";
 // https://prlerp.com/peresianas-BE/public/api/
 
 const baseUrl =
-  "https://www.peresiana-ecomm-backend.nigeriasbsc.com/public/api/";
+  "https://prlerp.com/peresianas-BE/public/api/";
 
 const api = axios.create({
   baseURL: baseUrl + "v3",

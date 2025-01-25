@@ -98,7 +98,7 @@ const POSSystem = () => {
   const storeID = Array.isArray(storeInfo)
     ? storeInfo[0]?.storeID || "PRL"
     : storeInfo?.storeID || "PRL";
-  const [createUserClicked, setCreateUserClicked] = useState(false);
+  // const [createUserClicked, setCreateUserClicked] = useState(false);
   const handleInputChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
@@ -109,13 +109,13 @@ const POSSystem = () => {
       ...prev,
       [name]: value
     }));
-    setCreateUserClicked(false)
+    // setCreateUserClicked(false)
   };
 
   const handleSubmit = async () => {
-    if (!createUserClicked) {
-      return toast.error("Please create customer befor submitting.");
-    }
+    // if (!createUserClicked) {
+    //   return toast.error("Please create customer befor submitting.");
+    // }
     if (!paymentMethod.length) {
       return toast.error("No payment method selected");
     }
@@ -328,7 +328,7 @@ const POSSystem = () => {
                 handleInputChange={handleInputChange}
                 setSelectedCustomer={setSelectedCustomer}
                 onAddCustomer={handleAddCustomer}
-                setCreateUserClicked={setCreateUserClicked}
+                // setCreateUserClicked={setCreateUserClicked}
               />
             )}
           </div>

@@ -18,6 +18,7 @@ import { Textarea } from "./ui/textarea";
 import { Checkbox } from "./ui/checkbox";
 import { getDbInstance } from "@/lib/db/db";
 import { delay } from "@/lib/utils";
+import { useApplyPoints } from "@/hooks/useApplyPoints";
 
 // Define the types for customer details
 export interface CustomerDetails {
@@ -57,6 +58,7 @@ const CustomerComponent: React.FC<CustomerComponentProps> = ({
   const [filteredCustomers, setFilteredCustomers] = useState<LocalCustomer[]>(
     []
   );
+  const {clearPoints} = useApplyPoints()
   const { customers, loading, setLoading } = useStore();
   const [createNew, setCreateNew] = useState(false);
 
@@ -101,19 +103,24 @@ const CustomerComponent: React.FC<CustomerComponentProps> = ({
       state: customer.state || "",
       city: customer.city || "",
       address: customer.address || "",
-      loyalty_points: customer?.loyalty_points,
-      credit_note_balance: customer?.credit_note_balance,
+      loyalty_points: customer?.loyalty_points || 0,
+      credit_note_balance: customer?.credit_note_balance || 0,
       id: customer?.id
     });
+    clearPoints()
   };
 
   const handleCreateNew = async () => {
     const dbInstance = getDbInstance();
-    const id = crypto.randomUUID()
+    const id = crypto.randomUUID();
+
     const updatedCustomerDetails: CustomerDetails = {
       ...customerDetails,
-      id
+      id,
+      loyalty_points: 0,
+      credit_note_balance: 0
     };
+    console.log(updatedCustomerDetails)
     try {
       setLoading(true);
       await LocalApi.createNewCustomerInfo(
@@ -121,31 +128,31 @@ const CustomerComponent: React.FC<CustomerComponentProps> = ({
       );
       await dbInstance.openDatabase();
       await delay(2);
-      const newCustomer = await dbInstance.customers.get(id);  
+      const newCustomer = await dbInstance.customers.get(id);
 
-    if (newCustomer) {
-      // Show success notification
-      toast.success("Customer created successfully!");
+      if (newCustomer) {
+        // Show success notification
+        toast.success("Customer created successfully!");
 
-      // Now that the customer is created, update the selected customer state
-      // setSelectedCustomer(true);
-      // setCustomerDetails({
-      //   firstname: newCustomer.firstname || "",
-      //   lastname: newCustomer.lastname || "",
-      //   gender: newCustomer.gender || "",
-      //   age: newCustomer.age || null,
-      //   phoneno: newCustomer.phoneno || "",
-      //   email: newCustomer.email || "",
-      //   country: newCustomer.country || "",
-      //   state: newCustomer.state || "",
-      //   city: newCustomer.city || "",
-      //   address: newCustomer.address || "",
-      //   loyalty_points: newCustomer.loyalty_points,
-      //   credit_note_balance: newCustomer.credit_note_balance,
-      //   id: newCustomer.id
-      // });
-      handleSelectCustomer(newCustomer)
-    }
+        // Now that the customer is created, update the selected customer state
+        // setSelectedCustomer(true);
+        // setCustomerDetails({
+        //   firstname: newCustomer.firstname || "",
+        //   lastname: newCustomer.lastname || "",
+        //   gender: newCustomer.gender || "",
+        //   age: newCustomer.age || null,
+        //   phoneno: newCustomer.phoneno || "",
+        //   email: newCustomer.email || "",
+        //   country: newCustomer.country || "",
+        //   state: newCustomer.state || "",
+        //   city: newCustomer.city || "",
+        //   address: newCustomer.address || "",
+        //   loyalty_points: newCustomer.loyalty_points,
+        //   credit_note_balance: newCustomer.credit_note_balance,
+        //   id: newCustomer.id
+        // });
+        handleSelectCustomer(newCustomer);
+      }
     } catch (error) {
       console.log(error);
       toast.error(String(error));

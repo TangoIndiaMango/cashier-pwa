@@ -89,10 +89,17 @@ const POSSystem = () => {
   const [withLoyaltyModal, setWithLoyaltyModal] = useState(false);
   const [showReceipt, setShowReceipt] = useState(false);
   const [receiptData, setReceiptData] = useState(null);
-  const { loyaltyPoints, setLoyaltyPoints, setNewLoyaltyPoints } =
-    useApplyPoints((state) => state);
-  const { creditNotePoints, setCreditNotePoints, setNewCreditNotePoints } =
-    useApplyPoints((state) => state);
+  // const { loyaltyPoints, setLoyaltyPoints, setNewLoyaltyPoints } =
+  //   useApplyPoints();
+  const {
+    loyaltyPoints,
+    setLoyaltyPoints,
+    setNewLoyaltyPoints,
+    creditNotePoints,
+    setCreditNotePoints,
+    setNewCreditNotePoints,
+    clearPoints
+  } = useApplyPoints();
   const userInfo = JSON.parse(sessionStorage.getItem("user") || "{}");
   const storeInfo = userInfo.store;
   const storeID = Array.isArray(storeInfo)
@@ -157,11 +164,7 @@ const POSSystem = () => {
     setPaymentStatus(null);
     setSearchQuery("");
     setCartDiscountCode("");
-    setLoyaltyPoints(0);
-    setNewLoyaltyPoints(0);
-    setCreditNotePoints(0);
-    setNewCreditNotePoints(0);
-
+    clearPoints();
     toast.success("Transaction completed successfully!");
     setWithLoyalty(false);
     setWithCreditNote(false);
@@ -318,6 +321,7 @@ const POSSystem = () => {
                   setSelectedCustomer(false);
                   setSearchQuery("");
                   setCustomerDetails(initCustomer);
+                  clearPoints();
                 }}
               />
             ) : (
@@ -488,7 +492,13 @@ const POSSystem = () => {
           <CustomerDisplay customer={customer} />
         </div>
         {showReceipt && receiptData && (
-          <Receipt data={receiptData} onClose={() => setShowReceipt(false)} />
+          <Receipt
+            data={receiptData}
+            onClose={() => {
+              clearPoints();
+              setShowReceipt(false);
+            }}
+          />
         )}
         <ProductSearchModal
           isOpen={showAddProduct}

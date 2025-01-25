@@ -88,20 +88,20 @@ export class LocalApi {
       return ""
     }
 
-  //   const customer = transaction?.customer;
+    //   const customer = transaction?.customer;
 
-  //   if (customer) {
-  //     const customerExists = await this.checkIfCustomerExists(customer);
-  //     if (!customerExists) {
-  //         try {
-  //             // Create a new customer if the customer doesn't exist
-  //             await this.createNewCustomerInfo(customer);
-  //         } catch (error) {
-  //             toast.error("Customer creation failed: " + error);
-  //             throw new Error('Customer creation failed.');
-  //         }
-  //     }
-  // }
+    //   if (customer) {
+    //     const customerExists = await this.checkIfCustomerExists(customer);
+    //     if (!customerExists) {
+    //         try {
+    //             // Create a new customer if the customer doesn't exist
+    //             await this.createNewCustomerInfo(customer);
+    //         } catch (error) {
+    //             toast.error("Customer creation failed: " + error);
+    //             throw new Error('Customer creation failed.');
+    //         }
+    //     }
+    // }
 
     console.log(transaction)
     console.log(transaction?.customer?.phoneno, "Here's the customertrans")
@@ -139,22 +139,22 @@ export class LocalApi {
     const customerByPhone = await db.customers.where("phoneno").equals(String(customerInfo.phoneno)).first();
 
     return customerByEmail !== undefined || customerByPhone !== undefined;
-}
+  }
 
   static async createNewCustomerInfo(customerInfo: Partial<LocalCustomer>): Promise<void> {
 
     await db.transaction('rw', db.customers, async () => {
       const customerExists = await this.checkIfCustomerExists(customerInfo);
-        if (customerExists) {
-            throw new Error("Customer with provided phone number or email already exists.");
-        }
+      if (customerExists) {
+        throw new Error("Customer with provided phone number or email already exists.");
+      }
 
       await db.customers.add({
         phoneno: String(customerInfo.phoneno),
         credit_note_balance: 0,
         firstname: String(customerInfo.firstname) || "N/A",
         lastname: String(customerInfo.lastname) || "N/A",
-        id: Date.now(),
+        id: customerInfo.id || Date.now(),
         email: customerInfo.email?.toLowerCase() || `${customerInfo.firstname?.toLowerCase()}${customerInfo.lastname?.toLowerCase()}@prlerp.com`,
         age: null,
         gender: "",

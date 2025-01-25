@@ -15,6 +15,9 @@ import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
+import { Checkbox } from "./ui/checkbox";
+import { getDbInstance } from "@/lib/db/db";
+import { delay } from "@/lib/utils";
 
 // Define the types for customer details
 export interface CustomerDetails {
@@ -40,7 +43,7 @@ interface CustomerComponentProps {
   customerDetails: CustomerDetails;
   onAddCustomer: (customerDetails: CustomerDetails) => void;
   setSelectedCustomer: (t: boolean) => void;
-  setCreateUserClicked: (t: boolean) => void;
+  setCreateUserClicked?: (t: boolean) => void;
 }
 
 const CustomerComponent: React.FC<CustomerComponentProps> = ({
@@ -49,13 +52,13 @@ const CustomerComponent: React.FC<CustomerComponentProps> = ({
   handleInputChange,
   customerDetails,
   setSelectedCustomer,
-  onAddCustomer,
-  setCreateUserClicked
+  onAddCustomer
 }) => {
   const [filteredCustomers, setFilteredCustomers] = useState<LocalCustomer[]>(
     []
   );
   const { customers, loading, setLoading } = useStore();
+  const [createNew, setCreateNew] = useState(false);
 
   const debouncedSearchTerm = useDebounce(searchQuery.toLowerCase(), 500);
 
@@ -105,19 +108,59 @@ const CustomerComponent: React.FC<CustomerComponentProps> = ({
   };
 
   const handleCreateNew = async () => {
+    const dbInstance = getDbInstance();
+    const id = crypto.randomUUID()
+    const updatedCustomerDetails: CustomerDetails = {
+      ...customerDetails,
+      id
+    };
     try {
       setLoading(true);
       await LocalApi.createNewCustomerInfo(
-        customerDetails as Partial<LocalCustomer>
+        updatedCustomerDetails as Partial<LocalCustomer>
       );
-      toast.success("Customer created successfully");
-      setCreateUserClicked(true)
+      await dbInstance.openDatabase();
+      await delay(2);
+      const newCustomer = await dbInstance.customers.get(id);  
+
+    if (newCustomer) {
+      // Show success notification
+      toast.success("Customer created successfully!");
+
+      // Now that the customer is created, update the selected customer state
+      // setSelectedCustomer(true);
+      // setCustomerDetails({
+      //   firstname: newCustomer.firstname || "",
+      //   lastname: newCustomer.lastname || "",
+      //   gender: newCustomer.gender || "",
+      //   age: newCustomer.age || null,
+      //   phoneno: newCustomer.phoneno || "",
+      //   email: newCustomer.email || "",
+      //   country: newCustomer.country || "",
+      //   state: newCustomer.state || "",
+      //   city: newCustomer.city || "",
+      //   address: newCustomer.address || "",
+      //   loyalty_points: newCustomer.loyalty_points,
+      //   credit_note_balance: newCustomer.credit_note_balance,
+      //   id: newCustomer.id
+      // });
+      handleSelectCustomer(newCustomer)
+    }
     } catch (error) {
       console.log(error);
       toast.error(String(error));
       setLoading(false);
     }
     setLoading(false);
+    setCreateNew(false);
+  };
+
+  const handleOnCreateCheckChange = () => {
+    if (!customerDetails.firstname || !customerDetails.phoneno) {
+      toast.error("Please fill in firstname, lastname and (phoneno or email)");
+      return;
+    }
+    setCreateNew((prev) => !prev);
   };
 
   return (
@@ -222,10 +265,25 @@ const CustomerComponent: React.FC<CustomerComponentProps> = ({
             rows={3}
           />
 
-          <div className="flex items-center justify-end w-full gap-5 py-3">
-          <Button variant="default" onClick={handleCreateNew}>
-                Create Customer
-              </Button>
+          <div className="flex flex-col items-center w-full gap-5 py-3 justify-betwen sm:flex-row">
+            <div className="flex items-center flex-1 py-3 space-x-2">
+              <Checkbox
+                id="new_customer"
+                checked={createNew}
+                onCheckedChange={handleOnCreateCheckChange}
+              />
+              <Label
+                htmlFor="new_customer"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                Is new customer
+              </Label>
+            </div>
+            {createNew && (
+              <div className="flex items-center justify-end ">
+                <Button onClick={handleCreateNew}>Create Customer</Button>
+              </div>
+            )}
           </div>
         </div>
 

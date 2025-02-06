@@ -27,6 +27,8 @@ export interface Customer {
 export interface TransactionSync {
     id: string;
     country: string | null;
+    customer_name?:string
+    customer_email?:string
     state: string | null;
     city: string | null;
     address: string | null;
@@ -52,4 +54,5 @@ export interface TransactionSync {
     email: string | null;
     error_message?:string;
     sync_session_id?:string;
+    source?:string;
 }

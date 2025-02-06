@@ -25,7 +25,7 @@ interface ReceiptProps {
 export const Receipt: React.FC<ReceiptProps> = ({ data, onClose }) => {
   const printFrameRef = useRef<HTMLIFrameElement>(null);
   const { paymentMethod, customers } = useStore();
-const {clearPoints} = useApplyPoints()
+  const { clearPoints } = useApplyPoints();
   // console.log(data);
 
   const printReceipt = () => {
@@ -110,7 +110,7 @@ const {clearPoints} = useApplyPoints()
         }, 100);
       }
     }
-    clearPoints()
+    clearPoints();
   };
   const [paymentMethods, setPaymentMethods] = useState(
     data.paymentMethods || []
@@ -150,19 +150,28 @@ const {clearPoints} = useApplyPoints()
   const getAccumulatedPoints = () => {
     let acc_points = 0;
 
+    // Get current loyalty points
     const currentLoyaltyPoints = Number(data.customer.loyalty_points) || 0;
 
+    const creditNoteUsed = Number(data.creditNotePoints) || 0;
+    const pointsEarnedAfterCreditNote = Number(
+      (data.totalAmount - creditNoteUsed) * 0.02
+    );
+
     if (currentLoyaltyPoints > 0) {
-      acc_points = currentLoyaltyPoints + Number(data.totalAmount * 0.02);
+      acc_points = currentLoyaltyPoints + pointsEarnedAfterCreditNote;
     } else {
-      acc_points = Number(data.totalAmount * 0.02);
+      acc_points = pointsEarnedAfterCreditNote;
     }
-    acc_points = Number(acc_points);
+
+    acc_points = Math.max(0, Number(acc_points));
+
     customers.find((customer) => {
       if (customer.id === data.customer.id) {
-        customer.loyalty_points = Number(customer.loyalty_points) + acc_points;
+        customer.loyalty_points = acc_points;
       }
     });
+
     return acc_points.toFixed(2);
   };
 

@@ -61,7 +61,8 @@ const POSSystem = () => {
     clearCart,
     handleCartTotalDiscount,
     cartDiscountCode,
-    setCartDiscountCode
+    setCartDiscountCode,
+    appliedDiscountCode,
   } = useCart();
   const [showCartDiscount, setShowCartDiscount] = useState(false);
 
@@ -84,7 +85,6 @@ const POSSystem = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const [withCreditNote, setWithCreditNote] = useState(false);
-  const [withCreditNoteModal, setWithCreditNoteModal] = useState(false);
   const [withLoyalty, setWithLoyalty] = useState(false);
   const [withLoyaltyModal, setWithLoyaltyModal] = useState(false);
   const [showReceipt, setShowReceipt] = useState(false);
@@ -127,6 +127,12 @@ const POSSystem = () => {
       return toast.error("No payment method selected");
     }
     setIsLoading(true);
+
+    const creditNoteAmount = Number(creditNotePoints) || 0;
+    const loyaltyPointAmount = Number(loyaltyPoints) || 0;
+    const subtotalBeforePoints = cartRecords.total;
+    const finalTotal = subtotalBeforePoints - creditNoteAmount - loyaltyPointAmount;
+
     const data = {
       recieptNo: generateUniqueIdUsingStoreIDAsPrefix(storeID),
       paymentMethods: paymentMethod,
@@ -134,23 +140,19 @@ const POSSystem = () => {
         (sum, entry) => sum + (Number(entry.amount) || 0),
         0
       ),
-      totalAmount:
-        cartRecords.total -
-        (Number(loyaltyPoints) || 0) -
-        (Number(creditNotePoints) || 0),
+      totalAmount: finalTotal,
       originalTotal: cartRecords.actualTotal,
       store: storeInfo[0],
       customer: customerDetails as any,
       status: paymentStatus ? paymentStatus : "Completed",
       items: cartItems,
-      loyaltyPoints: Number(loyaltyPoints) || 0,
-      creditNotePoints: Number(creditNotePoints) || 0,
+      loyaltyPoints: loyaltyPointAmount,
+      creditNotePoints: creditNoteAmount,
       discount: cartRecords?.discount,
-      discountAmount:
-        cartRecords.total -
-        (Number(loyaltyPoints) || 0) -
-        (Number(creditNotePoints) || 0),
-      noDiscountAmount: cartRecords?.total
+      discountAmount: subtotalBeforePoints - finalTotal,
+      noDiscountAmount: cartRecords?.total,
+      subtotalBeforePoints: subtotalBeforePoints,
+      pointsEarningAmount: finalTotal
     };
     console.log(data);
     await submitTransaction(data as any);
@@ -191,19 +193,29 @@ const POSSystem = () => {
     if (!checkCustomerAndCart()) return;
 
     if (checked) {
-      if (!customer?.loyalty_points) {
-        return toast.error("Sorry, No loyalty points", {
+      if (!customer?.credit_note_balance) {
+        return toast.error("Sorry, No credit note balance available", {
           className: "bg-red-500 text-white"
         });
       }
 
+      const creditNoteBalance = Number(customer.credit_note_balance);
+      const currentTotal = Number(cartRecords.total) - (Number(loyaltyPoints) || 0);
+
+      // Apply the entire credit note balance, but don't exceed the total amount
+      const amountToApply = Math.min(creditNoteBalance, currentTotal);
+
+      setCreditNotePoints(amountToApply);
+      setNewCreditNotePoints(creditNoteBalance - amountToApply);
       setWithCreditNote(true);
-      setWithCreditNoteModal(true);
+      
+      toast.success(`Applied ${formatCurrency(amountToApply, "NGN")} credit note balance`, {
+        className: "bg-green-500 text-white"
+      });
     } else {
-      console.log(loyaltyPoints);
       setCreditNotePoints(0);
+      setNewCreditNotePoints(Number(customer?.credit_note_balance) || 0);
       setWithCreditNote(false);
-      // handleApplyLoyaltyPoints(Number(loyaltyPoints), true);
       toast.error("Credit Note points removed.", {
         className: "bg-red-500 text-white"
       });
@@ -237,7 +249,7 @@ const POSSystem = () => {
     <>
       <div>
         {/* Header Section */}
-        <header className="flex items-center justify-between w-full gap-5 p-5">
+        <header className="flex gap-5 justify-between items-center p-5 w-full">
           <h1 className="flex-1 text-2xl font-bold">Orders</h1>
           <Button variant={"destructive"} onClick={() => navigate("/failed")}>
             Failed Sync
@@ -245,12 +257,12 @@ const POSSystem = () => {
         </header>
       </div>
 
-      <div className="grid w-full h-full grid-cols-1 p-6 md:grid-cols-3">
+      <div className="grid grid-cols-1 p-6 w-full h-full md:grid-cols-3">
         {/* Main Content */}
-        <div className="w-full p-3 space-y-6 md:col-span-2">
+        <div className="p-3 space-y-6 w-full md:col-span-2">
           {/* Product Table */}
-          <div className="flex-1 w-full p-3 space-y-10 bg-white border rounded-lg shadow-sm h-fit">
-            <div className="flex flex-col w-full gap-5 lg:flex-row lg:items-center lg:justify-between h-fit">
+          <div className="flex-1 p-3 space-y-10 w-full bg-white rounded-lg border shadow-sm h-fit">
+            <div className="flex flex-col gap-5 w-full lg:flex-row lg:items-center lg:justify-between h-fit">
               <div>
                 <h1 className="text-2xl font-bold">Current Transaction</h1>
                 <p className="text-sm text-gray-500">
@@ -260,11 +272,11 @@ const POSSystem = () => {
 
               <div className="flex flex-wrap justify-end w-full gap-4 lg:w-[250px]">
                 <div className="relative w-full">
-                  <Search className="absolute text-gray-400 transform -translate-y-1/2 left-3 top-1/2" />
+                  <Search className="absolute left-3 top-1/2 text-gray-400 transform -translate-y-1/2" />
                   <input
                     type="text"
                     placeholder="Search for a product..."
-                    className="w-full py-2 pl-10 pr-4 border rounded-lg "
+                    className="py-2 pr-4 pl-10 w-full rounded-lg border"
                     onClick={() => setShowAddProduct(true)}
                   />
                 </div>
@@ -277,7 +289,7 @@ const POSSystem = () => {
                 <CurrentProductTable />
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center gap-5 text-gray-500">
+              <div className="flex flex-col gap-5 justify-center items-center text-gray-500">
                 <ShoppingBag size={48} />
                 <p className="mt-2 text-[#303f9e]">No data available</p>
               </div>
@@ -285,8 +297,8 @@ const POSSystem = () => {
           </div>
 
           {/* Customer Information */}
-          <div className="w-full p-6 space-y-5 bg-white border rounded-lg shadow-sm">
-            <div className="flex flex-wrap items-center justify-between gap-5 mb-4 md:flex-nowrap">
+          <div className="p-6 space-y-5 w-full bg-white rounded-lg border shadow-sm">
+            <div className="flex flex-wrap gap-5 justify-between items-center mb-4 md:flex-nowrap">
               <div>
                 <h2 className="text-2xl font-semibold">Customer Information</h2>
                 <p className="text-sm text-gray-500">
@@ -294,7 +306,7 @@ const POSSystem = () => {
                 </p>
               </div>
               <div className="relative w-full lg:w-[250px]">
-                <Search className="absolute text-gray-400 transform -translate-y-1/2 left-3 top-1/2" />
+                <Search className="absolute left-3 top-1/2 text-gray-400 transform -translate-y-1/2" />
                 <Input
                   type="text"
                   name="searchQuery"
@@ -339,10 +351,10 @@ const POSSystem = () => {
         </div>
 
         {/* Sidebar */}
-        <div className="w-full p-6 space-y-12">
+        <div className="p-6 space-y-12 w-full">
           <div className="space-y-6">
             <div>
-              <h1 className="text-2xl font-semibold ">
+              <h1 className="text-2xl font-semibold">
                 Discount or Promotion Code
               </h1>
               <p className="text-sm text-gray-500">
@@ -356,15 +368,21 @@ const POSSystem = () => {
                 <Input
                   type="text"
                   placeholder="Enter code"
-                  className="w-full p-2 border rounded-lg"
+                  className="p-2 w-full rounded-lg border"
                   value={cartDiscountCode}
                   onChange={(e) => setCartDiscountCode(e.target.value)}
                 />
+              
                 <Button
                   disabled={!cartDiscountCode || cartItems.length === 0}
                   onClick={() => {
+                    if (cartDiscountCode === appliedDiscountCode) {
+                      toast.error("This discount code is already applied");
+                      setCartDiscountCode("");
+                      return;
+                    }
                     handleCartTotalDiscount(cartDiscountCode);
-                    setShowCartDiscount(true);
+                    // setShowCartDiscount(true);
                     setCartDiscountCode("");
                   }}
                   className="py-2 rounded-lg w-fit"
@@ -373,10 +391,12 @@ const POSSystem = () => {
                 </Button>
               </div>
             </div>
-            {showCartDiscount ? (
+            {(cartRecords.prevTotal > cartRecords.total || cartRecords.discount) && (
               <div>
                 <div className="flex justify-between">
-                  <span className="text-xs text-gray-500">Discount</span>
+                  <span className="text-xs text-gray-500">
+                    Discount {cartRecords.discount?.code && `(${cartRecords.discount.code})`}
+                  </span>
                   {cartRecords.prevTotal > 0 && (
                     <span className="text-sm font-medium line-through">
                       {formatCurrency(cartRecords.prevTotal, "NGN")}
@@ -390,7 +410,7 @@ const POSSystem = () => {
                   </span>
                 </div>
               </div>
-            ) : null}
+            )}
 
             <div className="flex flex-col gap-4">
               <CustomSwitch
@@ -437,7 +457,7 @@ const POSSystem = () => {
                 variant="lightblue"
                 disabled={cartItems.length === 0}
                 onClick={() => setShowPayment(true)}
-                className="w-full py-2 rounded-lg"
+                className="py-2 w-full rounded-lg"
               >
                 Select payment method
               </Button>
@@ -471,7 +491,7 @@ const POSSystem = () => {
                   isLoading
                 }
                 onClick={handleSubmit}
-                className="w-full py-2"
+                className="py-2 w-full"
               >
                 {isLoading ? (
                   <Loader2 className="w-6 h-6 animate-spin" />
@@ -482,7 +502,7 @@ const POSSystem = () => {
               {/* <Button
                 disabled={cartItems.length === 0}
                 variant="lightblue"
-                className="w-full py-2 rounded-lg"
+                className="py-2 w-full rounded-lg"
               >
                 Submit & Print Gift Receipt
               </Button> */}
@@ -524,13 +544,13 @@ const POSSystem = () => {
           points={Number(customer?.loyalty_points)}
           total={Number(cartRecords.total)}
         />
-
+{/* 
         <CreditNote
           open={withCreditNoteModal}
           onOpenChange={setWithCreditNoteModal}
           points={Number(customer?.credit_note_balance)}
           total={Number(cartRecords.total)}
-        />
+        /> */}
 
         {/* <LoyaltyModal
           open={withCreditNoteModal}

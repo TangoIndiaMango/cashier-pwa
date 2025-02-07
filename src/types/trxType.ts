@@ -55,4 +55,12 @@ export interface TransactionSync {
     error_message?:string;
     sync_session_id?:string;
     source?:string;
+    sessionId: string;
+    transactionId: string;
+    retries: number;
+    error?: string;
+    createdAt: string;
+    updatedAt: string;
+    total: number;
+    totalAmount?: number;
 }

@@ -48,7 +48,7 @@ const FailedTransaction = () => {
             ? trx.products 
             : JSON.parse(trx.products || '[]'),
           exact_total_amount: trx.exact_total_amount,
-          total: trx.total,
+          total: trx.total || trx.totalAmount || 0,
           transaction_data: typeof trx.transaction_data === 'string' 
             ? trx.transaction_data 
             : JSON.stringify(trx.transaction_data),

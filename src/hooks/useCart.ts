@@ -4,7 +4,13 @@ import { useStore } from "./useStore";
 import { create } from "zustand";
 import toast from "react-hot-toast";
 
-export type ICartItem = LocalTransactionItem & { discountPrice?: number; id };
+interface ICartItem extends LocalTransactionItem {
+  discountPrice?: number | string;
+  quantity: number;
+  totalPrice: number;
+  discount?: LocalDiscount;
+  isModified?: boolean;
+}
 
 export type ISetCartItems = (items: ICartItem[]) => ICartItem[] | ICartItem[];
 

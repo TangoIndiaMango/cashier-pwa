@@ -69,7 +69,7 @@ export interface LocalTransactionItem extends Partial<LocalProduct> {
   totalPrice: number;
   discount?: LocalDiscount;
   sessionId?: string | null;
-  discountPrice?:string
+  discountPrice?:string | number
 }
 
 export interface LocalDiscount {

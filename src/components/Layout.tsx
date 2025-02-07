@@ -120,7 +120,7 @@ const Layout = () => {
               <TooltipTrigger asChild>
                 <Button
                   onClick={triggerSync}
-                  disabled={loading || !isOnline}
+                  disabled={loading}
                   className="flex items-center px-3 py-2 space-x-2 text-white bg-blue-500 rounded-lg hover:bg-blue-600"
                   aria-label="Sync data"
                 >

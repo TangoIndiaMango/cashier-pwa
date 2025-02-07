@@ -5,6 +5,8 @@ import type { LocalCustomer, LocalProduct, LocalTransaction } from '../db/schema
 
 import { redirect } from 'react-router-dom';
 import { getDbInstance } from '../db/db';
+import { TransactionSync } from '@/types/trxType';
+import { LocalApiMethods } from './localMethods';
 // import { db } from '../db/schema';
 const db = getDbInstance()
 export class LocalApi {
@@ -78,44 +80,26 @@ export class LocalApi {
   }
 
   // Transaction Operations
-  static async createTransaction(transaction: Omit<LocalTransaction, 'id' | 'createdAt' | 'synced' | "sessionId">, sessionId: string): Promise<string> {
-
-    const id = crypto.randomUUID()
+  static async createTransaction(transaction: Omit<LocalTransaction, "id" | "createdAt" | "synced" | "sessionId">, sessionId: string): Promise<string> {
+    const id = crypto.randomUUID();
+    const syncId = `${Math.floor(Date.now() / 1000)}_CREATE`;
 
     if (!sessionId) {
-      toast.error("Please login again, no SessionID found")
-      redirect('/login')
-      return ""
+      toast.error("Please login again, no SessionID found");
+      redirect('/login');
+      return "";
     }
 
-    //   const customer = transaction?.customer;
-
-    //   if (customer) {
-    //     const customerExists = await this.checkIfCustomerExists(customer);
-    //     if (!customerExists) {
-    //         try {
-    //             // Create a new customer if the customer doesn't exist
-    //             await this.createNewCustomerInfo(customer);
-    //         } catch (error) {
-    //             toast.error("Customer creation failed: " + error);
-    //             throw new Error('Customer creation failed.');
-    //         }
-    //     }
-    // }
-
-    console.log(transaction)
-    console.log(transaction?.customer?.phoneno, "Here's the customertrans")
-    await this.updateCustomerCreditNote(transaction?.customer)
-    await this.updateCustomerLoyaltyPoints(transaction?.customer)
-
     try {
+      console.log(transaction);
+      await this.updateCustomerCreditNote(transaction?.customer);
+      await this.updateCustomerLoyaltyPoints(transaction?.customer);
+
       await db.transaction('rw', [db.transactions, db.products], async () => {
         for (const item of transaction.items) {
-          console.log('Updating product:', item)
-          console.log(item.ean, item.quantity)
+          console.log('Updating product:', item);
           await this.updateProductQuantity(item.ean!, item.quantity);
         }
-        // console.log("After updating quantity", transaction)
         await db.transactions.add({
           ...transaction,
           id,
@@ -126,11 +110,41 @@ export class LocalApi {
       });
 
       return id;
-
     } catch (error) {
       console.error('Transaction creation failed:', error);
       toast.error('Transaction failed. Please try again later ' + error);
-      throw new Error('Transaction failed. Please try again later.');
+
+      const failedTransaction = {
+        id: id,
+        sync_session_id: syncId,
+        customer_name: `${transaction.customer?.firstname} ${transaction.customer?.lastname}`,
+        customer_email: transaction.customer?.email || `${transaction.customer?.firstname}${transaction.customer?.lastname}@prelp.com`,
+        receipt_no: String(transaction.recieptNo),
+        payment_methods: transaction.paymentMethods,
+        products: transaction.items.map(item => ({
+          id: item.id,
+          ean: item.ean!,
+          size: item.size || "",
+          color: item.color || "",
+          total: item.retail_price,
+          new_price: item?.discountPrice?.toString(),
+          discount_id: item.discount?.id || null,
+          quantity_ordered: item.quantity
+        })),
+        exact_total_amount: transaction.originalTotal,
+        total: transaction.payableAmount.toString(),
+        transaction_data: JSON.stringify({
+          ...transaction,
+          created_at: new Date().toISOString(),
+          sync_session_id: syncId
+        }),
+        error_message: error instanceof Error ? error.message : String(error),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      await LocalApiMethods.createFailedTrx(sessionId, [failedTransaction]);
+      throw error;
     }
   }
 

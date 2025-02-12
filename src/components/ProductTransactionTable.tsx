@@ -114,10 +114,14 @@ export function CurrentProductTable() {
                   {product.color || "N/A"}
                 </TableCell>
                 <TableCell className="text-right">
-                  ₦{product.discountPrice?.toLocaleString() || "N/A"}
+                  ₦{typeof product.discountPrice === 'number' 
+                    ? product.discountPrice.toLocaleString() 
+                    : product.discountPrice || "N/A"}
                   {product.discount && (
                     <p className="mt-2 line-through">
-                      ₦{product.retail_price?.toLocaleString() || "N/A"}
+                      ₦{typeof product.retail_price === 'number' 
+                        ? product.retail_price.toLocaleString() 
+                        : product.retail_price || "N/A"}
                     </p>
                   )}
                 </TableCell>
@@ -137,7 +141,9 @@ export function CurrentProductTable() {
                 <TableCell className="text-right">
                   ₦
                   {formatBalance(
-                    Number(product.discountPrice || product.retail_price) *
+                    Number(typeof product.discountPrice === 'number' 
+                      ? product.discountPrice 
+                      : product.retail_price) *
                       Number(quantity)
                   )}
                 </TableCell>

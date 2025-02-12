@@ -7,9 +7,41 @@ import { LocalApi } from "../api/localApi";
 import { RemoteApi } from "../api/remoteApi";
 import { getDbInstance } from "../db/db";
 import { delay } from "../utils";
+import { LocalApiMethods } from "../api/localMethods";
 
 
 const db = getDbInstance()
+
+const createFailedTransaction = (
+  transaction: any,
+  syncId: string,
+  error: string,
+  formattedTransaction?: any
+) => ({
+  id: transaction.id,
+  sync_session_id: syncId,
+  customer_name: `${transaction?.customer?.firstname} ${transaction?.customer?.lastname}`,
+  customer_email: transaction?.customer?.email || `${transaction?.customer?.firstname}${transaction?.customer?.lastname}@prelp.com`,
+  receipt_no: String(transaction.recieptNo),
+  payment_methods: transaction.paymentMethods,
+  products: transaction.items.map(item => ({
+    id: item.id,
+    ean: item.ean,
+    size: item.size || "",
+    color: item.color || "",
+    total: item.retail_price,
+    new_price: item?.discountPrice?.toString() || "",
+    discount_id: item?.discount?.id || null,
+    quantity_ordered: item.quantity
+  })),
+  exact_total_amount: transaction.originalTotal,
+  total: transaction.payableAmount?.toString(),
+  transaction_data: formattedTransaction ? JSON.stringify(formattedTransaction) : null,
+  error_message: error,
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString()
+});
+
 export class SyncManager {
   private static instance: SyncManager;
   private syncInProgress: boolean = false;
@@ -174,20 +206,28 @@ export class SyncManager {
   }
 
   private async syncTransactions() {
-    const sessionId = sessionStorage.getItem('sessionId')
+    const sessionId = sessionStorage.getItem('sessionId');
+    if (!sessionId) {
+      toast.error("Session ID is not available. Please log in.");
+      return;
+    }
+
     const unsynedTransactions = await LocalApi.getUnsynedTransactions(String(sessionId));
     if (unsynedTransactions.length === 0) {
       toast.success("No transactions to sync");
       return;
-    };
+    }
+
     console.log("Transactions to Sync", unsynedTransactions);
     const batchSize = 10;
 
     for (let i = 0; i < unsynedTransactions.length; i += batchSize) {
       const batch = unsynedTransactions.slice(i, i + batchSize);
+      const syncId = `${Math.floor(Date.now() / 1000)}_SYNC`;
+      const failedTransactions: any[] = [];
 
-      const transactiontoSync = batch.map((transaction) => {
-        return {
+      for (const transaction of batch) {
+        const formattedTransaction = {
           id: transaction.id,
           firstname: transaction?.customer?.firstname || null,
           lastname: transaction?.customer?.lastname || null,
@@ -203,7 +243,7 @@ export class SyncManager {
             Number(transaction.loyaltyPoints) > 0 ? true : false,
           apply_credit_note_point:
             Number(transaction.creditNotePoints) > 0 ? true : false,
-          payable_amount: transaction.payableAmount, //after discount
+          payable_amount: transaction.payableAmount as any, //after discount
           exact_total_amount: transaction.originalTotal, //total amount before before any discount
           payment_type: "cash",
           discount_id: transaction?.discount?.id || null,
@@ -215,14 +255,14 @@ export class SyncManager {
           payment_methods: transaction.paymentMethods.map((method) => {
             return {
               mode_of_payment_id: method.mode_of_payment_id,
-              amount: method.amount,
+              amount: method.amount as any,
               mode_of_payment_pos_id: method.mode_of_payment_pos_id || "",
             };
           }),
           status: transaction.status,
           payment_status: "Completed",
           total_price: transaction.payableAmount, //after discount
-          receipt_no: transaction.recieptNo,
+          receipt_no: transaction.recieptNo as string,
           products: transaction.items.map((item: any) => {
             return {
               id: item.id,
@@ -235,59 +275,46 @@ export class SyncManager {
               discount_id: item?.discount?.id || null,
             };
           }),
+          sync_status: "pending", // Initial status
+          sync_attempts: 0, // Track retry attempts
+          error_message: ""
         };
-      });
 
-      console.log("Transaction to Sync", transactiontoSync);
+        try {
+          const response = await RemoteApi.syncTransactions([formattedTransaction as any], syncId);
+          const { successful_transaction, failed_transaction } = response?.data || {};
 
-      // Generate random syncId
-      const syncId = `${Math.floor(Date.now() / 1000)}_SYNC`;
-      try {
-        // Send to remote API for syncing
-        const response = await RemoteApi.syncTransactions(
-          transactiontoSync as any,
-          syncId
-        );
-        
-        const { successful_transaction, failed_transaction } =
-        response?.data || {};
-        
-        const successfulCount = successful_transaction || 0;
-        const failedCount = failed_transaction || 0;
-        
-        // Show success or failure message
-        if (failedCount > 0) {
-          console.error("Sync failed:", response?.message);
-          toast.error(response?.message); // Show error with failed count
-        } else {
-          console.log("Transactions synced successfully.");
-          toast.success(`Successfully synced ${successfulCount} transactions.`);
-        }
-        
-        // Mark all transactions as synced regardless of success/failure
-        await db.transaction("rw", db.transactions, async () => {
-          for (const tx of transactiontoSync) {
-            await db.transactions.update(tx.id as string, { synced: "true", sessionId: String(sessionId) })
+          if (failed_transaction > 0) {
+            failedTransactions.push(
+              createFailedTransaction(
+                transaction, 
+                syncId, 
+                response?.message || "Sync failed",
+                formattedTransaction
+              )
+            );
+          } else {
+            await db.transactions.update(transaction.id, { 
+              synced: "true", 
+              sessionId: String(sessionId) 
+            });
           }
-        });
-      } catch (error) {
-        console.error("Failed to sync transactions:", error);
-        toast.error("Failed to sync transactions, please try again.");
+        } catch (error) {
+          failedTransactions.push(
+            createFailedTransaction(
+              transaction,
+              syncId,
+              error instanceof Error ? error.message : String(error),
+              formattedTransaction
+            )
+          );
+        }
+      }
+
+      if (failedTransactions.length > 0) {
+        await LocalApiMethods.createFailedTrx(String(sessionId), failedTransactions);
       }
     }
-
-    // retrieve failed transactions
-    // try {
-    //     const failedTransactions = await RemoteApi.getFailedTransactions();
-    //     if (failedTransactions.length > 0) {
-    //         const csv = parse(failedTransactions);
-    //         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    //         saveAs(blob, 'failed_transactions.csv');
-    //     }
-    // } catch (error) {
-    //     console.error("Failed to fetch failed transactions:", error);
-    //     toast.error("Failed to retrieve failed transactions.");
-    // }
   }
 
   async syncSingleTransaction(transaction: any) {

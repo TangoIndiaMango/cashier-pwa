@@ -74,7 +74,7 @@ export function useStore() {
         localunsyncedTrx,
       ] = await Promise.all([
         LocalApi.getAllProducts(),
-        LocalApiMethods.getFailedSyncTrx(),
+        LocalApiMethods.getFailedSyncTrx(sessionId),
         LocalApi.getCustomers(),
         LocalApiMethods.getAllPaymentMethods(),
         LocalApiMethods.getBranches(),

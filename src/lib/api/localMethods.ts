@@ -20,14 +20,22 @@ export class LocalApiMethods {
         return db.discounts.toArray();
     }
 
-    // static async getFailedSyncTrx(sessionId: string): Promise<TransactionSync[]> {
-    //     const transactions = await db.failedSyncTransactions.where('sessionId').equals(String(sessionId)).toArray();
-    //     return [...transactions].reverse();
-    // }
-    static async getFailedSyncTrx(): Promise<TransactionSync[]> {
-        const transactions = await db.failedSyncTransactions.toArray();
+    static async createFailedTrx(sessionId: string, transactions: any): Promise<void> {
+        await db.transaction("rw", db.failedSyncTransactions, async () => {
+            for (const transaction of transactions) {
+                await db.failedSyncTransactions.put({ ...transaction, sessionId });
+            }
+        });
+    }
+
+    static async getFailedSyncTrx(sessionId: string): Promise<TransactionSync[]> {
+        const transactions = await db.failedSyncTransactions.where('sessionId').equals(String(sessionId)).toArray();
         return [...transactions].reverse();
     }
+    // static async getFailedSyncTrx(): Promise<TransactionSync[]> {
+    //     const transactions = await db.failedSyncTransactions.toArray();
+    //     return [...transactions].reverse();
+    // }
 
 
     // static async getBranches(sessionId: string): Promise<LocalBranch[]> {

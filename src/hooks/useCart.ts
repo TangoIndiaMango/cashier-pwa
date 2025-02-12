@@ -4,7 +4,13 @@ import { useStore } from "./useStore";
 import { create } from "zustand";
 import toast from "react-hot-toast";
 
-export type ICartItem = LocalTransactionItem & { discountPrice?: number; id };
+interface ICartItem extends LocalTransactionItem {
+  discountPrice?: number | string;
+  quantity: number;
+  totalPrice: number;
+  discount?: LocalDiscount;
+  isModified?: boolean;
+}
 
 export type ISetCartItems = (items: ICartItem[]) => ICartItem[] | ICartItem[];
 
@@ -127,75 +133,119 @@ export const useCart = () => {
   const cartZudApi = useZudCart((state) => state);
   const { discounts } = useStore();
   const [cartDiscountCode, setCartDiscountCode] = useState("");
-  const [cartRecords, setCartRecords] =
-    useState<ICartRecords>(defaultCartRecords);
+  const [cartRecords, setCartRecords] = useState<ICartRecords>(defaultCartRecords);
+  const [appliedDiscountCode, setAppliedDiscountCode] = useState<string | null>(null);
 
-  const stateRef = useRef({ discountCode: "" });
+  // Keep track of both the current discount code and the applied discount
+  const stateRef = useRef({ 
+    discountCode: "",
+    appliedDiscount: null as LocalDiscount | null 
+  });
 
   const handleCartTotalDiscount = useCallback(
     (
       cartDiscountCode: string = stateRef.current.discountCode,
       forceUpdate: boolean = false
     ) => {
-      let discount: LocalDiscount | null;
+      let discount: LocalDiscount | null = null;
 
       if (cartDiscountCode) {
+        // First check if we already have this discount applied
+        if (cartDiscountCode === appliedDiscountCode && !forceUpdate) {
+          toast.error("This discount code is already applied");
+          return;
+        }
+
+        // Look for the discount in our discounts array
         discount = discounts.find(
           (discountObj) => discountObj.code === cartDiscountCode
-        ) as LocalDiscount | null;
+        ) || null;
 
-        if (!discount) {
-          return alert("Invalid code");
+        // If we can't find the discount and it's not already applied
+        if (!discount && cartDiscountCode !== appliedDiscountCode) {
+          toast.error("Invalid discount code");
+          return;
+        }
+
+        // If this is a forced update and we have an applied code, use the stored discount
+        if (forceUpdate && cartDiscountCode === appliedDiscountCode) {
+          discount = stateRef.current.appliedDiscount;
+        }
+
+        // Store both the code and the discount object
+        if (discount) {
+          setAppliedDiscountCode(cartDiscountCode);
+          stateRef.current.appliedDiscount = discount;
         }
       }
 
-      setCartRecords((values) => ({
-        ...values,
-        discount,
-        actualTotal: cartZudApi.cartItems.reduce(
+      const currentTotal = cartZudApi.cartItems.reduce(
+        (sum, item: ICartItem) =>
+          sum + Number(item.retail_price) * (item.quantity || 1),
+        0
+      );
+
+      setCartRecords((values) => {
+        const newTotal = cartZudApi.cartItems.reduce(
           (sum, item: ICartItem) =>
-            sum + Number(item.retail_price) * (item.quantity || 1),
+            sum +
+            cartZudApi.calcDiscountPriveValue(
+              {
+                ...item,
+                discount: discount || item.discount,
+              },
+              "retail_price"
+            ) *
+            (item.quantity || 1),
           0
-        ),
-        prevTotal:
-          !forceUpdate &&
-            cartDiscountCode &&
-            cartDiscountCode === values.discount?.code
-            ? values.prevTotal
-            : values.total,
-        total:
-          !forceUpdate &&
-            cartDiscountCode &&
-            cartDiscountCode === values.discount?.code
-            ? values.total
-            : cartZudApi.cartItems.reduce(
-              (sum, item: ICartItem) =>
-                sum +
-                cartZudApi.calcDiscountPriveValue(
-                  {
-                    ...item,
-                    discount: discount || item.discount,
-                  },
-                  cartDiscountCode ? "discountPrice" : "retail_price"
-                ) *
-                (item.quantity || 1),
-              0
-            ),
-      }));
+        );
+
+        return {
+          ...values,
+          discount,
+          actualTotal: currentTotal,
+          prevTotal: discount ? currentTotal : 0,
+          total: newTotal,
+        };
+      });
     },
-    [cartZudApi.cartItems]
+    [cartZudApi.cartItems, discounts, appliedDiscountCode]
   );
 
+  // Clear applied discount code when cart is cleared
+  const clearCart = useCallback(() => {
+    setCartRecords(defaultCartRecords);
+    setAppliedDiscountCode(null);
+    stateRef.current = { discountCode: "", appliedDiscount: null };
+    cartZudApi.clearCart();
+  }, [cartZudApi]);
+
+  // Handle tab visibility changes
   useEffect(() => {
-    handleCartTotalDiscount(stateRef.current.discountCode, true);
+    const handleVisibilityChange = () => {
+      if (!document.hidden && appliedDiscountCode) {
+        handleCartTotalDiscount(appliedDiscountCode, true);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [handleCartTotalDiscount, appliedDiscountCode]);
+
+  // Update calculations when cart changes
+  useEffect(() => {
+    if (appliedDiscountCode) {
+      handleCartTotalDiscount(appliedDiscountCode, true);
+    } else {
+      handleCartTotalDiscount(stateRef.current.discountCode, true);
+    }
   }, [handleCartTotalDiscount]);
 
   return {
     ...cartZudApi,
-    clearCart() {
-      setCartRecords(defaultCartRecords);
-      cartZudApi.clearCart();
-    },
+    clearCart,
     setCartRecords,
     cartDiscountCode,
     setCartDiscountCode(code: string) {
@@ -204,6 +254,7 @@ export const useCart = () => {
     },
     handleCartTotalDiscount,
     cartRecords,
+    appliedDiscountCode,
   };
 };
 // 4064533026926

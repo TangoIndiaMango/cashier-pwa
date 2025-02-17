@@ -50,13 +50,12 @@ api.interceptors.response.use(
       sessionStorage.removeItem("user");
       redirect("/login");
       // db.delete();
-
     } else {
       console.error("API Error: ", error);
-      await LocalApi.clearSessionData(String(sessionId))
-      sessionStorage.removeItem("token");
-      sessionStorage.removeItem("user");
-      redirect("/login");
+      // await LocalApi.clearSessionData(String(sessionId))
+      // sessionStorage.removeItem("token");
+      // sessionStorage.removeItem("user");
+      // redirect("/login");
       // db.delete();
       toast.error("An error occurred, please try again.");
     }

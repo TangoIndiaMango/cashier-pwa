@@ -58,6 +58,7 @@ api.interceptors.response.use(
       // redirect("/login");
       // db.delete();
       toast.error("An error occurred, please try again.");
+      redirect("/")
     }
     return Promise.reject(error);
   }

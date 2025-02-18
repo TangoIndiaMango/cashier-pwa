@@ -45,20 +45,16 @@ api.interceptors.response.use(
     if (error.response && error.response.status === 401) {
       console.error("Unauthorized access. Please log in again.");
       toast.error("Session expired. Please log in again.");
-      await LocalApi.clearSessionData(String(sessionId))
+      await LocalApi.clearSessionData(String(sessionId));
       sessionStorage.removeItem("token");
       sessionStorage.removeItem("user");
       redirect("/login");
-      // db.delete();
     } else {
       console.error("API Error: ", error);
-      // await LocalApi.clearSessionData(String(sessionId))
-      // sessionStorage.removeItem("token");
-      // sessionStorage.removeItem("user");
-      // redirect("/login");
-      // db.delete();
-      toast.error("An error occurred, please try again.");
-      redirect("/")
+      toast.error(
+        error.response?.data?.message || 
+        "An error occurred, please try again."
+      );
     }
     return Promise.reject(error);
   }

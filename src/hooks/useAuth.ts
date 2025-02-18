@@ -28,7 +28,7 @@ export function useAuth() {
           const sessionId = getSessionId();
           sessionStorage.setItem("sessionId", sessionId);
           await delay(SLEEP_TIME);
-          const db = getDbInstance()
+          const db = await getDbInstance()
           await delay(SLEEP_TIME);
           await db.openDatabase();
           console.log("Sleeping before loading data...");

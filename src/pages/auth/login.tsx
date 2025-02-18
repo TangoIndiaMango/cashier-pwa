@@ -54,7 +54,7 @@ const LoginPage = () => {
         const sessionId = getSessionId();
         sessionStorage.setItem("sessionId", sessionId);
         await delay(1);
-        const db = getDbInstance();
+        const db = await getDbInstance();
         await delay(1);
         await db.openDatabase();
         await delay();

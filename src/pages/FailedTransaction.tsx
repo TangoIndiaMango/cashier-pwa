@@ -31,9 +31,10 @@ const FailedTransaction = () => {
     debounceSet();
   }, []);
 
+  // Watch online status changes
   useEffect(() => {
     handleOnlineStatusChange(isOnline);
-  }, [handleOnlineStatusChange]);
+  }, [handleOnlineStatusChange, isOnline]);
 
   // Fetch data effect
   useEffect(() => {
@@ -49,16 +50,13 @@ const FailedTransaction = () => {
         await db.openDatabase();
 
         // Always fetch local failed transactions
-        const localFailedTrx = await LocalApiMethods.getFailedSyncTrx(
-          String(sessionId)
-        );
-
+        const localFailedTrx = await LocalApiMethods.getFailedSyncTrx(String(sessionId));
+        
         let remoteData: any[] = [];
-        // Only attempt to fetch remote data if online
         if (isOnline) {
           try {
             remoteData = await RemoteApi.fetchFailedTransactions();
-            setShouldRefetch(false); // Reset the refetch flag after successful fetch
+            setShouldRefetch(false); // Reset after successful fetch
           } catch (error) {
             console.log("Couldn't fetch remote transactions:", error);
           }
@@ -155,7 +153,7 @@ const FailedTransaction = () => {
     if (sessionId && (shouldRefetch || !failedTrx.length)) {
       getFailedTrx();
     }
-  }, [sessionId, shouldRefetch]);
+  }, [sessionId, shouldRefetch, isOnline]);
 
   const downloadCSV = (data: TransactionSync[]) => {
     const headers = [

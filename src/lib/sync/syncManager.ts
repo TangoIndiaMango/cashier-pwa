@@ -273,7 +273,10 @@ export class SyncManager {
         const formattedTransaction = this.formatTransaction(transaction) as unknown as Transaction;
         try {
           const response = await RemoteApi.syncTransactions([formattedTransaction], syncId);
-          const { failed_transaction } = response?.data || {};
+          if (!response || !response.data) {
+            throw new Error("Invalid response from server");
+          }
+          const { failed_transaction = 0 } = response?.data || {};
 
           if (failed_transaction > 0) {
             await LocalApiMethods.createFailedTrx(sessionId, [

@@ -89,7 +89,7 @@ export function FailedTransactionTable({failedTrx}) {
                   {trx?.products[0]?.ean || "N/A"}
                 </TableCell>
                 <TableCell className="hidden lg:table-cell">
-                  {trx?.customer_name || "N/A"}
+                  {trx?.firstname + ' ' + trx?.lastname || "N/A"}
                 </TableCell>
                 <TableCell className="hidden lg:table-cell">
                   {trx?.error_message || "N/A"}

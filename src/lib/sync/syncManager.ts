@@ -43,8 +43,11 @@ export class SyncManager {
   private static instance: SyncManager;
   private syncInProgress: boolean = false;
   private syncWindow: number = 30 * 60 * 1000; // 30 minutes
+  // private networkStatus: boolean = navigator.onLine;
 
-  private constructor() { }
+  private constructor() {
+    //   window.addEventListener('online', this.handleOnline.bind(this));
+  }
 
   static getInstance(): SyncManager {
     if (!SyncManager.instance) {
@@ -64,6 +67,15 @@ export class SyncManager {
   //       console.error("Scheduled sync failed:", error);
   //     }
   //   }, delay);
+  // }
+
+  // private handleOnline = async () => {
+  //   this.networkStatus = true;
+  //   console.log("Connection restored, checking for failed transactions...");
+  //   const sessionId = sessionStorage.getItem("sessionId");
+  //   if (sessionId) {
+  //     await this.syncFailedTrx(sessionId);
+  //   }
   // }
 
   async shouldSync(): Promise<boolean> {
@@ -424,3 +436,45 @@ export class SyncManager {
     }
   }
 }
+
+
+/**
+ * 
+ * public async syncFailedTrx(sessionId: string) {
+    if (this.syncInProgress) return;
+    
+    try {
+      this.syncInProgress = true;
+      const failedTransactions = await LocalApiMethods.getFailedSyncTrx(sessionId);
+      
+      if (failedTransactions.length > 0) {
+        toast.info(`Attempting to sync ${failedTransactions.length} failed transaction(s)`);
+        
+        for (const transaction of failedTransactions) {
+          try {
+            const transactionData = JSON.parse(transaction.transaction_data);
+            const response = await RemoteApi.syncTransactions([transactionData], transaction.sync_session_id);
+            
+            if (response?.data?.successful_transaction > 0) {
+              await LocalApiMethods.removeFailedTrx(sessionId, transaction.id);
+              toast.success(`Transaction ${transaction.id} synced successfully`);
+            }
+          } catch (error) {
+            console.error(`Failed to sync transaction ${transaction.id}:`, error);
+            // Update error message and increment sync attempts
+            await LocalApiMethods.updateFailedTrx(
+              sessionId,
+              transaction.id,
+              {
+                error_message: error instanceof Error ? error.message : String(error),
+                updated_at: new Date().toISOString(),
+                sync_attempts: (transaction.sync_attempts || 0) + 1
+              }
+            );
+          }
+            }
+    } finally {
+      this.syncInProgress = false;
+    }
+  }
+ */

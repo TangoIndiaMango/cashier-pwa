@@ -10,13 +10,13 @@ import { LocalApiMethods } from "@/lib/api/localMethods";
 import { getDbInstance } from "@/lib/db/db";
 import { TransactionSync } from "@/types/trxType";
 
+
 const FailedTransaction = () => {
   const [failedTrx, setFailedTrx] = useState<TransactionSync[]>([]);
   const { goBackButton } = useGoBack();
   const [loading, setLoading] = useState<boolean>(true);
-  const db = getDbInstance();
-  const sessionId = sessionStorage.getItem("sessionId");
 
+  const sessionId = sessionStorage.getItem("sessionId");
   useEffect(() => {
     const getFailedTrx = async () => {
       if (!sessionId) {
@@ -26,6 +26,7 @@ const FailedTransaction = () => {
 
       try {
         setLoading(true);
+        const db = await getDbInstance();
         await db.openDatabase();
 
         // Fetch both remote and local failed transactions
@@ -38,17 +39,34 @@ const FailedTransaction = () => {
         const normalizeTransaction = (trx: any, source: 'local' | 'remote'): any => ({
           id: trx.id,
           sync_session_id: trx.sync_session_id,
-          customer_name: trx.customer_name,
-          customer_email: trx.customer_email,
-          receipt_no: String(trx.receipt_no),
+          firstname: trx.firstname,
+          lastname: trx.lastname,
+          gender: trx.gender,
+          age: trx.age,
+          phoneno: trx.phoneno,
+          email: trx.email,
+          country: trx.country,
+          state: trx.state,
+          city: trx.city,
+          address: trx.address,
+          apply_loyalty_point: trx.apply_loyalty_point,
+          apply_credit_note_point: trx.apply_credit_note_point,
+          payable_amount: trx.payable_amount,
+          exact_total_amount: trx.exact_total_amount,
+          payment_type: trx.payment_type,
+          discount_id: trx.discount_id,
+          loyalty_point_value: trx.loyalty_point_value,
+          credit_note_used: trx.credit_note_used,
           payment_methods: Array.isArray(trx.payment_methods) 
             ? trx.payment_methods 
             : JSON.parse(trx.payment_methods || '[]'),
+          status: trx.status,
+          payment_status: trx.payment_status,
+          total_price: trx.total_price || trx.payable_amount,
+          receipt_no: String(trx.receipt_no),
           products: Array.isArray(trx.products) 
             ? trx.products 
             : JSON.parse(trx.products || '[]'),
-          exact_total_amount: trx.exact_total_amount,
-          total: trx.total || trx.totalAmount || 0,
           transaction_data: typeof trx.transaction_data === 'string' 
             ? trx.transaction_data 
             : JSON.stringify(trx.transaction_data),
@@ -119,10 +137,10 @@ const FailedTransaction = () => {
       ...data.map(row => [
         row.id,
         row.sync_session_id,
-        row.customer_name,
-        row.customer_email,
+        row.firstname + ' ' + row.lastname,
+        row.email,
         row.receipt_no,
-        row.total,
+        row.total_price,
         row.error_message,
         new Date(row.created_at).toLocaleString(),
         row.source
@@ -138,10 +156,10 @@ const FailedTransaction = () => {
     const worksheetData = data.map(row => ({
       ID: row.id,
       'Sync Session ID': row.sync_session_id,
-      'Customer Name': row.customer_name,
-      'Customer Email': row.customer_email,
+      'Customer Name': row.firstname + ' ' + row.lastname,
+      'Customer Email': row.email,
       'Receipt No': row.receipt_no,
-      'Total Amount': row.total,
+      'Total Amount': row.total_price,
       'Error Message': row.error_message,
       'Created At': new Date(row.created_at).toLocaleString(),
       'Source': row.source

@@ -116,7 +116,7 @@ export class SyncManager {
       await this.syncData();
     } catch (error) {
       console.error("Sync failed:", error);
-      toast.error('Sync failed: ' + error);
+      // toast.error('Sync failed: ' + error);
       throw error;
     } finally {
       this.syncInProgress = false;

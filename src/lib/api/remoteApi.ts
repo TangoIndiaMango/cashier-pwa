@@ -39,8 +39,13 @@ api.interceptors.request.use(
   }
 );
 
+let isErrorShown = false
+
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    isErrorShown = false;
+    return response;
+  },
   async (error) => {
     if (error.response && error.response.status === 401) {
       console.error("Unauthorized access. Please log in again.");
@@ -51,10 +56,13 @@ api.interceptors.response.use(
       redirect("/login");
     } else {
       console.error("API Error: ", error);
-      toast.error(
-        error.response?.data?.message || 
-        "An error occurred, please try again."
-      );
+      if (!isErrorShown) {
+        toast.error(
+          error.response?.data?.message || 
+          "An error occurred, please try again."
+        );
+        isErrorShown = true;
+      }
     }
     return Promise.reject(error);
   }
@@ -140,7 +148,7 @@ export class RemoteApi {
       return response.data;
     } catch (error: any) {
       console.error("Sync failed:", error);
-      toast.error("Sync failed: " + error?.message);
+      // toast.error("Sync failed: " + error?.message);
       throw error;
     }
   }

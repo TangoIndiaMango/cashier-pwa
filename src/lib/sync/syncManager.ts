@@ -116,7 +116,7 @@ export class SyncManager {
       await this.syncData();
     } catch (error) {
       console.error("Sync failed:", error);
-      toast.error('Sync failed: ' + error);
+      // toast.error('Sync failed: ' + error);
       throw error;
     } finally {
       this.syncInProgress = false;
@@ -238,7 +238,7 @@ export class SyncManager {
 
     return {
       ...formattedTransaction,
-      syncId,
+      sync_session_id: syncId,
       transaction_data: JSON.stringify({
         ...formattedTransaction,
         created_at: new Date().toISOString(),
@@ -364,10 +364,10 @@ export class SyncManager {
     }
     console.log(transaction.sessionId, sessionId)
     // Verify the transaction belongs to this session
-    if (transaction.sessionId !== String(sessionId)) {
-      toast.error("Unauthorized: Transaction belongs to another session");
-      return;
-    }
+    // if (transaction.sessionId !== String(sessionId)) {
+    //   toast.error("Unauthorized: Transaction belongs to another session");
+    //   return;
+    // }
 
     const syncId = transaction.sync_session_id;
     const db = await getDB();

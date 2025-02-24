@@ -39,6 +39,7 @@ export function FailedTransactionTable({failedTrx}) {
   };
 
   const handleTransactionSync = async (trx:any) => {
+    console.log(trx)
     syncMang.syncSingleTransaction(trx)
   }
 

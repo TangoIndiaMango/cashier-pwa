@@ -51,6 +51,7 @@ const FailedTransaction = () => {
 
         // Always fetch local failed transactions
         const localFailedTrx = await LocalApiMethods.getFailedSyncTrx(String(sessionId));
+       
         
         let remoteData: any[] = [];
         if (isOnline) {
@@ -102,6 +103,7 @@ const FailedTransaction = () => {
               ? trx.transaction_data
               : JSON.stringify(trx.transaction_data),
           error_message: trx.error_message,
+          sessionId: trx.sessionId,
           created_at: new Date(trx.created_at).toISOString(),
           updated_at: new Date(trx.updated_at).toISOString(),
           source,
@@ -114,10 +116,11 @@ const FailedTransaction = () => {
         const validLocalData = (
           Array.isArray(localFailedTrx) ? localFailedTrx : []
         ).map((trx) => normalizeTransaction(trx, "local"));
+        console.log(validLocalData)
 
         // Create a Map to track unique transactions by sync_session_id
         const uniqueTransactions = new Map<string, TransactionSync>();
-
+        
         // Process local transactions first (they take precedence)
         validLocalData.forEach((trx) => {
           if (trx.sync_session_id) {
@@ -140,7 +143,6 @@ const FailedTransaction = () => {
           (a, b) =>
             new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         );
-
         setFailedTrx(mergedData);
       } catch (error) {
         console.error("Error fetching transactions:", error);

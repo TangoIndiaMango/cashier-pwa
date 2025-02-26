@@ -58,7 +58,7 @@ const FailedTransaction = () => {
           String(sessionId)
         );
 
-        let remoteData: any[] = [];
+        let remoteData: any
         if (isOnline) {
           try {
             remoteData = await RemoteApi.fetchFailedTransactions();
@@ -75,13 +75,12 @@ const FailedTransaction = () => {
         ): any => ({
           id: trx.id,
           sync_session_id: trx.sync_session_id,
-          firstname: source === "local" ? trx.firstname : trx.customer_name,
-          lastname: source === "local" ? trx.lastname : "",
-          fullname: source === "local" ?  trx.firstname + " " + trx.lastname : trx.customer_name,
+          firstname: trx.firstname,
+          lastname: trx.lastname,
           gender: trx.gender,
           age: trx.age,
           phoneno: trx.phoneno,
-          email: source === "remote" ? trx.customer_email : trx.email,
+          email: source === "local" ? trx.email : trx.customer_email,
           country: trx.country,
           state: trx.state,
           city: trx.city,
@@ -115,14 +114,14 @@ const FailedTransaction = () => {
           source,
           store_id: trx.store_id
         });
-        console.log(remoteData);
+        // console.log(remoteData);
         const validRemoteData = (
-          Array.isArray(remoteData) ? remoteData : []
+          Array.isArray(remoteData?.data) ? remoteData?.data as any[] : []
         ).map((trx) => normalizeTransaction(trx, "remote"));
         const validLocalData = (
           Array.isArray(localFailedTrx) ? localFailedTrx : []
         ).map((trx) => normalizeTransaction(trx, "local"));
-        console.log(validLocalData);
+        // console.log(validRemoteData);
 
         // Create a Map to track unique transactions by sync_session_id
         const uniqueTransactions = new Map<string, TransactionSync>();
@@ -149,6 +148,7 @@ const FailedTransaction = () => {
           (a, b) =>
             new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         );
+        console.log(mergedData);
         setFailedTrx(mergedData);
       } catch (error) {
         console.error("Error fetching transactions:", error);
@@ -257,7 +257,7 @@ const FailedTransaction = () => {
   };
 
   return (
-    <div className="container mx-auto space-y-6">
+    <div className="container mx-auto space-y-6 p-5">
       <div>
         {goBackButton()}
         <header className="flex items-center justify-between w-full">

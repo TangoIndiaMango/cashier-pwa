@@ -11,6 +11,7 @@ import { getDbInstance } from "@/lib/db/db";
 import { TransactionSync } from "@/types/trxType";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import debounce from "lodash/debounce";
+import { SyncManager } from "@/lib/sync/syncManager";
 
 const FailedTransaction = () => {
   const [failedTrx, setFailedTrx] = useState<TransactionSync[]>([]);
@@ -18,6 +19,9 @@ const FailedTransaction = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const { isOnline } = useOnlineStatus();
   const [shouldRefetch, setShouldRefetch] = useState(false);
+  const [syncLoadingMap, setSyncLoadingMap] = useState<Record<string, boolean>>(
+    {}
+  );
 
   const sessionId = sessionStorage.getItem("sessionId");
 
@@ -50,9 +54,10 @@ const FailedTransaction = () => {
         await db.openDatabase();
 
         // Always fetch local failed transactions
-        const localFailedTrx = await LocalApiMethods.getFailedSyncTrx(String(sessionId));
-       
-        
+        const localFailedTrx = await LocalApiMethods.getFailedSyncTrx(
+          String(sessionId)
+        );
+
         let remoteData: any[] = [];
         if (isOnline) {
           try {
@@ -70,12 +75,13 @@ const FailedTransaction = () => {
         ): any => ({
           id: trx.id,
           sync_session_id: trx.sync_session_id,
-          firstname: trx.firstname,
-          lastname: trx.lastname,
+          firstname: source === "local" ? trx.firstname : trx.customer_name,
+          lastname: source === "local" ? trx.lastname : "",
+          fullname: source === "local" ?  trx.firstname + " " + trx.lastname : trx.customer_name,
           gender: trx.gender,
           age: trx.age,
           phoneno: trx.phoneno,
-          email: trx.email,
+          email: source === "remote" ? trx.customer_email : trx.email,
           country: trx.country,
           state: trx.state,
           city: trx.city,
@@ -109,18 +115,18 @@ const FailedTransaction = () => {
           source,
           store_id: trx.store_id
         });
-
+        console.log(remoteData);
         const validRemoteData = (
           Array.isArray(remoteData) ? remoteData : []
         ).map((trx) => normalizeTransaction(trx, "remote"));
         const validLocalData = (
           Array.isArray(localFailedTrx) ? localFailedTrx : []
         ).map((trx) => normalizeTransaction(trx, "local"));
-        console.log(validLocalData)
+        console.log(validLocalData);
 
         // Create a Map to track unique transactions by sync_session_id
         const uniqueTransactions = new Map<string, TransactionSync>();
-        
+
         // Process local transactions first (they take precedence)
         validLocalData.forEach((trx) => {
           if (trx.sync_session_id) {
@@ -234,6 +240,22 @@ const FailedTransaction = () => {
     }
   };
 
+  const handleTransactionSync = async (transaction: TransactionSync) => {
+
+    setSyncLoadingMap((prev) => ({ ...prev, [transaction.id]: true }));
+
+    try {
+      await SyncManager.getInstance().syncSingleTransaction(transaction);
+      
+      const db = await getDbInstance();
+      await db.openDatabase();
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setSyncLoadingMap((prev) => ({ ...prev, [transaction.id]: false }));
+    }
+  };
+
   return (
     <div className="container mx-auto space-y-6">
       <div>
@@ -261,7 +283,11 @@ const FailedTransaction = () => {
         </header>
       </div>
 
-      <FailedTransactionTable failedTrx={failedTrx} />
+      <FailedTransactionTable
+        failedTrx={failedTrx}
+        syncLoadingMap={syncLoadingMap}
+        onSync={handleTransactionSync}
+      />
     </div>
   );
 };

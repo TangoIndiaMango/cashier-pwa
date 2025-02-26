@@ -29,6 +29,7 @@ export interface TransactionSync {
     country: string | null;
     customer_name?:string
     customer_email?:string
+    fullname?:string
     state: string | null;
     city: string | null;
     address: string | null;

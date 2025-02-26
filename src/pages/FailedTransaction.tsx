@@ -75,9 +75,9 @@ const FailedTransaction = () => {
         ): any => ({
           id: trx.id,
           sync_session_id: trx.sync_session_id,
-          firstname: source === "remote" ? trx.firstname : trx.customer_name,
-          lastname: source === "remote" ? trx.lastname : "",
-          fullname: source === "remote" ? trx.customer_name : trx.firstname + " " + trx.lastname,
+          firstname: source === "local" ? trx.firstname : trx.customer_name,
+          lastname: source === "local" ? trx.lastname : "",
+          fullname: source === "local" ?  trx.firstname + " " + trx.lastname : trx.customer_name,
           gender: trx.gender,
           age: trx.age,
           phoneno: trx.phoneno,

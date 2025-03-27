@@ -23,9 +23,18 @@ export const formatBalance = (balance: number | string) => {
   return bal.split("NGN")[1];
 };
 
+// export const generateUniqueIdUsingStoreIDAsPrefix = (storeID: any) => {
+//   const timestamp = Date.now().toString().slice(-4);
+//   return `${storeID}/${timestamp}`;
+// };
+
 export const generateUniqueIdUsingStoreIDAsPrefix = (storeID: any) => {
-  const timestamp = Date.now().toString().slice(-4);
-  return `${storeID}/${timestamp}`;
+  const timestamp = Date.now() % 10000; // 0-9999
+  const random = Math.floor(Math.random() * 10); // 0-9
+  const counter = (window._idCounter = (window._idCounter || 0) % 100) + 1; // 1-99
+
+  const uniqueNumber = (timestamp * 1000 + random * 100 + counter) % 10000;
+  return `${storeID}/${uniqueNumber.toString().padStart(4, '0')}`;
 };
 
 export const delay = async (secs = 3) => new Promise((resolve) => setTimeout(resolve, secs * 1000))
@@ -69,3 +78,23 @@ export const getSessionId = () => {
   // sessionStorage.setItem('sessionId', formattedSessionId);
   return formattedSessionId;
 };
+
+export const getNextRecieptNo = (storeId: any) => {
+  const lastRecieptNo = JSON.parse(localStorage.getItem("existingReceiptNos") || ""); //1000/1
+  const lastRecieptNoArray = lastRecieptNo.split("/");
+  const leftNo = lastRecieptNoArray[0];
+  const rightNo = lastRecieptNoArray[1];
+  let nextLeftNo = parseInt(leftNo, 10);
+  let nextRightNo = parseInt(rightNo, 10) + 1;
+
+  // the idea is right side max should be 9, then left side should be incremented
+  // if right side is 9, then left side should be incremented
+  // if left side is incremented, reset to 1
+
+  if (nextRightNo > 9) {
+    nextLeftNo += parseInt(leftNo, 10) + 1;
+    nextRightNo = 1;
+  }
+
+  return `${storeId}/${nextLeftNo}/${nextRightNo}`;
+}

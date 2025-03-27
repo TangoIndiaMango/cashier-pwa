@@ -15,7 +15,7 @@ import { LocalApi } from "./localApi";
 // https://prlerp.com/peresianas-BE/public/api/
 
 const baseUrl =
-  "https://www.peresiana-ecomm-backend.nigeriasbsc.com/public/api/";
+  "https://prlerp.com/peresianas-BE/public/api/";
 
 const api = axios.create({
   baseURL: baseUrl + "v3",
@@ -187,7 +187,12 @@ export class RemoteApi {
 
   static async getUserByToken(token: string): Promise<any> {
     const response = await api.get(`user-by-token/${token}`);
-
+    return response.data.data;
+  }
+  // transactions/receipt-nos
+  static async getExistingReceiptNos(): Promise<any> {
+    const response = await api.get(`transactions/receipt-nos`);
     return response.data.data;
   }
 }
+

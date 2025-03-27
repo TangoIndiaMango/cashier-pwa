@@ -284,6 +284,12 @@ export const Receipt: React.FC<ReceiptProps> = ({ data, onClose }) => {
               <p>New Accumulated Points: {getAccumulatedPoints()}</p>
             </div>
 
+            {data?.creditNotePoints && data?.creditNotePoints > 0 && (
+              <div>
+                <p>Credit Note Points: {data?.creditNotePoints}</p>
+              </div>
+            )}
+
             <hr className="my-2 border-t border-dashed" />
 
             <div className="text-xs">

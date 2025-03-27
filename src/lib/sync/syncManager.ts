@@ -140,6 +140,7 @@ export class SyncManager {
       this.syncFailedTrx(sessionId),
       this.syncBranches(sessionId),
       this.sessionIDinDb(sessionId),
+      this.syncReceiptNos()
     ]);
   }
 
@@ -167,6 +168,15 @@ export class SyncManager {
         await db.customers.put({ ...customer, sessionId });
       }
     });
+  }
+
+  async syncReceiptNos() {
+    const existingReceiptNos = await RemoteApi.getExistingReceiptNos();
+    const existingReceiptNosLocalStorage = localStorage.getItem('existingReceiptNos');
+    if (existingReceiptNosLocalStorage) {
+      localStorage.removeItem('existingReceiptNos');
+    }
+    localStorage.setItem("existingReceiptNos", JSON.stringify(existingReceiptNos));
   }
 
   private async syncPaymentMethods(sessionId: string) {

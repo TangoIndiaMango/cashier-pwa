@@ -25,7 +25,7 @@ import { usePayment } from "@/hooks/usePayment";
 import { useTransaction } from "@/hooks/useTransaction";
 import {
     formatCurrency,
-    generateUniqueIdUsingStoreIDAsPrefix
+    getNextRecieptNo
 } from "@/lib/utils";
 
 import { Loader2, Search, ShoppingBag } from "lucide-react";
@@ -157,7 +157,7 @@ const POSSystem = () => {
       const finalTotal = subtotalBeforePoints - creditNoteAmount - loyaltyPointAmount;
 
       const data = {
-        recieptNo: generateUniqueIdUsingStoreIDAsPrefix(storeID),
+        recieptNo: getNextRecieptNo(storeID),
         paymentMethods: paymentMethod,
         payableAmount: paymentMethod.reduce(
           (sum, entry) => sum + (Number(entry.amount) || 0),

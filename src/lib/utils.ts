@@ -80,21 +80,59 @@ export const getSessionId = () => {
 };
 
 export const getNextRecieptNo = (storeId: any) => {
-  const lastRecieptNo = JSON.parse(localStorage.getItem("existingReceiptNos") || ""); //1000/1
-  const lastRecieptNoArray = lastRecieptNo.split("/");
-  const leftNo = lastRecieptNoArray[0];
-  const rightNo = lastRecieptNoArray[1];
-  let nextLeftNo = parseInt(leftNo, 10);
-  let nextRightNo = parseInt(rightNo, 10) + 1;
-
-  // the idea is right side max should be 9, then left side should be incremented
-  // if right side is 9, then left side should be incremented
-  // if left side is incremented, reset to 1
-
-  if (nextRightNo > 9) {
-    nextLeftNo += parseInt(leftNo, 10) + 1;
-    nextRightNo = 1;
+  // Get the existing receipt number from localStorage
+  const existingReceiptNos = localStorage.getItem("existingReceiptNos");
+  
+  // If we don't have a receipt number yet, start with a base number
+  if (!existingReceiptNos) {
+    const initialReceiptNo = `1000/1`;
+    // Save it for future use
+    localStorage.setItem("existingReceiptNos", JSON.stringify(initialReceiptNo));
+    return `${storeId}/${initialReceiptNo}`;
   }
 
-  return `${storeId}/${nextLeftNo}/${nextRightNo}`;
-}
+  try {
+    const lastRecieptNo = JSON.parse(existingReceiptNos);
+    const lastRecieptNoArray = lastRecieptNo.split("/");
+    
+    // If the format is invalid, start fresh but maintain the data we found
+    if (lastRecieptNoArray.length < 2) {
+      console.warn("Found invalid receipt format:", lastRecieptNo);
+      // Use the existing number as left part if possible, or default to 1000
+      const leftNo = !isNaN(parseInt(lastRecieptNo)) ? parseInt(lastRecieptNo) : 1000;
+      const newReceiptNo = `${leftNo}/1`;
+      localStorage.setItem("existingReceiptNos", JSON.stringify(newReceiptNo));
+      return `${storeId}/${newReceiptNo}`;
+    }
+
+    const leftNo = parseInt(lastRecieptNoArray[0], 10);
+    const rightNo = parseInt(lastRecieptNoArray[1], 10);
+
+    // If numbers are invalid, use safe defaults
+    if (isNaN(leftNo) || isNaN(rightNo)) {
+      const newReceiptNo = "1000/1";
+      localStorage.setItem("existingReceiptNos", JSON.stringify(newReceiptNo));
+      return `${storeId}/${newReceiptNo}`;
+    }
+
+    let nextLeftNo = leftNo;
+    let nextRightNo = rightNo + 1;
+
+    if (nextRightNo > 9) {
+      nextLeftNo += 1;
+      nextRightNo = 1;
+    }
+
+    const nextReceiptNo = `${nextLeftNo}/${nextRightNo}`;
+    // Save the new receipt number immediately
+    localStorage.setItem("existingReceiptNos", JSON.stringify(nextReceiptNo));
+    
+    return `${storeId}/${nextReceiptNo}`;
+  } catch (error) {
+    console.warn("Error processing receipt number:", error);
+    // If anything goes wrong, create a new receipt number but log it
+    const fallbackNo = "1000/1";
+    localStorage.setItem("existingReceiptNos", JSON.stringify(fallbackNo));
+    return `${storeId}/${fallbackNo}`;
+  }
+};

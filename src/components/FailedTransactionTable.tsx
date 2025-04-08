@@ -10,8 +10,8 @@ import {
 } from "@/components/ui/table";
 import { useCart } from "@/hooks/useCart";
 import { LocalTransactionItem } from "@/lib/db/schema";
-import { SyncManager } from "@/lib/sync/syncManager";
 import { formatBalance } from "@/lib/utils";
+import { TransactionSync } from "@/types/trxType";
 import dayjs from 'dayjs';
 import { Eye, Loader2, LucideFolderSync } from "lucide-react";
 import { useState } from "react";
@@ -19,7 +19,13 @@ import { useStore } from "../hooks/useStore";
 import { ProductDetailsDialog } from "./Modals/ProductDetailsDialog";
 import ProductSearchModal from "./Modals/ProductSearchModal";
 
-export function FailedTransactionTable({failedTrx}) {
+interface Props {
+  failedTrx: TransactionSync[];
+  syncLoadingMap: Record<string, boolean>;
+  onSync: (transaction: TransactionSync) => Promise<void>;
+}
+
+export const FailedTransactionTable = ({ failedTrx, syncLoadingMap, onSync }: Props) => {
   const { updateCartItem } = useCart();
 
   const [selectedProduct, setSelectedProduct] =
@@ -27,7 +33,7 @@ export function FailedTransactionTable({failedTrx}) {
   const [showEditProd, setShowEditProd] = useState(false);
   const [showViewProd, setShowViewProd] = useState(false);
   const { loading } = useStore();
-  const syncMang = SyncManager.getInstance()
+  // const syncMang = SyncManager.getInstance()
 
   const handleEdit = (product: LocalTransactionItem, action: string) => {
     setSelectedProduct(product);
@@ -37,10 +43,6 @@ export function FailedTransactionTable({failedTrx}) {
       setShowViewProd(true);
     }
   };
-
-  const handleTransactionSync = async (trx:any) => {
-    syncMang.syncSingleTransaction(trx)
-  }
 
   return loading ? (
     <div className="flex items-center justify-center h-screen">
@@ -89,7 +91,7 @@ export function FailedTransactionTable({failedTrx}) {
                   {trx?.products[0]?.ean || "N/A"}
                 </TableCell>
                 <TableCell className="hidden lg:table-cell">
-                  {trx?.customer_name || "N/A"}
+                  {trx?.firstname + ' ' + trx?.lastname || "N/A"}
                 </TableCell>
                 <TableCell className="hidden lg:table-cell">
                   {trx?.error_message || "N/A"}
@@ -105,15 +107,17 @@ export function FailedTransactionTable({failedTrx}) {
                     <Button
                       variant="lightblue"
                       size="sm"
-                      onClick={() => handleTransactionSync(trx)}
+                      onClick={() => onSync(trx)}
+                      disabled={syncLoadingMap[trx.id]}
                     >
-                      <LucideFolderSync className="w-4 h-4" />
+                      
                       <span className="sr-only">Sync</span>
+                      {syncLoadingMap[trx.id] ? <Loader2 className="w-4 h-4 animate-spin" /> : <LucideFolderSync className="w-4 h-4" />}
                     </Button>
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleEdit(trx, "view")}
+                      onClick={() => handleEdit(trx as any, "view")}
                     >
                       <Eye className="w-4 h-4" />
                       <span className="sr-only">View</span>

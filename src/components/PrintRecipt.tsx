@@ -18,6 +18,7 @@ interface ReceiptProps {
     noDiscountAmount: number;
     originalTotal: number;
     prodDiscountTotal: number;
+    subtotalBeforePoints: number;
   };
   onClose: () => void;
 }
@@ -148,31 +149,32 @@ export const Receipt: React.FC<ReceiptProps> = ({ data, onClose }) => {
   // console.log(store);
 
   const getAccumulatedPoints = () => {
-    let acc_points = 0;
-
-    // Get current loyalty points
+    // Get current loyalty points balance
     const currentLoyaltyPoints = Number(data.customer.loyalty_points) || 0;
 
-    const creditNoteUsed = Number(data.creditNotePoints) || 0;
-    const pointsEarnedAfterCreditNote = Number(
-      (data.totalAmount - creditNoteUsed) * 0.02
-    );
+    // Points used in this transaction
+    const loyaltyPointsUsed = Number(data.loyaltyPoints) || 0;
 
-    if (currentLoyaltyPoints > 0) {
-      acc_points = currentLoyaltyPoints + pointsEarnedAfterCreditNote;
-    } else {
-      acc_points = pointsEarnedAfterCreditNote;
-    }
+    // Calculate points earned on the subtotal before any points deductions
+    // This ensures customers earn points on the full purchase value
+    // regardless of how they pay for it
+    const pointsEarned = Number(data.subtotalBeforePoints * 0.02);
 
-    acc_points = Math.max(0, Number(acc_points));
+    // Calculate new total: 
+    // Current balance - Points used + New points earned
+    const newPointsBalance = currentLoyaltyPoints - loyaltyPointsUsed + pointsEarned;
 
+    // Ensure we never go negative
+    const finalPoints = Math.max(0, newPointsBalance);
+
+    // Update the customers array
     customers.find((customer) => {
       if (customer.id === data.customer.id) {
-        customer.loyalty_points = acc_points;
+        customer.loyalty_points = finalPoints;
       }
     });
 
-    return acc_points.toFixed(2);
+    return finalPoints.toFixed(2);
   };
 
   return (
@@ -278,11 +280,17 @@ export const Receipt: React.FC<ReceiptProps> = ({ data, onClose }) => {
             <div>
               <p>
                 Points Gained in Purchase:{" "}
-                {Number(data.totalAmount * 0.02) || 0}
+                {Number(data.subtotalBeforePoints * 0.02) || 0}
               </p>
               <p>Points Used in Purchase: {data?.loyaltyPoints || 0}</p>
               <p>New Accumulated Points: {getAccumulatedPoints()}</p>
             </div>
+
+            {data?.creditNotePoints && data?.creditNotePoints > 0 && (
+              <div>
+                <p>Credit Note Points Used: {data?.creditNotePoints}</p>
+              </div>
+            )}
 
             <hr className="my-2 border-t border-dashed" />
 

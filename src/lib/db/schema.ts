@@ -147,11 +147,16 @@ export class StoreDatabase extends Dexie {
 
 
   async openDatabase() {
-    await this.open().then(() => {
-      console.log("Database opened successfully!");
-    }).catch((error) => {
+    if (this.isOpen()) {
+      return;
+    }
+    
+    try {
+      await this.open();
+    } catch (error) {
       console.error("Failed to open database:", error);
-    });
+      throw error;
+    }
   }
 }
 

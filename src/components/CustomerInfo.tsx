@@ -58,7 +58,7 @@ const CustomerComponent: React.FC<CustomerComponentProps> = ({
   const [filteredCustomers, setFilteredCustomers] = useState<LocalCustomer[]>(
     []
   );
-  const {clearPoints} = useApplyPoints()
+  const { clearPoints } = useApplyPoints();
   const { customers, loading, setLoading } = useStore();
   const [createNew, setCreateNew] = useState(false);
 
@@ -107,11 +107,11 @@ const CustomerComponent: React.FC<CustomerComponentProps> = ({
       credit_note_balance: customer?.credit_note_balance || 0,
       id: customer?.id
     });
-    clearPoints()
+    clearPoints();
   };
 
   const handleCreateNew = async () => {
-    const dbInstance = getDbInstance();
+    const dbInstance = await getDbInstance();
     const id = crypto.randomUUID();
 
     const updatedCustomerDetails: CustomerDetails = {
@@ -120,7 +120,7 @@ const CustomerComponent: React.FC<CustomerComponentProps> = ({
       loyalty_points: 0,
       credit_note_balance: 0
     };
-    console.log(updatedCustomerDetails)
+    console.log(updatedCustomerDetails);
     try {
       setLoading(true);
       await LocalApi.createNewCustomerInfo(

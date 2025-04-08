@@ -1,8 +1,9 @@
 import { LocalApiMethods } from "@/lib/api/localMethods";
-import { delay } from "@/lib/utils";
+import { closeDB, getDbInstance } from "@/lib/db/db";
 import { TransactionSync } from "@/types/trxType";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 import { LocalApi } from "../lib/api/localApi";
 import {
   LocalBranch,
@@ -13,10 +14,10 @@ import {
   LocalTransaction
 } from "../lib/db/schema";
 import { SyncManager } from "../lib/sync/syncManager";
-import { getDbInstance } from "@/lib/db/db";
-import { redirect } from "react-router-dom";
+import { delay } from "@/lib/utils";
 
 export function useStore() {
+  const navigate = useNavigate();
   const [products, setProducts] = useState<LocalProduct[]>([]);
   const [discounts, setDiscounts] = useState<LocalDiscount[]>([]);
   const [failedTrx, setFailedTrx] = useState<TransactionSync[]>([]);
@@ -26,17 +27,105 @@ export function useStore() {
   const [unsyncedTrx, setUnsyncedTrx] = useState<LocalTransaction[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-  // const [errorShown, setErrorShown] = useState(false);
-  // const { isOnline } = useOnlineStatus();
-  // const SHOULD_FETCH = 30 * 60 * 1000
 
-  const syncManager = SyncManager.getInstance();
+  // Add debounce for notifications
+  const toastDebounceRef = useRef<NodeJS.Timeout>();
+  const showErrorToast = useCallback((message: string) => {
+    if (toastDebounceRef.current) {
+      clearTimeout(toastDebounceRef.current);
+    }
+    toastDebounceRef.current = setTimeout(() => {
+      toast.error(message);
+    }, 300);
+  }, []);
+
+  const handleCriticalError = useCallback(() => {
+    showErrorToast("Something went wrong. Redirecting to home page.");
+    navigate('/');
+  }, [navigate]);
 
   const refreshDB = async () => {
-    const db = getDbInstance()
-    await delay(2)
-    await db.openDatabase()
+    try {
+      await delay(1);
+      const db = await getDbInstance();
+
+      if (!db.isOpen()) {
+        console.error("Database failed to initialize");
+        // toast.error("Database connection failed");
+        return false;
+      }
+      return true;
+    } catch (error) {
+      console.error("DB refresh failed:", error);
+      // toast.error("Failed to connect to database");
+      return false;
+    }
   };
+
+  const triggerLocalFetch = async () => {
+    const sessionId = sessionStorage.getItem("sessionId");
+    if (!sessionId) {
+      showErrorToast("No session ID found, please login again.");
+      navigate('/login');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const dbOpened = await refreshDB();
+      if (!dbOpened) return;
+
+      // Load products first most important
+      const productResults = await LocalApi.getAllProducts();
+      if (productResults?.length) {
+        setProducts(productResults);
+      } else {
+        console.warn("No products loaded from database");
+      }
+
+      const [
+        failedTrxResults,
+        customerResults,
+        paymentResults,
+        branchResults,
+        discountResults,
+        unsyncedResults
+      ] = await Promise.all([
+        LocalApiMethods.getFailedSyncTrx(sessionId),
+        LocalApi.getCustomers(),
+        LocalApiMethods.getAllPaymentMethods(),
+        LocalApiMethods.getBranches(),
+        LocalApiMethods.getDiscounts(),
+        LocalApi.getUnsynedTransactions(sessionId),
+      ]);
+
+      setFailedTrx(failedTrxResults || []);
+      setCustomers(customerResults || []);
+      setPaymentMethod(paymentResults || []);
+      setBranches(branchResults || []);
+      setDiscounts(discountResults || []);
+      setUnsyncedTrx(unsyncedResults || []);
+
+    } catch (error) {
+      console.error("Local fetch failed:", error);
+      showErrorToast("Failed to load some data. Please refresh.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Add an initialization effect
+  useEffect(() => {
+    const initializeStore = async () => {
+      const dbOpened = await refreshDB();
+      if (dbOpened) {
+        await triggerLocalFetch();
+      }
+    };
+
+    initializeStore();
+  }, []);
 
   const triggerFetch = async () => {
     try {
@@ -47,81 +136,64 @@ export function useStore() {
     } catch (error) {
       console.error("Fetch failed:", error);
       setError(error as Error);
+      handleCriticalError();
     } finally {
       setLoading(false);
     }
-  }
-
-  const triggerLocalFetch = async () => {
-    try {
-      const sessionId = sessionStorage.getItem("sessionId")
-
-      if (!sessionId) {
-        // toast.error("No session ID found, you'll be redirected to login again.");
-        console.log("Reidrect to login, no sessionId")
-        redirect('/login');
-        return null;
-      }
-      setLoading(true);
-      await refreshDB();
-      const [
-        localProducts,
-        localFailedTrx,
-        localCustomers,
-        localPaymentMethods,
-        localBranches,
-        localDiscounts,
-        localunsyncedTrx,
-      ] = await Promise.all([
-        LocalApi.getAllProducts(),
-        LocalApiMethods.getFailedSyncTrx(sessionId),
-        LocalApi.getCustomers(),
-        LocalApiMethods.getAllPaymentMethods(),
-        LocalApiMethods.getBranches(),
-        LocalApiMethods.getDiscounts(),
-        LocalApi.getUnsynedTransactions(sessionId),
-      ]);
-
-      setProducts(localProducts);
-      setFailedTrx(localFailedTrx);
-      setCustomers(localCustomers);
-      setPaymentMethod(localPaymentMethods);
-      setBranches(localBranches);
-      setDiscounts(localDiscounts);
-      setUnsyncedTrx(localunsyncedTrx);
-      console.log("Loaded local data");
-    } catch (error) {
-      console.error("Local fetch failed:", error);
-      setError(error as Error);
-    } finally {
-      setLoading(false);
-    }
-  }
+  };
 
   const triggerSync = async () => {
     try {
       setLoading(true);
       await syncManager.sync();
       await triggerLocalFetch();
-      toast.success("Synced successfully");
+      toast.success("Successfully synced with the server.");
     } catch (error) {
       console.error("Sync failed:", error);
       setError(error as Error);
-      toast.error("Sync failed");
+      handleCriticalError();
     } finally {
       setLoading(false);
     }
   }
 
-  // useEffect(() => {
-  //   if (isOnline) {
-  //     triggerFetch();
-  //   }
-  // }, [])
-
+  // Add cleanup on unmount
   useEffect(() => {
-    triggerLocalFetch();
+    let mounted = true;
+
+    const cleanup = async () => {
+      if (mounted) {
+        await closeDB();
+      }
+    };
+
+    return () => {
+      mounted = false;
+      cleanup().catch(console.error);
+    };
   }, []);
+
+  // Add debounced refresh
+  const refreshTimeoutRef = useRef<NodeJS.Timeout>();
+  const debouncedRefresh = useCallback(() => {
+    if (refreshTimeoutRef.current) {
+      clearTimeout(refreshTimeoutRef.current);
+    }
+    refreshTimeoutRef.current = setTimeout(() => {
+      triggerLocalFetch();
+    }, 1000);
+  }, []);
+
+  // Cleanup refresh timeout
+  useEffect(() => {
+    return () => {
+      if (refreshTimeoutRef.current) {
+        clearTimeout(refreshTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const syncManager = SyncManager.getInstance();
 
   const updateAvailableQuantity = useCallback((ean: string, quantity: number) => {
     setProducts((prevProducts) =>
@@ -144,11 +216,12 @@ export function useStore() {
 
       if (!sessionId) {
         toast.error("No session ID found, please login again.");
-        redirect('/login');
+        navigate('/login');
         return;
       }
       await LocalApi.createTransaction(data, sessionId);
       await triggerLocalFetch();
+
     } catch (err) {
       setError(err as Error);
       throw err;
@@ -170,7 +243,8 @@ export function useStore() {
     updateAvailableQuantity,
     createTransaction,
     setLoading,
-    triggerLocalFetch,
+    triggerLocalFetch: debouncedRefresh,
+    refreshDB, // Expose this for components that need to ensure DB connection
   };
 }
 

@@ -2,21 +2,45 @@ import { FailedTransactionTable } from "@/components/FailedTransactionTable";
 import { Button } from "@/components/ui/button";
 import useGoBack from "@/hooks/useGoBack";
 import { saveAs } from "file-saver";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import toast from "react-hot-toast";
 import * as XLSX from "xlsx";
 import { RemoteApi } from "../lib/api/remoteApi";
 import { LocalApiMethods } from "@/lib/api/localMethods";
 import { getDbInstance } from "@/lib/db/db";
 import { TransactionSync } from "@/types/trxType";
+import { useOnlineStatus } from "@/hooks/useOnlineStatus";
+import debounce from "lodash/debounce";
+import { SyncManager } from "@/lib/sync/syncManager";
 
 const FailedTransaction = () => {
   const [failedTrx, setFailedTrx] = useState<TransactionSync[]>([]);
   const { goBackButton } = useGoBack();
   const [loading, setLoading] = useState<boolean>(true);
-  const db = getDbInstance();
+  const { isOnline } = useOnlineStatus();
+  const [shouldRefetch, setShouldRefetch] = useState(false);
+  const [syncLoadingMap, setSyncLoadingMap] = useState<Record<string, boolean>>(
+    {}
+  );
+
   const sessionId = sessionStorage.getItem("sessionId");
 
+  // Debounce the online status change handler
+  const handleOnlineStatusChange = useCallback((online: boolean) => {
+    const debounceSet = debounce(() => {
+      if (online) {
+        setShouldRefetch(true);
+      }
+    }, 1000);
+    debounceSet();
+  }, []);
+
+  // Watch online status changes
+  useEffect(() => {
+    handleOnlineStatusChange(isOnline);
+  }, [handleOnlineStatusChange, isOnline]);
+
+  // Fetch data effect
   useEffect(() => {
     const getFailedTrx = async () => {
       if (!sessionId) {
@@ -26,125 +50,165 @@ const FailedTransaction = () => {
 
       try {
         setLoading(true);
+        const db = await getDbInstance();
         await db.openDatabase();
 
-        // Fetch both remote and local failed transactions
-        const [remoteData, localFailedTrx] = await Promise.all([
-          RemoteApi.fetchFailedTransactions(),
-          LocalApiMethods.getFailedSyncTrx(String(sessionId))
-        ]);
+        // Always fetch local failed transactions
+        const localFailedTrx = await LocalApiMethods.getFailedSyncTrx(
+          String(sessionId)
+        );
+
+        let remoteData: any
+        if (isOnline) {
+          try {
+            remoteData = await RemoteApi.fetchFailedTransactions();
+            setShouldRefetch(false); // Reset after successful fetch
+          } catch (error) {
+            console.log("Couldn't fetch remote transactions:", error);
+          }
+        }
 
         // Ensure both data sources are arrays and normalize the data
-        const normalizeTransaction = (trx: any, source: 'local' | 'remote'): any => ({
+        const normalizeTransaction = (
+          trx: any,
+          source: "local" | "remote"
+        ): any => ({
           id: trx.id,
           sync_session_id: trx.sync_session_id,
-          customer_name: trx.customer_name,
-          customer_email: trx.customer_email,
-          receipt_no: String(trx.receipt_no),
-          payment_methods: Array.isArray(trx.payment_methods) 
-            ? trx.payment_methods 
-            : JSON.parse(trx.payment_methods || '[]'),
-          products: Array.isArray(trx.products) 
-            ? trx.products 
-            : JSON.parse(trx.products || '[]'),
+          firstname: trx.firstname,
+          lastname: trx.lastname,
+          gender: trx.gender,
+          age: trx.age,
+          phoneno: trx.phoneno,
+          email: source === "local" ? trx.email : trx.customer_email,
+          country: trx.country,
+          state: trx.state,
+          city: trx.city,
+          address: trx.address,
+          apply_loyalty_point: trx.apply_loyalty_point,
+          apply_credit_note_point: trx.apply_credit_note_point,
+          payable_amount: trx.payable_amount,
           exact_total_amount: trx.exact_total_amount,
-          total: trx.total || trx.totalAmount || 0,
-          transaction_data: typeof trx.transaction_data === 'string' 
-            ? trx.transaction_data 
-            : JSON.stringify(trx.transaction_data),
+          payment_type: trx.payment_type,
+          discount_id: trx.discount_id,
+          loyalty_point_value: trx.loyalty_point_value,
+          credit_note_used: trx.credit_note_used,
+          payment_methods: Array.isArray(trx.payment_methods)
+            ? trx.payment_methods
+            : JSON.parse(trx.payment_methods || "[]"),
+          status: trx.status,
+          payment_status: trx.payment_status,
+          total_price: trx.total_price || trx.payable_amount,
+          receipt_no: String(trx.receipt_no),
+          products: Array.isArray(trx.products)
+            ? trx.products
+            : JSON.parse(trx.products || "[]"),
+          transaction_data:
+            typeof trx.transaction_data === "string"
+              ? trx.transaction_data
+              : JSON.stringify(trx.transaction_data),
           error_message: trx.error_message,
+          sessionId: trx.sessionId,
           created_at: new Date(trx.created_at).toISOString(),
           updated_at: new Date(trx.updated_at).toISOString(),
           source,
           store_id: trx.store_id
         });
-
-        const validRemoteData = (Array.isArray(remoteData) ? remoteData : [])
-          .map(trx => normalizeTransaction(trx, 'remote'));
-        const validLocalData = (Array.isArray(localFailedTrx) ? localFailedTrx : [])
-          .map(trx => normalizeTransaction(trx, 'local'));
+        // console.log(remoteData);
+        const validRemoteData = (
+          Array.isArray(remoteData?.data) ? remoteData?.data as any[] : []
+        ).map((trx) => normalizeTransaction(trx, "remote"));
+        const validLocalData = (
+          Array.isArray(localFailedTrx) ? localFailedTrx : []
+        ).map((trx) => normalizeTransaction(trx, "local"));
+        // console.log(validRemoteData);
 
         // Create a Map to track unique transactions by sync_session_id
         const uniqueTransactions = new Map<string, TransactionSync>();
 
         // Process local transactions first (they take precedence)
-        validLocalData.forEach(trx => {
+        validLocalData.forEach((trx) => {
           if (trx.sync_session_id) {
             uniqueTransactions.set(trx.sync_session_id, trx);
           }
         });
 
         // Add remote transactions if they don't exist locally
-        validRemoteData.forEach(trx => {
-          if (trx.sync_session_id && !uniqueTransactions.has(trx.sync_session_id)) {
+        validRemoteData.forEach((trx) => {
+          if (
+            trx.sync_session_id &&
+            !uniqueTransactions.has(trx.sync_session_id)
+          ) {
             uniqueTransactions.set(trx.sync_session_id, trx);
           }
         });
 
         // Convert Map values back to array and sort by created_at
-        const mergedData = Array.from(uniqueTransactions.values())
-          .sort((a, b) => 
+        const mergedData = Array.from(uniqueTransactions.values()).sort(
+          (a, b) =>
             new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-          );
-
+        );
+        console.log(mergedData);
         setFailedTrx(mergedData);
       } catch (error) {
-        console.error("Failed to fetch transactions:", error);
-        toast.error(
-          "Failed to fetch failed transactions. Please try again later."
-        );
+        console.error("Error fetching transactions:", error);
+        toast.error("Error loading local failed transactions");
       } finally {
         setLoading(false);
       }
     };
 
-    getFailedTrx();
-  }, [sessionId]);
+    if (sessionId && (shouldRefetch || !failedTrx.length)) {
+      getFailedTrx();
+    }
+  }, [sessionId, shouldRefetch, isOnline]);
 
   const downloadCSV = (data: TransactionSync[]) => {
     const headers = [
-      'ID',
-      'Sync Session ID',
-      'Customer Name',
-      'Customer Email',
-      'Receipt No',
-      'Total Amount',
-      'Error Message',
-      'Created At',
-      'Source'
+      "ID",
+      "Sync Session ID",
+      "Customer Name",
+      "Customer Email",
+      "Receipt No",
+      "Total Amount",
+      "Error Message",
+      "Created At",
+      "Source"
     ];
 
     const csvRows = [
-      headers.join(','),
-      ...data.map(row => [
-        row.id,
-        row.sync_session_id,
-        row.customer_name,
-        row.customer_email,
-        row.receipt_no,
-        row.total,
-        row.error_message,
-        new Date(row.created_at).toLocaleString(),
-        row.source
-      ].join(','))
+      headers.join(","),
+      ...data.map((row) =>
+        [
+          row.id,
+          row.sync_session_id,
+          row.firstname + " " + row.lastname,
+          row.email,
+          row.receipt_no,
+          row.total_price,
+          row.error_message,
+          new Date(row.created_at).toLocaleString(),
+          row.source
+        ].join(",")
+      )
     ];
 
-    const csvContent = csvRows.join('\n');
+    const csvContent = csvRows.join("\n");
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     saveAs(blob, `failed_transactions_${new Date().toISOString()}.csv`);
   };
 
   const downloadExcel = (data: TransactionSync[]) => {
-    const worksheetData = data.map(row => ({
+    const worksheetData = data.map((row) => ({
       ID: row.id,
-      'Sync Session ID': row.sync_session_id,
-      'Customer Name': row.customer_name,
-      'Customer Email': row.customer_email,
-      'Receipt No': row.receipt_no,
-      'Total Amount': row.total,
-      'Error Message': row.error_message,
-      'Created At': new Date(row.created_at).toLocaleString(),
-      'Source': row.source
+      "Sync Session ID": row.sync_session_id,
+      "Customer Name": row.firstname + " " + row.lastname,
+      "Customer Email": row.email,
+      "Receipt No": row.receipt_no,
+      "Total Amount": row.total_price,
+      "Error Message": row.error_message,
+      "Created At": new Date(row.created_at).toLocaleString(),
+      Source: row.source
     }));
 
     const worksheet = XLSX.utils.json_to_sheet(worksheetData);
@@ -176,8 +240,24 @@ const FailedTransaction = () => {
     }
   };
 
+  const handleTransactionSync = async (transaction: TransactionSync) => {
+
+    setSyncLoadingMap((prev) => ({ ...prev, [transaction.id]: true }));
+
+    try {
+      await SyncManager.getInstance().syncSingleTransaction(transaction);
+      
+      const db = await getDbInstance();
+      await db.openDatabase();
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setSyncLoadingMap((prev) => ({ ...prev, [transaction.id]: false }));
+    }
+  };
+
   return (
-    <div className="container mx-auto space-y-6">
+    <div className="container mx-auto space-y-6 p-5">
       <div>
         {goBackButton()}
         <header className="flex items-center justify-between w-full">
@@ -203,7 +283,11 @@ const FailedTransaction = () => {
         </header>
       </div>
 
-      <FailedTransactionTable failedTrx={failedTrx} />
+      <FailedTransactionTable
+        failedTrx={failedTrx}
+        syncLoadingMap={syncLoadingMap}
+        onSync={handleTransactionSync}
+      />
     </div>
   );
 };

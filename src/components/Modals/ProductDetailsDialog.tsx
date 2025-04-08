@@ -25,7 +25,7 @@ export function ProductDetailsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="md:max-w-xl">
         <DialogHeader>
           <DialogTitle>Product Details</DialogTitle>
           <DialogDescription>View Product details</DialogDescription>
@@ -37,7 +37,15 @@ export function ProductDetailsDialog({
               {/* <p>{product.product_code}</p> */}
             </div>
             <DynamicContentRenderer data={product} />
-            {/* <div>
+          </div>
+        </ScrollArea>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+
+ {/* <div>
                 <h3 className="font-semibold">Customer</h3>
                 <p>{Product.customer?.firstname || "N/A"} {Product.customer?.lastname}</p>
               </div>
@@ -73,9 +81,3 @@ export function ProductDetailsDialog({
                   <p className={`${Product?.synced === 'true' ? 'bg-purple-400 text-purple-800' : 'bg-yellow-200 text-yellow-900'} px-3 rounded-xl w-fit `}>{Product.synced}</p>
                 </div>
               )} */}
-          </div>
-        </ScrollArea>
-      </DialogContent>
-    </Dialog>
-  );
-}

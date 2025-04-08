@@ -25,7 +25,7 @@ export const NetworkInfo: React.FC = () => {
 
         <Badge
           className="hidden lg:block"
-          variant={`${isOnline ? "success" : "destructive"}`}
+          variant={`${isOnline ? "default" : "destructive"}`}
         >
           {isOnline ? <p>Online </p> : "Offline"}
         </Badge>

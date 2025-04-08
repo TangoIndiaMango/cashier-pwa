@@ -4,7 +4,7 @@ const DynamicContentRenderer = ({ data }) => {
   const renderKeyValue = (key, value) => {
     if (Array.isArray(value)) {
       return (
-        <div key={key}>
+        <div key={key} className="overflow-auto text-balance">
           <strong>{key}:</strong>
           <ul className="ml-4">
             {value.map((item, index) => (
@@ -29,7 +29,7 @@ const DynamicContentRenderer = ({ data }) => {
     } else if (value && typeof value === "object") {
       // For nested objects (e.g., payment method details)
       return (
-        <div key={key}>
+        <div key={key} className="overflow-auto text-balance">
           <strong>{key}:</strong>
           <ul className="ml-4">
             {Object.keys(value).map((nestedKey) => (
@@ -42,13 +42,13 @@ const DynamicContentRenderer = ({ data }) => {
       );
     } else if (value === null) {
       return (
-        <div key={key}>
+        <div key={key} className="overflow-auto text-balance">
           <strong>{key}:</strong> <em>No data available</em>
         </div>
       );
     } else {
       return (
-        <div key={key}>
+        <div key={key} className="overflow-auto text-balance">
           <strong>{key}:</strong> {value}
         </div>
       );
@@ -57,7 +57,7 @@ const DynamicContentRenderer = ({ data }) => {
 
   return (
     <div className="prose max-w-full">
-      <div className="bg-gray-100 p-4 rounded-lg">
+      <div className="bg-gray-100 p-4 rounded-lg overflow-auto text-balance">
         
         {Object.keys(data).map((key) => renderKeyValue(key, data[key]))}
       </div>

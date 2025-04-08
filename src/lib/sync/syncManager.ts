@@ -275,6 +275,9 @@ export class SyncManager {
     }
 
     const batchSize = 10;
+    let successCount = 0;
+    let failureCount = 0;
+
     for (let i = 0; i < unsynedTransactions.length; i += batchSize) {
       const batch = unsynedTransactions.slice(i, i + batchSize);
       const syncId = `${Math.floor(Date.now() / 1000)}_SYNC`;
@@ -289,14 +292,16 @@ export class SyncManager {
           const { failed_transaction = 0 } = response?.data || {};
 
           if (failed_transaction > 0) {
+            failureCount++;
             await LocalApiMethods.createFailedTrx(sessionId, [
               this.createFailedTransaction(formattedTransaction, sessionId, syncId, response?.message || "Sync failed")
             ]);
           } else {
+            successCount++;
             await LocalApi.markTransactionSynced(transaction.id, sessionId);
-            toast.success(`${response?.data?.message}`);
           }
         } catch (error) {
+          failureCount++;
           console.error("Transaction sync failed:", error);
           await LocalApiMethods.createFailedTrx(sessionId, [
             this.createFailedTransaction(
@@ -308,6 +313,14 @@ export class SyncManager {
           ]);
         }
       }
+    }
+
+    // Show a single summary toast at the end
+    if (successCount > 0) {
+      toast.success(`Successfully synced ${successCount} transaction${successCount > 1 ? 's' : ''}`);
+    }
+    if (failureCount > 0) {
+      toast.error(`Failed to sync ${failureCount} transaction${failureCount > 1 ? 's' : ''}`);
     }
   }
 

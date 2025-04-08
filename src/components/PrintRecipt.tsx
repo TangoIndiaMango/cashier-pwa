@@ -280,7 +280,7 @@ export const Receipt: React.FC<ReceiptProps> = ({ data, onClose }) => {
             <div>
               <p>
                 Points Gained in Purchase:{" "}
-                {Number(data.totalAmount * 0.02) || 0}
+                {Number(data.subtotalBeforePoints * 0.02) || 0}
               </p>
               <p>Points Used in Purchase: {data?.loyaltyPoints || 0}</p>
               <p>New Accumulated Points: {getAccumulatedPoints()}</p>
@@ -288,7 +288,7 @@ export const Receipt: React.FC<ReceiptProps> = ({ data, onClose }) => {
 
             {data?.creditNotePoints && data?.creditNotePoints > 0 && (
               <div>
-                <p>Credit Note Points: {data?.creditNotePoints}</p>
+                <p>Credit Note Points Used: {data?.creditNotePoints}</p>
               </div>
             )}
 

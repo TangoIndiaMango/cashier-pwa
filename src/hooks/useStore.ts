@@ -147,7 +147,7 @@ export function useStore() {
       setLoading(true);
       await syncManager.sync();
       await triggerLocalFetch();
-      toast.success("Synced successfully");
+      toast.success("Successfully synced with the server.");
     } catch (error) {
       console.error("Sync failed:", error);
       setError(error as Error);
